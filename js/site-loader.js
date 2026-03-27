@@ -10,11 +10,11 @@
   /* =======================================================
      LOAD SHARED MENU CSS
      This inserts menu.css into the <head>
-     ======================================================= */
+     ======================================================= 
   const css = document.createElement("link");
   css.rel = "stylesheet";
   css.href = "https://toniopaceict.github.io/mylearningspace/css/menu.css?v=" + MENU_VERSION;
-  document.head.appendChild(css);
+  document.head.appendChild(css);*/
 
   /* =======================================================
      LOAD SHARED HEADER JS
