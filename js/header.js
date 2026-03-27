@@ -2,7 +2,7 @@ function initTonioHeader() {
   const headerPlaceholder = document.getElementById("header-placeholder");
   if (!headerPlaceholder) return;
 
-  fetch("https://toniopaceict.github.io/mylearningspace/html/header.html?v=1")
+  fetch("https://toniopaceict.github.io/mylearningspace/html/header.html?v=2")
     .then(response => {
       if (!response.ok) {
         throw new Error("Header file could not be loaded.");
