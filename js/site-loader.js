@@ -8,15 +8,6 @@
   const MENU_VERSION = "1";
 
   /* =======================================================
-     LOAD SHARED MENU CSS
-     This inserts menu.css into the <head>
-     ======================================================= 
-  const css = document.createElement("link");
-  css.rel = "stylesheet";
-  css.href = "https://toniopaceict.github.io/mylearningspace/css/menu.css?v=" + MENU_VERSION;
-  document.head.appendChild(css);*/
-
-  /* =======================================================
      LOAD SHARED HEADER JS
      Wait until the page is ready, then load header.js
      This is important because header.js needs:
