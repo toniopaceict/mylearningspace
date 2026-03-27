@@ -13,7 +13,7 @@
      ======================================================= */
   const css = document.createElement("link");
   css.rel = "stylesheet";
-  css.href = "https://toniopaceict.github.io/level4_css/css/menu.css?v=" + MENU_VERSION;
+  css.href = "https://toniopaceict.github.io/mylearningspace/css/menu.css?v=" + MENU_VERSION;
   document.head.appendChild(css);
 
   /* =======================================================
@@ -25,7 +25,7 @@
      ======================================================= */
   function loadHeaderScript() {
     const headerScript = document.createElement("script");
-    headerScript.src = "https://toniopaceict.github.io/level4_css/js/header.js?v=" + MENU_VERSION;
+    headerScript.src = "https://toniopaceict.github.io/mylearningspace/js/header.js?v=" + MENU_VERSION;
     document.body.appendChild(headerScript);
   }
 
