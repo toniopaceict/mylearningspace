@@ -1,0 +1,21 @@
+1. Optimise the topic images
+
+This is the most important one.
+
+If Topic1.jpg, Topic2.jpg and so on are large files, they will slow the page more than anything else.
+
+For index-page cards, you do not need huge images. A sensible target is usually:
+
+around 500 to 800 px wide
+compressed JPG
+ideally well under 150 KB each, and preferably lower if quality still looks good
+
+This can make a very noticeable difference.
+
+
+
+
+Always crop images to 4:3 ratio (matches your card)
+Example sizes:
+800 × 600
+1200 × 900

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<link href="../../assets/GLIP-icon-transparent.png" rel="icon"/>
+<title>GLIP – Class Management</title>
+<script>
+      window.PAGE_CONFIG = {
+        pageKind: "management",
+        pageTitle: "GLIP – Class Management"
+      };
+
+      window.PAGE_MENU_CONTEXT = {
+        type: "management"
+      };
+    </script>
+<script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
+</head>
+<body>
+<div id="header-placeholder"></div>
+<div class="page-shell">
+<header class="page-hero">
+<div class="page-hero-panel">
+<div class="page-hero-divider-top"></div>
+<img alt="GLIP logo" class="page-hero-brand-icon" src="../../assets/GLIP-icon-transparent-cropped.png"/>
+<div class="page-hero-logo">GLIP</div>
+<p class="page-hero-topline">
+            Guided Learning for Independent Progress
+          </p>
+<h1>Class Management</h1>
+<h2>Admin Area</h2>
+<div class="page-hero-divider-bottom"></div>
+</div>
+</header>
+<div class="wrap management-wrap">
+<fieldset class="task-box panel-box topics-box" id="addClassPanel">
+<legend>Add Class</legend>
+<p class="q">
+            Add a class to a level. The class code identifies the class. The class label is shown to users.
+          </p>
+<button class="progress-help-icon" data-glip-help="" data-help-text="
+Use this form to add a new class to GLIP. A class must belong to an existing level.
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Level&lt;/b&gt;&lt;br&gt;
+Select the level to which the class belongs.
+&lt;br&gt;&lt;br&gt;
+Only levels that already exist in the Levels table are shown in this list. This field is required.
+If the required level is not shown, it must first be added to the Levels table.
+&lt;br&gt;&lt;br&gt;
+            
+&lt;b&gt;Class Code&lt;/b&gt;&lt;br&gt;
+Enter a short, unique code for the class. This code identifies the class internally and is also used during CSV import to update existing classes. Use a stable format such as 4A-26, where 4A is the class and 26 refers to the academic year ending in 2026.
+&lt;br&gt;&lt;br&gt;
+Accepted examples:&lt;br&gt;
+3A-25&lt;br&gt;
+4A-26&lt;br&gt;
+5A-26&lt;br&gt;
+4B-26
+&lt;br&gt;&lt;br&gt;
+This field is required and must be unique.
+&lt;br&gt;&lt;br&gt;
+Examples that will generate an error:&lt;br&gt;
+blank value&lt;br&gt;
+a class code that already exists when adding a new class&lt;br&gt;
+4A 26
+&lt;br&gt;&lt;br&gt;
+
+
+&lt;b&gt;Class Label&lt;/b&gt;&lt;br&gt;
+Enter the class name as users should see it in GLIP.
+&lt;br&gt;&lt;br&gt;
+Accepted examples:&lt;br&gt;
+3A (main)&lt;br&gt;
+4A (main)&lt;br&gt;
+4A (Boys)&lt;br&gt;
+4A (Girls)&lt;br&gt;
+5A (main)
+&lt;br&gt;&lt;br&gt;
+This field is required.
+&lt;br&gt;&lt;br&gt;
+Examples that will generate an error:&lt;br&gt;
+blank value
+&lt;br&gt;&lt;br&gt;
+The class label does not need to be unique, but it should be clear for users.
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Sort Order&lt;/b&gt;&lt;br&gt;
+Enter a number to control the order in which classes appear in tables and dropdown lists.
+&lt;br&gt;&lt;br&gt;
+Accepted examples:&lt;br&gt;
+1&lt;br&gt;
+2&lt;br&gt;
+3&lt;br&gt;
+10
+&lt;br&gt;&lt;br&gt;
+Examples that will generate an error:&lt;br&gt;
+abc&lt;br&gt;
+first&lt;br&gt;
+1A&lt;br&gt;
+4A-26
+&lt;br&gt;&lt;br&gt;
+Use whole numbers only. Smaller numbers appear before larger numbers.
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Status&lt;/b&gt;&lt;br&gt;
+Choose whether the class is active or inactive.
+&lt;br&gt;&lt;br&gt;
+Accepted values:&lt;br&gt;
+Active&lt;br&gt;
+Inactive
+&lt;br&gt;&lt;br&gt;
+Active classes are available for normal use. Inactive classes remain stored for reference but should not normally appear in selection lists.
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Save Class&lt;/b&gt;&lt;br&gt;
+Click Save Class to add the class to the Classes table. GLIP will create the internal class ID automatically. You do not need to type class_id or level_id.
+" data-help-title="Add Class" type="button">
+            ?
+          </button>
+<div class="tracker-row">
+<select class="tracker-input" id="newClassLevel">
+<option value="">Select level</option>
+</select>
+<input class="tracker-input" id="newClassId" placeholder="Class code, e.g. 4A-26" type="text"/>
+<input class="tracker-input" id="newClassLabel" placeholder="Class label, e.g. 4A (Boys)" type="text"/>
+<input class="tracker-input" id="newClassSortOrder" min="1" placeholder="Sort order" step="1" type="number"/>
+<select class="tracker-input" id="newClassActive">
+<option value="true">Active</option>
+<option value="false">Inactive</option>
+</select>
+</div>
+<div class="tracker-row">
+<button class="glip-btn" id="saveClassBtn" type="button">
+              Save Class
+            </button>
+</div>
+<p class="panel-message text-center" id="addClassMessage"></p>
+<div class="page-loading-box text-center" id="classesLoadingProgress" style="display: none">
+<div class="glip-progress show topics-progress">
+<div class="glip-progress-bar"></div>
+</div>
+<p>Loading classes...</p>
+</div>
+
+</fieldset>
+<fieldset class="task-box panel-box topics-box">
+<legend>Class Management</legend>
+<button class="progress-help-icon" data-glip-help="" data-help-text="
+Use this area to manage the classes available in GLIP. Classes are linked to levels and are used throughout the system when assigning students, teachers and subjects.
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Viewing Classes&lt;/b&gt;&lt;br&gt;
+The table displays all classes currently stored in GLIP. Each class belongs to a level and has a unique class code and a user-friendly class label.
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Level&lt;/b&gt;&lt;br&gt;
+Shows the level to which the class belongs.
+&lt;br&gt;&lt;br&gt;
+Examples:&lt;br&gt;
+Level 3&lt;br&gt;
+Level 4&lt;br&gt;
+Level 5
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Class Code&lt;/b&gt;&lt;br&gt;
+The unique code used internally by GLIP to identify a class.
+&lt;br&gt;&lt;br&gt;
+Examples:&lt;br&gt;
+3A-25&lt;br&gt;
+4A-26&lt;br&gt;
+5A-26
+&lt;br&gt;&lt;br&gt;
+The first part identifies the class itself. For example, 4A refers to class 4A.
+&lt;br&gt;&lt;br&gt;
+The last two digits identify the academic year. For example:
+&lt;br&gt;
+4A-25 = academic year 2024–2025&lt;br&gt;
+4A-26 = academic year 2025–2026&lt;br&gt;
+4A-27 = academic year 2026–2027
+&lt;br&gt;&lt;br&gt;
+This allows GLIP to distinguish between classes from different academic years and retain historical records for revision and reporting purposes.
+&lt;br&gt;&lt;br&gt;
+Class codes should remain stable because they are used during CSV imports and when linking students, teachers and subjects to classes.
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Class Label&lt;/b&gt;&lt;br&gt;
+The name displayed to users throughout GLIP.
+&lt;br&gt;&lt;br&gt;
+Examples:&lt;br&gt;
+3A (main)&lt;br&gt;
+4A (main)&lt;br&gt;
+4A (Boys)&lt;br&gt;
+4A (Girls)
+&lt;br&gt;&lt;br&gt;
+The label can be changed without affecting existing student or teacher assignments.
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Sort Order&lt;/b&gt;&lt;br&gt;
+Controls the order in which classes appear in tables, dropdown lists and other management pages.
+&lt;br&gt;&lt;br&gt;
+Classes with smaller numbers appear before classes with larger numbers.
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Status&lt;/b&gt;&lt;br&gt;
+Shows whether the class is active or inactive.
+&lt;br&gt;&lt;br&gt;
+Active classes are available for normal use.&lt;br&gt;
+Inactive classes are retained for reference but should not normally appear in selection lists.
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Sorting&lt;/b&gt;&lt;br&gt;
+Click any column heading to sort the table. Click the same heading again to reverse the sort order.
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Edit Classes&lt;/b&gt;&lt;br&gt;
+Click Edit Classes to switch the table into edit mode. Editable fields will appear directly inside the table. Any fields you modify are highlighted so that you can easily see pending changes before saving. Click Save Changes to save all edited class records at once. Click Cancel to discard all unsaved changes and reload the current data from GLIP.
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Import CSV&lt;/b&gt;&lt;br&gt;
+Imports classes from a CSV file.
+&lt;br&gt;&lt;br&gt;
+Before any data is changed, GLIP validates the entire file and displays a validation summary.
+&lt;br&gt;&lt;br&gt;
+Examples of validation checks include:
+&lt;br&gt;
+Missing level&lt;br&gt;
+Invalid level&lt;br&gt;
+Missing class code&lt;br&gt;
+Duplicate class code&lt;br&gt;
+Missing class label&lt;br&gt;
+Invalid status value&lt;br&gt;
+Invalid sort order
+&lt;br&gt;&lt;br&gt;
+Existing classes are matched using the class code. If the class code already exists, the existing class is updated.&lt;br&gt; If the class code does not exist, a new class is created automatically.
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Error Report&lt;/b&gt;&lt;br&gt;
+If validation errors are found, you can download a CSV report showing all problems that must be corrected before importing again.
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Automatic Backup&lt;/b&gt;&lt;br&gt;
+Before any import or table clear operation, GLIP automatically downloads a backup copy of the current data.
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Clear Table&lt;/b&gt;&lt;br&gt;
+Removes all class records from the Classes table while keeping the column headings intact.
+" data-help-title="Class Management" type="button">
+            ?
+          </button>
+<div class="panel-header">
+<p class="q panel-top-text">
+              Manage levels and classes used across GLIP.
+            </p>
+<div class="panel-right teacher-actions">
+<button class="glip-btn" id="editClassesBtn" type="button">
+                Edit Classes
+              </button>
+</div>
+</div>
+<p class="panel-message teacher-message" id="classManagementMessage"></p>
+
+<div class="topics-table-wrap" id="classesTableWrap">
+<table class="topics-table management-table classes-table" id="classesTable" style="visibility: hidden">
+<thead>
+<tr>
+<th data-label="Level" data-sort-field="level">Level ↕</th>
+<th data-label="Class Code" data-sort-field="class_id">Class Code ↕</th>
+<th data-label="Class Label" data-sort-field="class_label">Class Label ↕</th>
+<th data-label="Sort Order" data-sort-field="sort_order">Sort Order ↕</th>
+<th data-label="Status" data-sort-field="active">Status ↕</th>
+</tr>
+</thead>
+<tbody id="classesTableBody"></tbody>
+</table>
+</div>
+</fieldset>
+</div>
+<div class="site-footer" id="siteFooter"></div>
+</div>
+<script>
+      document.addEventListener("glipReady", function () {
+        requireRole("admin", "owner");
+      });
+    </script>
+</body>
+</html>

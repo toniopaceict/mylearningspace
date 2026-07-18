@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="../../assets/GLIP-icon-transparent.png" />
+    
+    <title>GLIP – Guided Learning for Independent Progress</title>
+
+    <script>
+      window.PAGE_MENU_CONTEXT = {
+        type: "home",
+        school: getSchoolFromUrl(),
+      };
+
+      function getWebAppUrl() {
+        return window.getGlipWebAppUrl();
+      }
+
+      const SCHOOL = getSchoolFromUrl();
+
+      function getSchoolFromUrl() {
+        const match = window.location.pathname.match(/\/schools\/([^/]+)\//);
+      
+        if (match) {
+          return match[1];
+        }
+      
+        return "";
+      }
+    </script>
+    <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
+
+    <style>
+      .login-staff-option {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 12px;
+        font-size: 0.95rem;
+        cursor: pointer;
+      }
+
+      .login-staff-option input {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+      }
+    </style>
+
+  </head>
+
+  <body>
+    <div id="header-placeholder"></div>
+
+    <div class="page-shell">
+      <header class="page-hero">
+        <div class="page-hero-panel">
+          <div class="page-hero-divider-top"></div>
+
+          <img
+            class="page-hero-brand-icon"
+            src="../../assets/GLIP-icon-transparent-cropped.png"
+            alt="GLIP logo"
+          />
+
+          <div class="page-hero-logo">GLIP</div>
+
+          <p class="page-hero-topline">
+            Guided Learning for Independent Progress
+          </p>
+
+          <h1>Welcome</h1>
+          <h2 id="schoolNameHeading">School</h2>
+
+          <div class="page-hero-divider-bottom"></div>
+        </div>
+      </header>
+
+      <div class="wrap">
+        <fieldset class="task-box login-box">
+          <legend>Enter your code to continue</legend>
+
+          <p>Use your student or teacher code to access the platform.</p>
+
+          <div class="login-row">
+            <input
+              type="text"
+              id="codeInput"
+              class="login-input code-mask-input"
+              placeholder="Enter your code"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+            />
+
+            <button id="loginBtn" class="login-btn glip-btn">Continue</button>
+          </div>
+
+          <label class="login-staff-option">
+            <input type="checkbox" id="staffMemberInput" />
+            <span>Tick this box if you are a staff member</span>
+          </label>
+
+          <p id="loginMessage" class="login-message"></p>
+
+          <div id="loginProgress" class="glip-progress">
+            <div class="glip-progress-bar"></div>
+          </div>
+
+          <ul id="loginLog" class="login-log"></ul>
+        </fieldset>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("glipReady", function () {
+        const heading = document.getElementById("schoolNameHeading");
+
+        if (!heading || typeof window.getCurrentSchoolConfig !== "function") {
+          return;
+        }
+
+        try {
+          heading.textContent = window.getCurrentSchoolConfig().label;
+        } catch (error) {
+          heading.textContent = "School";
+          console.warn(error);
+        }
+      });
+
+      function showMessage(text, type) {
+        const el = document.getElementById("loginMessage");
+        el.textContent = text;
+        el.style.color = type === "error" ? "red" : "#0b3c6f";
+      }
+
+      function showLoginProgress() {
+        document.getElementById("loginProgress").classList.add("show");
+        document.getElementById("loginLog").classList.add("show");
+      }
+
+      function hideLoginProgress() {
+        document.getElementById("loginProgress").classList.remove("show");
+      }
+
+      let logDelay = 0;
+
+      function addLoginLog(text) {
+        const log = document.getElementById("loginLog");
+
+        logDelay += 250;
+
+        setTimeout(function () {
+          const item = document.createElement("li");
+          item.textContent = text;
+          log.appendChild(item);
+
+          item.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+          });
+        }, logDelay);
+      }
+
+      function resetLogDelay() {
+        logDelay = 0;
+      }
+
+      function clearLoginLog() {
+        document.getElementById("loginLog").innerHTML = "";
+      }
+
+      function getLevelNumber(level) {
+        const match = String(level || "").match(/\d+/);
+        return match ? match[0].padStart(2, "0") : "";
+      }
+
+      function getLevelFolder(level) {
+        const levelNumber = getLevelNumber(level);
+        return levelNumber ? "level-" + levelNumber : "";
+      }
+      
+      function getSubjectsHomeUrl(level) {
+        return "subjects-home.html";
+      }
+
+      function glipCacheKey(parts) {
+        return window.GLIP_CACHE.makeKey(parts);
+      }
+
+      function saveLocalCache(key, data) {
+        window.GLIP_CACHE.writeLocal(key, data);
+      }
+
+      function saveSessionCache(key, data) {
+        window.GLIP_CACHE.writeSession(key, data);
+      }
+
+      function postToGlip(data) {
+        return fetch(getWebAppUrl(), {
+          method: "POST",
+          body: JSON.stringify(data),
+        }).then(function (res) {
+          return res.json();
+        });
+      }
+
+      function preloadImage(src) {
+        return new Promise(function (resolve) {
+          const img = new Image();
+
+          img.onload = function () {
+            resolve(true);
+          };
+
+          img.onerror = function () {
+            resolve(false);
+          };
+
+          img.src = src;
+        });
+      }
+
+      async function preloadStudentData(student) {
+        const studentId = String(student.student_id || "").trim();
+        const rawLevel = String(student.level || "").trim();
+        
+        if (!rawLevel) {
+          throw new Error("Student level missing");
+        }
+
+const level = getLevelFolder(rawLevel);
+
+        if (!studentId || !level) return;
+
+        try {
+          addLoginLog("Loading your subjects...");
+
+const subjectsResult = await postToGlip({
+  action: "getSubjects",
+  level: level,
+  userType: "student",
+  student_id: studentId,
+});
+
+          if (!subjectsResult || subjectsResult.status !== "success") return;
+
+          const subjects = Array.isArray(subjectsResult.subjects)
+            ? subjectsResult.subjects
+            : [];
+
+          saveLocalCache(glipCacheKey([SCHOOL, level, "subjects"]), subjects);
+          addLoginLog("Subjects loaded.");
+
+          const visibleSubjects = subjects.filter(function (subject) {
+            return subject.visible === true;
+          });
+
+          addLoginLog("Loading subject images...");
+
+          const imagePromises = visibleSubjects.map(function (subject) {
+            const subjectId = String(subject.subject_id || "").trim();
+            if (!subjectId) return Promise.resolve(false);
+
+            return preloadImage(
+              "../../content/" +
+                subjectId +
+                "/assets/icon-" +
+                subjectId +
+                ".jpg"
+            );
+          });
+
+          addLoginLog("Preparing your progress icons...");
+
+          const progressPromises = visibleSubjects.map(function (subject) {
+            const subjectId = String(subject.subject_id || "").trim();
+            if (!subjectId) return Promise.resolve([]);
+
+            return postToGlip({
+              action: "getMyProgress",
+              student_id: studentId,
+              subject_id: subjectId,
+              level: level,
+            }).then(function (progressResult) {
+              if (
+                progressResult &&
+                progressResult.status === "success" &&
+                Array.isArray(progressResult.progress)
+              ) {
+                const subjectProgress = progressResult.progress.map(
+                  function (item) {
+                    return {
+                      subject_id: subjectId,
+                      level: level,
+                      activity_id: item.activity_id,
+                      status: item.status || "not_started",
+                    };
+                  }
+                );
+
+                saveSessionCache(
+                  glipCacheKey([
+                    SCHOOL,
+                    level,
+                    studentId,
+                    subjectId,
+                    "progress",
+                  ]),
+                  subjectProgress
+                );
+
+                return subjectProgress;
+              }
+
+              return [];
+            });
+          });
+
+          const progressResults = await Promise.allSettled(progressPromises);
+
+          const successfulProgress = progressResults
+            .filter(function (result) {
+              return result.status === "fulfilled";
+            })
+            .map(function (result) {
+              return result.value;
+            });
+          addLoginLog("Progress icons ready.");
+
+          await Promise.all(imagePromises);
+          addLoginLog("Subject images ready.");
+
+          const mergedProgress = successfulProgress.flat();
+
+          sessionStorage.setItem(
+            "glipProgress",
+            JSON.stringify(mergedProgress)
+          );
+          sessionStorage.setItem("glipProgressTime", String(Date.now()));
+        } catch (err) {
+          console.warn("Preload skipped:", err);
+        }
+      }
+
+      async function preloadTeacherSubjects(teacher, userType) {
+        if (!teacher || !teacher.teacher_id) return;
+        if (userType !== "lead_teacher" && userType !== "subject_teacher") return;
+
+        const permissions = Array.isArray(teacher.permissions) ? teacher.permissions : [];
+        const levels = Array.from(new Set(
+          permissions
+            .filter(function (permission) {
+              return permission.active !== false &&
+                String(permission.active).toLowerCase() !== "false";
+            })
+            .map(function (permission) {
+              return getLevelFolder(permission.level || "");
+            })
+            .filter(Boolean)
+        ));
+
+        if (!levels.length) return;
+
+        addLoginLog("Loading Subjects...");
+
+        await Promise.all(levels.map(async function (level) {
+          try {
+            const result = await postToGlip({
+              action: "getSubjects",
+              level: level,
+              userType: userType,
+              teacher_id: teacher.teacher_id
+            });
+
+            if (!result || result.status !== "success") return;
+
+            const subjects = Array.isArray(result.subjects) ? result.subjects : [];
+            const key = glipCacheKey([
+              SCHOOL,
+              level,
+              userType,
+              String(teacher.teacher_id),
+              "",
+              "subjects"
+            ]);
+
+            saveLocalCache(key, subjects);
+          } catch (error) {
+            console.warn("Subject preload failed for " + level + ":", error);
+          }
+        }));
+
+        addLoginLog("Subjects ready.");
+      }
+
+      async function preloadManagementData(teacher, userType) {
+        if (!teacher || !teacher.teacher_id) return;
+
+        // Administrators receive the five priority management datasets in one
+        // request. Apps Script still creates the existing per-page cache
+        // entries, so every management page continues to use its normal cache.
+        if (userType !== "owner" && userType !== "admin") return;
+
+        const fallbackStages = [
+          { key: "teachers", label: "Loading Teacher Management..." },
+          { key: "classes", label: "Loading Class Management..." },
+          { key: "teaching_assignments", label: "Loading Teaching Assignments..." },
+          { key: "students", label: "Loading Student Management..." },
+          { key: "student_subjects", label: "Loading Student Subject Management..." }
+        ];
+
+        function installResult(result) {
+          return !!(
+            result &&
+            result.status === "success" &&
+            window.GLIPManagementCache &&
+            window.GLIPManagementCache.installBootstrap(result)
+          );
+        }
+
+        addLoginLog("Preparing priority management pages...");
+
+        try {
+          const bundled = await postToGlip({
+            action: "getAdminPriorityBootstrap",
+            teacher_id: teacher.teacher_id,
+            role: userType,
+            performance_category: "login",
+            performance_initiator: "admin_login_priority",
+            performance_target: "admin_priority_bundle"
+          });
+
+          if (installResult(bundled)) {
+            addLoginLog("Priority management pages ready.");
+            return;
+          }
+
+          console.warn("Bundled management preload was not completed. Using staged fallback.", bundled);
+        } catch (bundleError) {
+          console.warn("Bundled management preload failed. Using staged fallback.", bundleError);
+        }
+
+        // Compatibility fallback: if the new endpoint is unavailable or a
+        // deployment is temporarily mixed, use the proven v271 staged flow.
+        let installedAnyData = false;
+        for (const stage of fallbackStages) {
+          addLoginLog(stage.label);
+          try {
+            const result = await postToGlip({
+              action: "getManagementBootstrapStage",
+              teacher_id: teacher.teacher_id,
+              role: userType,
+              stage: stage.key,
+              performance_category: "login",
+              performance_initiator: "admin_login_priority_fallback",
+              performance_target: stage.key
+            });
+            if (installResult(result)) installedAnyData = true;
+          } catch (stageError) {
+            console.warn("Management preload fallback failed:", stage.key, stageError);
+          }
+        }
+
+        addLoginLog(installedAnyData
+          ? "Management pages ready."
+          : "Management data will load when needed.");
+      }
+
+      async function login() {
+        const codeInput = document.getElementById("codeInput");
+        const loginBtn = document.getElementById("loginBtn");
+        const code = codeInput.value.trim();
+
+        if (!code) {
+          showMessage("Please enter your code.", "error");
+          return;
+        }
+
+        loginBtn.disabled = true;
+        showMessage("");
+
+        clearLoginLog();
+        resetLogDelay();
+        showLoginProgress();
+        addLoginLog("Checking your code...");
+
+        try {
+          const result = await postToGlip({
+            action: "loginUser",
+            code: code,
+            staff_member: document.getElementById("staffMemberInput").checked,
+          });
+
+          if (result.status !== "success") {
+            showMessage(result.message || "Invalid code.", "error");
+            hideLoginProgress();
+            loginBtn.disabled = false;
+            return;
+          }
+
+          const userType = String(result.userType || "").trim().toLowerCase();
+
+          sessionStorage.clear();
+          sessionStorage.setItem("glipSchool", SCHOOL);
+          sessionStorage.setItem("glipUserType", userType);
+
+          if (userType === "student") {
+            const student = result.student;
+          const rawStudentLevel = String(student.level || "").trim();
+          
+          if (!rawStudentLevel) {
+            showMessage("Your account level is missing. Please contact your lecturer.", "error");
+            hideLoginProgress();
+            loginBtn.disabled = false;
+            return;
+          }
+          
+          const studentLevel = getLevelFolder(rawStudentLevel);
+
+          sessionStorage.setItem("glipStudentId", student.student_id);
+          sessionStorage.setItem("glipStudentName", student.student_name);
+          sessionStorage.setItem("glipStudentSurname", student.student_surname || "");
+          sessionStorage.setItem("glipStudentFullName", student.full_name || student.student_name);
+          sessionStorage.setItem("glipLevel", studentLevel);
+          sessionStorage.setItem("glipClassId", student.class_id);
+          sessionStorage.setItem("glipClassLabel", student.class_label || student.class_id);
+          sessionStorage.setItem("glipRole", "student");
+          sessionStorage.setItem("glipUserType", "student");
+
+            addLoginLog("Code accepted.");
+            addLoginLog("Preparing your learning space...");
+
+            await preloadStudentData(student);
+
+            addLoginLog("Ready. Opening your learning space...");
+
+            window.location.href = getSubjectsHomeUrl(studentLevel);
+            return;
+          }
+
+            if (
+              userType === "owner" ||
+              userType === "admin" ||
+              userType === "lead_teacher" ||
+              userType === "subject_teacher"
+            ) {
+            const teacher = result.teacher;
+            const firstPermission =
+              teacher.permissions && teacher.permissions[0];
+
+            const teacherLevel =
+              firstPermission && firstPermission.level
+                ? getLevelFolder(firstPermission.level)
+                : "";
+
+
+sessionStorage.setItem("glipTeacherId", teacher.teacher_id);
+sessionStorage.setItem("glipTeacherName", teacher.teacher_name);
+sessionStorage.setItem("glipTeacherSurname", teacher.teacher_surname || "");
+sessionStorage.setItem("glipTeacherFullName", teacher.full_name || teacher.teacher_name);
+sessionStorage.setItem("glipTeacherRole", userType);
+sessionStorage.setItem("glipRole", userType);
+sessionStorage.setItem(
+  "glipTeacherPermissions",
+  JSON.stringify(teacher.permissions || [])
+);
+
+
+
+
+              
+
+            showMessage("Login successful.");
+
+            await preloadTeacherSubjects(teacher, userType);
+
+            if (userType === "owner" || userType === "admin") {
+              await preloadManagementData(teacher, userType);
+            }
+
+            if (userType === "owner" || userType === "admin") {
+              // The queue is stored in sessionStorage so it survives page
+              // navigation. Each management page resumes whatever remains.
+              sessionStorage.setItem(
+                "glipAdminBackgroundWarmQueue",
+                JSON.stringify({
+                  actions: [
+                    "listCurriculumManagementAdmin",
+                    "getAllSubjectsAdmin",
+                    "listLevelsManagementAdmin",
+                    "listLevelsAdmin",
+                    "getCurriculumTopicManagement"
+                  ],
+                  warmSubjectsHome: true
+                })
+              );
+
+              addLoginLog("Ready. Opening Teacher Management...");
+              window.location.replace(
+                "/mylearningspace/schools/management/teacher-management.html"
+              );
+              return;
+            }
+
+            addLoginLog("Ready. Opening GLIP...");
+            window.location.replace(getSubjectsHomeUrl(teacherLevel));
+            return;
+
+              
+          }
+
+          showMessage("Unknown user type.", "error");
+          loginBtn.disabled = false;
+        } catch (err) {
+          showMessage("Connection error.", "error");
+          console.error(err);
+
+          hideLoginProgress();
+
+          loginBtn.disabled = false;
+        }
+      }
+
+      async function wakeUpAppsScript() {
+        try {
+          await fetch(getWebAppUrl() + "?action=ping", {
+            method: "GET",
+            cache: "no-store",
+          });
+        } catch (error) {
+          console.warn("Wake-up request failed:", error);
+        }
+      }
+
+      document.addEventListener("glipReady", wakeUpAppsScript);
+
+      window.addEventListener("pageshow", function () {
+        const userType = sessionStorage.getItem("glipUserType");
+
+        if (!userType) return;
+
+        const level = getLevelFolder(sessionStorage.getItem("glipLevel") || "");
+        const permissions = JSON.parse(
+          sessionStorage.getItem("glipTeacherPermissions") || "[]"
+        );
+
+        if (userType === "student") {
+          if (!level) {
+            showMessage(
+              "Your account level is missing. Please contact your teacher.",
+              "error"
+            );
+            return;
+          }
+
+          window.location.replace(getSubjectsHomeUrl(level));
+          return;
+        }
+
+        if (
+            userType === "owner" ||
+            userType === "admin" ||
+            userType === "lead_teacher" ||
+            userType === "subject_teacher"
+          ) {
+            const firstPermission = permissions[0];
+        
+            const teacherLevel =
+              firstPermission && firstPermission.level
+                ? getLevelFolder(firstPermission.level)
+                : "";
+        
+            window.location.replace(getSubjectsHomeUrl(teacherLevel));
+          }
+        
+
+        
+      });
+
+      document.getElementById("loginBtn").addEventListener("click", login);
+
+      document
+        .getElementById("codeInput")
+        .addEventListener("keypress", function (e) {
+          if (e.key === "Enter") login();
+        });
+
+      document.addEventListener("DOMContentLoaded", function () {
+  document.getElementById("codeInput")?.focus();
+});
+      
+    </script>
+</body>
+</html>

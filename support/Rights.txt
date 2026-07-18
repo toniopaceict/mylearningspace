@@ -1,0 +1,3 @@
+Admin → Subject Settings + Topic Settings
+Lead Teacher → Topic Settings only, where assigned
+Subject Teacher → permitted subject/level areas only

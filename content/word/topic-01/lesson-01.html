@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="icon" href="../../../assets/GLIP-icon-transparent.png" />
+<script>
+      window.PAGE_CONFIG = {
+        pageTitle: "GLIP – Guided Learning for Independent Progress",
+        topline: "Data Analysis",
+        mainTitle: "DA1: What If Analysis",
+        subTitle: "Part 1: Lesson",
+        fileLink: "PASTE_FILE_LINK_HERE",
+        fileButtonText: "Download Excel file",
+        youtubeVideoId: "VIDEO_ID_HERE",
+
+        webAppUrl: "",
+
+        subjectId: "word",
+        level: "4",
+        activityId: "word_l4_t1_lesson1",
+
+        footerText: "© Tonio Pace 2026",
+        videoAlt: "Video lesson thumbnail",
+      };
+
+      window.PAGE_MENU_CONTEXT = {
+        type: "topic",
+        level: "04",
+        subject: "word",
+        topic: "01",
+      };
+    </script>
+
+    <style>
+      .tracker-message:empty {
+        display: none;
+      }
+    </style>
+    <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
+  </head>
+
+  <body>
+    <div id="header-placeholder"></div>
+
+    <div class="page-shell">
+      <header class="page-hero">
+        <div class="page-hero-panel">
+          <div class="page-hero-divider-top"></div>
+
+          <img
+            class="page-hero-brand-icon"
+            src="../../../assets/GLIP-icon-transparent-cropped.png"
+            alt="GLIP logo"
+          />
+
+          <div class="page-hero-logo">GLIP</div>
+
+          <p class="page-hero-topline">
+            Guided Learning for Independent Progress
+          </p>
+
+          <h1>Topic 1</h1>
+          <h2>Lesson 1</h2>
+
+          <div class="page-hero-divider-bottom"></div>
+        </div>
+      </header>
+
+      <div class="top-user-bar">
+        <span id="loggedInInfoTop"></span>
+        <button id="logoutBtnTop" class="tracker-btn" style="display: none">
+          Log out
+        </button>
+      </div>
+
+      <div class="wrap">
+        <fieldset class="download-box">
+          <legend>Required Files</legend>
+          <p class="q">
+            To complete this lesson, download the required file below.
+          </p>
+
+          <div class="download-buttons">
+            <a class="download-btn" id="fileLinkBtn" href="#">Download file</a>
+          </div>
+        </fieldset>
+
+        <fieldset class="tracker-box">
+          <legend>Video Lesson</legend>
+          <p class="q">Watch the video lesson carefully before continuing.</p>
+
+          <a class="video-thumb" id="videoLink" href="#" target="_blank">
+            <img id="videoThumb" alt="Video lesson thumbnail" />
+          </a>
+        </fieldset>
+
+        <fieldset class="tracker-box no-print">
+          <legend>Save Progress</legend>
+          <p class="q">Save your progress for this lesson.</p>
+
+          <div class="tracker-row">
+            <button id="saveInProgressBtn" type="button" class="tracker-btn">
+              Partly completed
+            </button>
+
+            <button id="saveCompletedBtn" type="button" class="tracker-btn">
+              Completed
+            </button>
+          </div>
+
+          <p id="message" class="tracker-message"></p>
+        </fieldset>
+      </div>
+
+      <div class="site-footer" id="siteFooter"></div>
+    </div><script>
+      function saveLessonProgress(status) {
+        const isCompleted = status === "completed";
+
+        window.MARK_COMPLETE_CONFIG = {
+          mode: "saveProgress",
+          webAppUrl: window.PAGE_CONFIG.webAppUrl,
+          subjectId: window.PAGE_CONFIG.subjectId,
+          level: window.PAGE_CONFIG.level,
+          activityId: window.PAGE_CONFIG.activityId,
+          status: status,
+          buttonId: isCompleted ? "saveCompletedBtn" : "saveInProgressBtn",
+          messageId: "message",
+          successText: isCompleted
+            ? "Progress saved: completed."
+            : "Progress saved: partly completed.",
+        };
+
+        TonioMarkComplete.saveProgress();
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        document
+          .getElementById("saveInProgressBtn")
+          .addEventListener("click", function () {
+            saveLessonProgress("in_progress");
+          });
+
+        document
+          .getElementById("saveCompletedBtn")
+          .addEventListener("click", function () {
+            saveLessonProgress("completed");
+          });
+      });
+    </script>
+</body>
+</html>

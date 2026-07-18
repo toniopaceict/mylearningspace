@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="../../../assets/GLIP-icon-transparent.png" />
+<title>GLIP – Guided Learning for Independent Progress</title>
+
+    <style>
+      .landing-grid {
+        display: grid;
+        grid-template-columns: 40% 60%;
+        gap: 24px;
+        align-items: center;
+      }
+
+      .landing-img {
+        width: 100%;
+        display: block;
+        border-radius: 14px;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+      }
+
+      .landing-text h3 {
+        margin-top: 0;
+        color: #0b3c6f;
+      }
+
+      .quick-links {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+      }
+
+      .quick-links a {
+        text-decoration: none;
+      }
+
+      @media (max-width: 768px) {
+        .landing-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+
+    <script>
+      window.PAGE_CONFIG = {
+        pageTitle: "GLIP – Guided Learning for Independent Progress",
+        heroTopline: "Welcome",
+        heroMainTitle: "GLIP",
+        heroSubTitle: "Word: Topic 1",
+        aboutText:
+          "This learning space is designed to guide you step by step through each topic. You will watch short videos, practise using structured exercises, and then test your understanding through quizzes.",
+        imageSrc: "assets/topic-01.jpg",
+        imageAlt: "Word topic 1",
+        howToUseTitle: "Learn by doing",
+        howToUseIntro: `<p class="q">Each topic follows the same structure:</p>`,
+        howToUseSteps: `
+        <p class="q">
+          • Start with the lesson<br>
+          • Complete the practice sheet<br>
+          • Attempt the quiz<br>
+        </p>
+      `,
+        howToUseOutro: `<p class="q">Make sure you complete each section before moving on.</p>`,
+        tipsText:
+          "Work at your own pace, but stay consistent. If something is not clear, go back to the video and try again before moving forward.",
+        footerText: "© Tonio Pace 2026",
+      };
+
+      window.PAGE_MENU_CONTEXT = {
+        type: "topic",
+        level: "04",
+        subject: "word",
+        topic: "01",
+      };
+    </script>
+    <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
+  </head>
+
+  <body>
+    <div id="header-placeholder"></div>
+
+    <div class="page-shell">
+      <header class="page-hero">
+        <div class="page-hero-panel">
+          <div class="page-hero-divider-top"></div>
+
+          <img
+            class="page-hero-brand-icon"
+            src="../../../assets/GLIP-icon-transparent-cropped.png"
+            alt="GLIP logo"
+          />
+
+          <div class="page-hero-logo">GLIP</div>
+
+          <p class="page-hero-topline">
+            Guided Learning for Independent Progress
+          </p>
+
+          <h1>Topic 1</h1>
+          <h2>MS Word</h2>
+
+          <div class="page-hero-divider-bottom"></div>
+        </div>
+      </header>
+
+      <div class="wrap">
+        <fieldset class="task-box">
+          <legend>About this space</legend>
+          <p class="q" id="aboutText"></p>
+        </fieldset>
+
+        <fieldset class="task-box">
+          <legend>How to use it</legend>
+
+          <div class="landing-grid">
+            <img id="landingImg" src="" alt="" class="landing-img" />
+
+            <div class="landing-text">
+              <h3 id="howToUseTitle"></h3>
+              <div id="howToUseIntro"></div>
+              <div id="howToUseSteps"></div>
+              <div id="howToUseOutro"></div>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="task-box">
+          <legend>Tips for success</legend>
+          <p class="q" id="tipsText"></p>
+        </fieldset>
+      </div>
+
+      <div class="site-footer" id="siteFooter"></div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="icon" href="../../assets/GLIP-icon-transparent.png" />
+
+    <title>GLIP – Level Management</title>
+
+    <script>
+      window.PAGE_CONFIG = {
+        pageKind: "management",
+        pageTitle: "GLIP – Level Management"
+      };
+
+      window.PAGE_MENU_CONTEXT = {
+        type: "management"
+      };
+    </script>
+
+    <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
+  </head>
+
+  <body>
+    <div id="header-placeholder"></div>
+
+    <div class="page-shell">
+      <header class="page-hero">
+        <div class="page-hero-panel">
+          <div class="page-hero-divider-top"></div>
+
+          <img
+            class="page-hero-brand-icon"
+            src="../../assets/GLIP-icon-transparent-cropped.png"
+            alt="GLIP logo"
+          />
+
+          <div class="page-hero-logo">GLIP</div>
+
+          <p class="page-hero-topline">
+            Guided Learning for Independent Progress
+          </p>
+
+          <h1>Level Management</h1>
+          <h2>Admin Area</h2>
+
+          <div class="page-hero-divider-bottom"></div>
+        </div>
+      </header>
+
+      <div class="wrap management-wrap">
+        <fieldset class="task-box panel-box topics-box" id="addLevelPanel">
+          <legend>Add Level</legend>
+
+          <p class="q">
+            Add a new level offered by the school.
+          </p>
+
+          <button
+            type="button"
+            class="progress-help-icon"
+            data-glip-help
+            data-help-title="Add Level"
+            data-help-text="
+<b>Add Level</b><br>
+Use this section to add a new school level to GLIP.
+<br><br>
+
+<b>Level Code</b><br>
+The unique code used internally by GLIP to identify the level.
+<br><br>
+Examples:<br>
+level-03<br>
+level-04<br>
+level-05
+<br><br>
+Do not use duplicate level codes.
+<br><br>
+
+<b>Level Name</b><br>
+The friendly name shown to administrators, teachers and students.
+<br><br>
+Examples:<br>
+Level 3<br>
+Level 4<br>
+Level 5
+<br><br>
+
+<b>Sort Order</b><br>
+Controls the order in which levels appear in GLIP. Sort Order is required and must be a whole number of 1 or greater.
+<br><br>
+Examples:<br>
+1<br>
+2<br>
+3
+<br><br>
+Do not leave Sort Order blank. Do not use 0, negative numbers or text.
+<br><br>
+
+<b>Status</b><br>
+Active levels can be used when creating classes and subject assignments. Inactive levels remain in the database for historical records but should not be used for new setup work.
+<br><br>
+
+<b>Important</b><br>
+Levels are not tied to a scholastic year. Classes are year-specific, but levels such as Level 3, Level 4 and Level 5 are part of the school's structure.
+"
+          >
+            ?
+          </button>
+
+          <div class="tracker-row">
+            <input
+              type="text"
+              id="newLevelCode"
+              class="tracker-input"
+              placeholder="level-06"
+            />
+
+            <input
+              type="text"
+              id="newLevelName"
+              class="tracker-input"
+              placeholder="Level 6"
+            />
+
+            <input
+              type="number"
+              id="newLevelSortOrder"
+              class="tracker-input"
+              placeholder="Sort order"
+              min="1"
+              step="1"
+            />
+
+            <select id="newLevelActive" class="tracker-input">
+              <option value="true">Active</option>
+              <option value="false">Inactive</option>
+            </select>
+          </div>
+
+          <div class="tracker-row">
+            <button
+              type="button"
+              class="glip-btn"
+              id="saveLevelBtn"
+            >
+              Save Level
+            </button>
+          </div>
+
+          <p
+            id="addLevelMessage"
+            class="panel-message text-center"
+          ></p>
+
+<div
+    id="levelsLoadingProgress"
+    class="page-loading-box text-center"
+    style="display: none"
+  >
+    <div class="glip-progress show topics-progress">
+      <div class="glip-progress-bar"></div>
+    </div>
+    <p>Loading levels...</p>
+  </div>
+
+        </fieldset>
+
+        <fieldset class="task-box panel-box topics-box">
+          <legend>Level Management</legend>
+
+          <button
+            type="button"
+            class="progress-help-icon"
+            data-glip-help
+            data-help-title="Level Management"
+            data-help-text="
+<b>Level Management</b><br>
+This page is used to manage the levels offered by the school.
+<br><br>
+
+<b>Purpose</b><br>
+Levels define the structure of the school in GLIP. Classes, subject assignments, teaching assignments and student subject assignments all depend on levels.
+<br><br>
+
+<b>Examples</b><br>
+level-03 – Level 3<br>
+level-04 – Level 4<br>
+level-05 – Level 5
+<br><br>
+
+<b>Level Code</b><br>
+The unique code used internally by GLIP. It should remain stable because other records refer to it.
+<br><br>
+
+<b>Level Name</b><br>
+The display name shown in GLIP.
+<br><br>
+
+<b>Sort Order</b><br>
+Controls the order in which levels appear throughout GLIP. It must be a whole number of 1 or greater.
+<br><br>
+
+<b>Status</b><br>
+Active levels can be used for new classes and subject setup. Inactive levels can be used for planning. Records linked to inactive
+levels may show ⚠ on other management pages, and students and teachers will not see those items until the level is active.
+<br><br>
+
+<b>No Deletion</b><br>
+Levels are not deleted through GLIP. If a level is no longer used, mark it as inactive. This protects historical data and avoids breaking links to existing classes, subject assignments, students and progress records.
+<br><br>
+
+<b>CSV Export and Import</b><br>
+The CSV uses administrator-friendly columns:
+<br><br>
+level_code,level_name,sort_order,active
+<br><br>
+Example:<br>
+level-03,Level 3,1,TRUE<br>
+level-04,Level 4,2,TRUE<br>
+level-05,Level 5,3,TRUE
+"
+          >
+            ?
+          </button>
+
+          <div class="panel-header">
+            <p class="q panel-top-text">
+              View levels, display order and status.
+            </p>
+
+            <div class="panel-right teacher-actions">
+              <button
+                type="button"
+                class="glip-btn"
+                id="editLevelsBtn"
+              >
+                Edit Levels
+              </button>
+            </div>
+          </div>
+
+          <p
+            id="levelManagementMessage"
+            class="panel-message teacher-message"
+          ></p>
+
+<div class="topics-table-wrap" id="levelsTableWrap">
+  
+
+  <table
+  class="topics-table management-table levels-table"
+    id="levelsTable"
+    style="visibility: hidden"
+  >
+              <thead>
+                <tr>
+                  <th data-sort-field="level_code" data-label="Level Code">
+                    Level Code ↕
+                  </th>
+
+                  <th data-sort-field="level_name" data-label="Level Name">
+                    Level Name ↕
+                  </th>
+
+                  <th data-sort-field="sort_order" data-label="Sort Order">
+                    Sort Order ↕
+                  </th>
+
+                  <th data-sort-field="active" data-label="Status">
+                    Status ↕
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody id="levelsTableBody"></tbody>
+            </table>
+          </div>
+        </fieldset>
+      </div>
+
+      <div class="site-footer" id="siteFooter"></div>
+    </div>
+
+    <script>
+      document.addEventListener("glipReady", function () {
+        requireRole("admin", "owner");
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="icon" href="../../assets/GLIP-icon-transparent.png" />
+
+  <title>GLIP – Student Assignments</title>
+
+  <script>
+    window.PAGE_CONFIG = {
+      pageKind: "management",
+      pageTitle: "GLIP – Student Assignments",
+    };
+
+    window.PAGE_MENU_CONTEXT = {
+      type: "management",
+    };
+  </script>
+    <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
+</head>
+
+<body>
+  <div id="header-placeholder"></div>
+
+  <div class="page-shell">
+    <header class="page-hero">
+      <div class="page-hero-panel">
+        <div class="page-hero-divider-top"></div>
+
+        <img
+          class="page-hero-brand-icon"
+          src="../../assets/GLIP-icon-transparent-cropped.png"
+          alt="GLIP logo"
+        />
+
+        <div class="page-hero-logo">GLIP</div>
+
+        <p class="page-hero-topline">
+          Guided Learning for Independent Progress
+        </p>
+
+        <h1>Student Assignments</h1>
+        <h2>Admin Area</h2>
+
+        <div class="page-hero-divider-bottom"></div>
+      </div>
+    </header>
+
+    <div class="wrap management-wrap">
+      <fieldset class="task-box panel-box topics-box" id="addStudentSubjectPanel">
+        <legend>Add Student Assignment</legend>
+
+        <p class="q">
+          Assign a subject to a student as a current or revision assignment.
+        </p>
+
+        <button
+          type="button"
+          class="progress-help-icon"
+          data-glip-help
+          data-help-title="Add Student Assignment"
+          data-help-text="
+            <b>Purpose:</b><br>
+            Use this section to add a new subject assignment for a student.
+            <br><br>
+
+            <b>Student:</b><br>
+            Select the student who should receive the assignment.
+            <br><br>
+
+            <b>Level and Subject:</b><br>
+            Select the curriculum level and then the subject. Inactive levels and inactive subject assignments remain available for planning and are marked with ⚠.
+            <br><br>
+
+            <b>Assignment Type:</b><br>
+            Current is normally used for the student's present level. Revision is normally used for a subject from another level.
+            <br><br>
+
+            Existing assignments for the student are preserved when the new assignment is saved.
+          "
+        >
+          ?
+        </button>
+
+        <div class="tracker-row">
+          <select id="newStudentSubjectStudent" class="tracker-input">
+            <option value="">Loading students...</option>
+          </select>
+
+          <select id="newStudentSubjectLevel" class="tracker-input">
+            <option value="">Loading levels...</option>
+          </select>
+
+          <select id="newStudentSubjectSubject" class="tracker-input" disabled>
+            <option value="">Select level first</option>
+          </select>
+
+          <select id="newStudentSubjectAccessType" class="tracker-input">
+            <option value="current">Current</option>
+            <option value="revision">Revision</option>
+          </select>
+        </div>
+
+        <div class="tracker-row">
+          <button type="button" class="glip-btn" id="saveStudentSubjectBtn">
+            Save Assignment
+          </button>
+        </div>
+
+        <p id="addStudentSubjectMessage" class="panel-message text-center"></p>
+      </fieldset>
+
+      <fieldset class="task-box panel-box topics-box">
+        <legend>Students</legend>
+
+        <button
+          type="button"
+          class="progress-help-icon"
+          data-glip-help
+          data-help-title="Student Assignments"
+          data-help-text="
+            <b>Purpose:</b><br>
+            This screen controls which subjects are assigned to each student and which subjects each student can access.
+            <br><br>
+        
+            <b>Select a Student:</b><br>
+            Click a student row to view or modify their assigned subjects.
+            <br><br>
+
+
+            <b>Assignment Type</b><br>
+            Each subject assignment has one of two types - Current (The student's normal subject for their current level) and
+          Revision (A subject from a previous level that remains available for revision.).            
+                   
+          <br><br>
+
+         
+            <b>Subjects:</b><br>
+            Only subjects available for the student's level are shown.
+            <br><br>
+        
+            <b>Save Assignments:</b><br>
+            Saves the selected subjects to the StudentSubjects sheet.
+            <br><br>
+        
+            <b>Cancel:</b><br>
+            Discards any unsaved changes and restores the current assignments.
+          "
+        >
+          ?
+        </button>
+        
+        <div class="panel-header">
+          <p class="q panel-top-text">
+            Click a student assignment row to view or edit all subject assignments for that student.
+          </p>
+
+          <div class="panel-right teacher-actions" id="studentSubjectActions"></div>
+        </div>
+
+
+        <p
+          id="studentSubjectSuccessMessage"
+          class="panel-message teacher-message"
+          style="display:none;"
+        >
+          ✓ Assignments saved successfully.
+        </p>
+        
+        <div
+          id="studentSubjectLoadingProgress"
+          class="page-loading-box text-center"
+          style="display: none"
+        >
+          <div class="glip-progress show topics-progress">
+            <div class="glip-progress-bar"></div>
+          </div>
+          <p>Loading students and subjects...</p>
+        </div>
+
+        <div class="topics-table-wrap">
+          <table
+            class="topics-table management-table student-subject-table"
+            id="studentSubjectTable"
+            style="visibility: hidden"
+          >
+
+
+<thead>
+  <tr>
+    <th data-sort-field="full_name" data-label="Full Name">Full Name ▲</th>
+    <th data-sort-field="class_id" data-label="Class">Class ↕</th>
+    <th data-sort-field="level" data-label="Level">Level ↕</th>
+    <th data-sort-field="subject_id" data-label="Subject">Subject ↕</th>
+    <th data-sort-field="access_type" data-label="Assignment Type">Assignment Type ↕</th>
+    <th data-sort-field="status" data-label="Status">Status ↕</th>
+  </tr>
+</thead>
+            
+
+            <tbody id="studentSubjectTableBody"></tbody>
+          </table>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="site-footer" id="siteFooter"></div>
+  </div>
+
+  <script>
+    document.addEventListener("glipReady", function () {
+      requireRole("admin", "owner");
+    });
+  </script></body>
+</html>

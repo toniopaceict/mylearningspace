@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="icon" href="../../assets/GLIP-icon-transparent.png" />
+
+  <title>GLIP – Class Folder Management</title>
+
+  <script>
+    window.PAGE_CONFIG = {
+      pageKind: "management",
+      pageTitle: "GLIP – Class Folder Management"
+    };
+
+    window.PAGE_MENU_CONTEXT = {
+      type: "management"
+    };
+  </script>
+
+  <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
+</head>
+
+<body>
+  <div id="header-placeholder"></div>
+
+  <div class="page-shell">
+    <header class="page-hero">
+      <div class="page-hero-panel">
+        <div class="page-hero-divider-top"></div>
+
+        <img
+          class="page-hero-brand-icon"
+          src="../../assets/GLIP-icon-transparent-cropped.png"
+          alt="GLIP logo"
+        />
+
+        <div class="page-hero-logo">GLIP</div>
+
+        <p class="page-hero-topline">
+          Guided Learning for Independent Progress
+        </p>
+
+        <h1>Class Folder Management</h1>
+        <h2>Teaching Area</h2>
+
+        <div class="page-hero-divider-bottom"></div>
+      </div>
+    </header>
+
+    <div class="wrap management-wrap">
+      <fieldset class="task-box panel-box topics-box">
+        <legend>My Class Folders</legend>
+
+        <button
+          type="button"
+          class="progress-help-icon"
+          data-glip-help
+          data-help-title="Class Folder Management"
+          data-help-text="
+Use this page to set or update the Work Folder and Class Resource Folder links for your own teaching assignments.<br><br>
+
+Each row represents one class and subject assigned to you. Only the <b>Work Folder</b> and <b>Class Resources</b> columns can be edited. The level, subject and class are read-only
+          because they are controlled by the administrator.<br><br>
+
+If a class, subject or level is missing, it means the assignment has not been created for you by the administrator.<br><br>
+          
+          <b>Work Folder</b><br>
+The work folder is the location where you keep your students' work for a particular class and subject.
+          It can be a folder in Google Drive, Microsoft OneDrive, or any other online storage service that your school uses. Each class and subject can have its own separate work folder.
+<br><br>
+          Simply enter the Folder ID or Folder URL provided by your cloud storage service. Once saved, GLIP will use this information whenever a work folder is opened for that class and subject.
+          
+          
+          <br><br>
+
+          "
+        >
+          ?
+        </button>
+
+        <div class="panel-header">
+          <p class="q panel-top-text">
+            Manage the folder links for your own class and subject assignments.
+          </p>
+
+          <div class="panel-right teacher-actions">
+            <button
+              type="button"
+              class="glip-btn"
+              id="saveWorkFoldersBtn"
+            >
+              Save Changes
+            </button>
+
+            <button
+              type="button"
+              class="glip-btn glip-btn-secondary"
+              id="cancelWorkFoldersBtn"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+
+        <p
+          id="workFolderMessage"
+          class="panel-message teacher-message"
+        ></p>
+
+        <div
+          id="workFoldersLoadingProgress"
+          class="page-loading-box text-center"
+          style="display: none"
+        >
+          <div class="glip-progress show topics-progress">
+            <div class="glip-progress-bar"></div>
+          </div>
+          <p>Loading work folders...</p>
+        </div>
+
+        <div
+          id="saveWorkFoldersProgress"
+          class="page-loading-box text-center"
+          style="display: none"
+        >
+          <div class="glip-progress show topics-progress">
+            <div class="glip-progress-bar"></div>
+          </div>
+          <p>Saving work folders...</p>
+        </div>
+
+        <div class="topics-table-wrap" id="workFoldersTableWrap">
+          <table
+            class="topics-table management-table work-folders-table"
+            id="workFoldersTable"
+            style="visibility: hidden"
+          >
+            <thead>
+              <tr>
+                <th data-sort-field="level" data-label="Level">Level ↕</th>
+                <th data-sort-field="subject_name" data-label="Subject">Subject ↕</th>
+                <th data-sort-field="class_code" data-label="Class">Class ↕</th>
+                <th data-sort-field="folder_id" data-label="Work Folder">Work Folder ↕</th>
+                <th data-sort-field="class_resources_url" data-label="Class Resources">Class Resources ↕</th>
+              </tr>
+            </thead>
+
+            <tbody id="workFoldersTableBody"></tbody>
+          </table>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="site-footer" id="siteFooter"></div>
+  </div>
+
+<script>
+  document.addEventListener("glipReady", function () {
+    if (!isTeachingStaff()) {
+      redirectToSchoolLogin();
+    }
+  });
+</script>
+
+  
+</body>
+</html>

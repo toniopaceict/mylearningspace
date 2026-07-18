@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="icon" href="../assets/GLIP-icon-transparent.png" />
+<title>GLIP – End of Topic Reflection</title>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+
+      const SCHOOL =
+        params.get("school") ||
+        sessionStorage.getItem("glipSchool") ||
+        "";
+      const SUBJECT = String(params.get("subject") || "").trim();
+      const LEVEL_NUMBER = String(params.get("level") || "").match(/\d+/)?.[0] || "";
+      const TOPIC_NUMBER = String(params.get("topic") || "").match(/\d+/)?.[0] || "";
+
+      const HAS_VALID_CONTEXT = Boolean(
+        SCHOOL && SUBJECT && LEVEL_NUMBER && TOPIC_NUMBER
+      );
+
+      const TOPIC_ID = HAS_VALID_CONTEXT
+        ? SUBJECT + "_l" + Number(LEVEL_NUMBER) + "_t" + Number(TOPIC_NUMBER)
+        : "";
+
+      const ACTIVITY_ID = TOPIC_ID ? TOPIC_ID + "_reflection" : "";
+
+      window.PAGE_CONFIG = {
+        webAppUrl: "",
+
+        school: SCHOOL,
+        subjectId: SUBJECT,
+        level: LEVEL_NUMBER ? "level-" + String(LEVEL_NUMBER).padStart(2, "0") : "",
+        topicId: TOPIC_ID,
+        topicName: "Topic " + Number(TOPIC_NUMBER),
+        activityId: ACTIVITY_ID,
+      };
+
+      window.PAGE_MENU_CONTEXT = {
+        type: "topic",
+        school: SCHOOL,
+        level: LEVEL_NUMBER,
+        subject: SUBJECT,
+        topic: TOPIC_NUMBER,
+        sharedPage: true,
+      };
+    </script>
+    <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
+  </head>
+
+  <body>
+    <div id="header-placeholder"></div>
+
+    <div class="page-shell">
+      <header class="page-hero">
+        <div class="page-hero-panel">
+          <div class="page-hero-divider-top"></div>
+
+          <img
+            class="page-hero-brand-icon"
+            src="../assets/GLIP-icon-transparent-cropped.png"
+            alt="GLIP logo"
+          />
+
+          <div class="page-hero-logo">GLIP</div>
+
+          <p class="page-hero-topline">
+            Guided Learning for Independent Progress
+          </p>
+
+          <h1>End-of-Topic Reflection</h1>
+          <h2 id="reflectionSubtitle">Topic Reflection</h2>
+
+          <div class="page-hero-divider-bottom"></div>
+        </div>
+      </header>
+
+      <div class="wrap">
+        <fieldset class="task-box">
+          <legend>Instructions</legend>
+          <p class="q">
+            Before you leave this topic, reflect on how well you understood the
+            work you completed.
+          </p>
+        </fieldset>
+
+        <fieldset class="task-box">
+          <legend>Reflection</legend>
+
+          <p class="glip-topic-feedback-text required-label">
+            How confident do you feel with this topic?
+          </p>
+
+          <div class="glip-confidence-scale">
+            <button
+              type="button"
+              class="glip-confidence-btn"
+              data-confidence="1"
+            >
+              1
+            </button>
+            <button
+              type="button"
+              class="glip-confidence-btn"
+              data-confidence="2"
+            >
+              2
+            </button>
+            <button
+              type="button"
+              class="glip-confidence-btn"
+              data-confidence="3"
+            >
+              3
+            </button>
+            <button
+              type="button"
+              class="glip-confidence-btn"
+              data-confidence="4"
+            >
+              4
+            </button>
+            <button
+              type="button"
+              class="glip-confidence-btn"
+              data-confidence="5"
+            >
+              5
+            </button>
+            <button
+              type="button"
+              class="glip-confidence-btn"
+              data-confidence="6"
+            >
+              6
+            </button>
+            <button
+              type="button"
+              class="glip-confidence-btn"
+              data-confidence="7"
+            >
+              7
+            </button>
+            <button
+              type="button"
+              class="glip-confidence-btn"
+              data-confidence="8"
+            >
+              8
+            </button>
+            <button
+              type="button"
+              class="glip-confidence-btn"
+              data-confidence="9"
+            >
+              9
+            </button>
+            <button
+              type="button"
+              class="glip-confidence-btn"
+              data-confidence="10"
+            >
+              10
+            </button>
+          </div>
+
+          <div class="glip-confidence-key">
+            <span>Least confident</span>
+            <span>Most confident</span>
+          </div>
+
+          <div class="glip-feedback-grid">
+            <div class="glip-feedback-question">
+              <p class="required-label">
+                I could understand the main steps in this topic.
+              </p>
+              <div class="glip-feedback-buttons" data-question="1"></div>
+            </div>
+
+            <div class="glip-feedback-question">
+              <p class="required-label">
+                I could solve problems related to this topic by myself.
+              </p>
+              <div class="glip-feedback-buttons" data-question="2"></div>
+            </div>
+
+            <div class="glip-feedback-question">
+              <p class="required-label">
+                I could explain this topic to another student.
+              </p>
+              <div class="glip-feedback-buttons" data-question="3"></div>
+            </div>
+
+            <div class="glip-feedback-question">
+              <p class="required-label">I knew what to do if I got stuck.</p>
+              <div class="glip-feedback-buttons" data-question="4"></div>
+            </div>
+          </div>
+
+          <textarea
+            id="glipFeedbackComment"
+            class="glip-feedback-comment"
+            placeholder="Optional comment"
+          ></textarea>
+
+          <div class="tracker-row">
+            <button id="submitReflectionBtn" type="button" class="glip-btn">
+              Submit Reflection
+            </button>
+          </div>
+
+          <div
+            id="saveProgressBar"
+            class="save-progress-bar"
+            style="display: none"
+          >
+            <div class="save-progress-bar-fill"></div>
+          </div>
+
+          <p id="message" class="tracker-message"></p>
+        </fieldset>
+      </div>
+
+      <div class="site-footer" id="siteFooter"></div>
+    </div>
+
+    <script>
+      function buildRatingButtons() {
+        document
+          .querySelectorAll(".glip-feedback-buttons")
+          .forEach(function (container) {
+            const questionNumber = container.dataset.question;
+
+            const labels = [
+              { value: 1, text: "Strongly disagree" },
+              { value: 2, text: "Disagree" },
+              { value: 3, text: "Not sure" },
+              { value: 4, text: "Agree" },
+              { value: 5, text: "Strongly agree" },
+            ];
+
+            container.innerHTML = labels
+              .map(function (item) {
+                return `
+            <button
+              type="button"
+              class="glip-feedback-btn"
+              data-question="${questionNumber}"
+              data-value="${item.value}"
+            >
+              ${item.text}
+            </button>
+          `;
+              })
+              .join("");
+          });
+      }
+
+      function selectButton(button, selector, selectedClass) {
+        document.querySelectorAll(selector).forEach(function (btn) {
+          btn.classList.remove(selectedClass);
+        });
+
+        button.classList.add(selectedClass);
+      }
+
+      function getSelectedConfidence() {
+        const selected = document.querySelector(
+          ".glip-confidence-btn.is-selected",
+        );
+
+        return selected ? Number(selected.dataset.confidence) : 0;
+      }
+
+      function getReflectionValue(questionNumber) {
+        const selected = document.querySelector(
+          `.glip-feedback-btn[data-question="${questionNumber}"].is-selected`,
+        );
+
+        return selected ? selected.dataset.value : "";
+      }
+
+      function clearMessage() {
+        const message = document.getElementById("message");
+
+        if (message) {
+          message.innerText = "";
+        }
+      }
+      function setSavingState(isSaving) {
+        const submitBtn = document.getElementById("submitReflectionBtn");
+        const progressBar = document.getElementById("saveProgressBar");
+
+        if (submitBtn) {
+          submitBtn.disabled = isSaving;
+          submitBtn.innerText = isSaving ? "Saving..." : "Submit Reflection";
+        }
+
+        if (progressBar) {
+          progressBar.style.display = isSaving ? "block" : "none";
+        }
+
+        document
+          .querySelectorAll(
+            ".glip-confidence-btn, .glip-feedback-btn, #glipFeedbackComment",
+          )
+          .forEach(function (el) {
+            el.disabled = isSaving;
+          });
+      }
+
+      function saveTopicReflection() {
+        const config = window.PAGE_CONFIG;
+        const confidence = getSelectedConfidence();
+
+        return fetch(config.webAppUrl, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "saveReflectionAndProgress",
+
+            student_id: sessionStorage.getItem("glipStudentId") || "",
+            student_name: sessionStorage.getItem("glipStudentName") || "",
+            class_id: sessionStorage.getItem("glipClassId") || "",
+
+            level: config.level,
+            subject_id: config.subjectId,
+            topic_id: config.topicId,
+            topic_name: config.topicName,
+            activity_id: config.activityId,
+
+            confidence: confidence,
+            understand_main_steps: getReflectionValue(1),
+            solve_problems_by_myself: getReflectionValue(2),
+            explain_to_another_student: getReflectionValue(3),
+            know_what_to_do_if_stuck: getReflectionValue(4),
+
+            comment: document.getElementById("glipFeedbackComment").value || "",
+          }),
+        }).then(function (response) {
+          return response.json();
+        });
+      }
+
+      function updateMenuIconAfterReflection() {
+        const config = window.PAGE_CONFIG;
+
+        window.dispatchEvent(
+          new CustomEvent("glipProgressSaved", {
+            detail: {
+              activityId: config.activityId,
+              status: "completed",
+              subjectId: config.subjectId,
+              level: config.level,
+            },
+          }),
+        );
+      }
+
+      function submitReflection() {
+        const message = document.getElementById("message");
+
+        const hasConfidence = getSelectedConfidence();
+
+        const allQuestionsAnswered = Array.from(
+          document.querySelectorAll(".glip-feedback-buttons"),
+        ).every(function (container) {
+          const questionNumber = container.dataset.question;
+
+          return getReflectionValue(questionNumber);
+        });
+
+        if (!hasConfidence || !allQuestionsAnswered) {
+          message.innerText = "Please answer all required questions.";
+          message.style.color = "#b3261e";
+          return;
+        }
+
+        setSavingState(true);
+
+        message.innerText = "Saving reflection...";
+        message.style.color = "#0b3c6f";
+
+        saveTopicReflection()
+          .then(function (feedbackData) {
+            if (feedbackData.status !== "success") {
+              throw new Error(
+                feedbackData.message || "Could not save reflection.",
+              );
+            }
+
+            updateMenuIconAfterReflection();
+
+            setSavingState(false);
+
+            message.innerText = "Your reflection has been saved.";
+            message.style.color = "#137333";
+          })
+
+          .catch(function (error) {
+            setSavingState(false);
+
+            message.innerText = error.message || "Could not save reflection.";
+
+            message.style.color = "#b3261e";
+          });
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const config = window.PAGE_CONFIG;
+
+        fetch(config.webAppUrl + "?action=ping").catch(function () {});
+
+        buildRatingButtons();
+
+        document
+          .querySelectorAll(".glip-confidence-btn")
+          .forEach(function (button) {
+            button.addEventListener("click", function () {
+              clearMessage();
+              selectButton(button, ".glip-confidence-btn", "is-selected");
+            });
+          });
+
+        document.addEventListener("click", function (event) {
+          const feedbackBtn = event.target.closest(".glip-feedback-btn");
+
+          if (!feedbackBtn) return;
+
+          const questionNumber = feedbackBtn.dataset.question;
+
+          document
+            .querySelectorAll(
+              `.glip-feedback-btn[data-question="${questionNumber}"]`,
+            )
+            .forEach(function (btn) {
+              btn.classList.remove("is-selected");
+            });
+
+          feedbackBtn.classList.add("is-selected");
+          clearMessage();
+        });
+
+        document
+          .getElementById("submitReflectionBtn")
+          .addEventListener("click", submitReflection);
+
+        document.getElementById("reflectionSubtitle").innerText =
+          SUBJECT.toUpperCase() + " - Topic " + Number(TOPIC_NUMBER);
+      });
+    </script>
+</body>
+</html>

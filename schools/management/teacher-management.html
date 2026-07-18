@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<link href="../../assets/GLIP-icon-transparent.png" rel="icon"/>
+<title>GLIP – Teacher Management</title>
+<script>
+      window.PAGE_CONFIG = {
+        pageKind: "management",
+        pageTitle: "GLIP – Teacher Management",
+      };
+
+      window.PAGE_MENU_CONTEXT = {
+        type: "management",
+      };
+    </script>
+<script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
+</head>
+<body>
+<div id="header-placeholder"></div>
+<div class="page-shell">
+<header class="page-hero">
+<div class="page-hero-panel">
+<div class="page-hero-divider-top"></div>
+<img alt="GLIP logo" class="page-hero-brand-icon" src="../../assets/GLIP-icon-transparent-cropped.png"/>
+<div class="page-hero-logo">GLIP</div>
+<p class="page-hero-topline">
+            Guided Learning for Independent Progress
+          </p>
+<h1>Teacher Management</h1>
+<h2>Admin Area</h2>
+<div class="page-hero-divider-bottom"></div>
+</div>
+</header>
+<div class="wrap management-wrap">
+<fieldset class="task-box panel-box topics-box" id="addTeacherPanel">
+<legend>Add Teacher</legend>
+<p class="q">
+      Enter the teacher details below.
+    </p>
+<button class="progress-help-icon" data-glip-help="" data-help-text="
+    
+   &lt;b&gt;Name and Surname:&lt;/b&gt;&lt;br&gt;
+    Enter the teacher's first name and surname.
+    &lt;br&gt;&lt;br&gt;
+   &lt;b&gt;Login Code:&lt;/b&gt;&lt;br&gt;
+    Create a unique login code for the teacher. The teacher will use this code to sign in to GLIP.
+    &lt;br&gt;&lt;br&gt;
+   &lt;b&gt;Email Address:&lt;/b&gt;&lt;br&gt;
+    Enter the teacher's email address. This is used when sending login details by email.
+    &lt;br&gt;&lt;br&gt;
+  &lt;b&gt;Role:&lt;/b&gt;&lt;br&gt;
+    Select the teacher's role:
+    Admin, Lead Teacher or Subject Teacher.
+    &lt;br&gt;&lt;br&gt;
+   &lt;b&gt;Send Code by Email:&lt;/b&gt;&lt;br&gt;
+    When enabled, GLIP will automatically email the teacher their login code after the account is created.
+    &lt;br&gt;&lt;br&gt;
+   &lt;b&gt;Save Teacher:&lt;/b&gt;&lt;br&gt;
+    Click Save Teacher to create the account.
+    
+    " data-help-title="Add Teacher" type="button">
+  ?
+</button>
+<div class="tracker-row">
+<input class="tracker-input" id="newTeacherName" placeholder="Name" type="text"/>
+<input class="tracker-input" id="newTeacherSurname" placeholder="Surname" type="text"/>
+<input class="tracker-input" id="newTeacherCode" placeholder="Login code" type="text"/>
+<input class="tracker-input" id="newTeacherEmail" placeholder="Email" type="email"/>
+<select class="tracker-input" id="newTeacherRole" required="">
+<option value="">Select role</option>
+<option value="owner">Owner</option>
+<option value="subject_teacher">
+          Subject
+        </option>
+<option value="lead_teacher">
+          Lead
+        </option>
+<option value="admin">
+          Admin
+        </option>
+</select>
+</div>
+<div class="tracker-row">
+<label class="form-check">
+<input checked="" id="sendTeacherCodeOnCreate" type="checkbox"/>
+          Send code by email after creating teacher
+        </label>
+</div>
+<div class="tracker-row">
+<button class="glip-btn" id="saveTeacherBtn" type="button">
+          Save Teacher
+        </button>
+</div>
+<p class="panel-message text-center" id="addTeacherMessage"></p>
+<div class="page-loading-box text-center" id="teachersLoadingProgress" style="display: none">
+<div class="glip-progress show topics-progress">
+<div class="glip-progress-bar"></div>
+</div>
+<p>Loading teachers...</p>
+</div>
+
+</fieldset>
+<fieldset class="task-box panel-box topics-box">
+<legend>Teacher Management</legend>
+<button class="progress-help-icon" data-glip-help="" data-help-text="
+    
+   &lt;b&gt;Sorting:&lt;/b&gt;&lt;br&gt;
+    Click any column heading to sort the table. Click again to reverse the sort order.
+    &lt;br&gt;&lt;br&gt;
+   &lt;b&gt;Selecting Teachers:&lt;/b&gt;&lt;br&gt;
+    Click a row to select a teacher.
+    &lt;br&gt;&lt;br&gt;
+   &lt;b&gt;Multiple Selection:&lt;/b&gt;&lt;br&gt;
+    Hold Ctrl while clicking to select or deselect multiple teachers.
+    &lt;br&gt;&lt;br&gt;
+   &lt;b&gt;Range Selection:&lt;/b&gt;&lt;br&gt;
+    Hold Shift and click another row to select all teachers between the two rows.
+    &lt;br&gt;&lt;br&gt;
+   &lt;b&gt;Send Selected Codes:&lt;/b&gt;&lt;br&gt;
+    Emails the login codes of all selected teachers.
+    &lt;br&gt;&lt;br&gt;
+  &lt;b&gt;Edit Teachers:&lt;/b&gt;&lt;br&gt;
+    Switches the table into edit mode.
+    &lt;br&gt;&lt;br&gt;
+   &lt;b&gt;Save Changes:&lt;/b&gt;&lt;br&gt;
+    After editing teacher details, click Save Changes to update the records.
+    &lt;br&gt;&lt;br&gt;
+  &lt;b&gt;Teacher Roles:&lt;/b&gt;&lt;br&gt;
+    Owner – school administration plus platform tools such as Activity Management and Performance Monitor.&lt;br&gt;
+    Admin – full access to school administration.
+    Lead Teacher – manages subjects and topics assigned to them.
+    Subject Teacher – manages learning content and students assigned to them.
+    &lt;br&gt;&lt;br&gt;
+ &lt;b&gt;Account Status:&lt;/b&gt;&lt;br&gt;
+    Active teachers can access GLIP.
+    Inactive teachers cannot log in until reactivated.
+    
+    " data-help-title="Teacher Management" type="button">
+  ?
+</button>
+<div class="panel-header">
+<p class="q panel-top-text">
+    View teachers, roles and account status.
+  </p>
+<div class="panel-right teacher-actions">
+<button class="glip-btn" id="sendSelectedTeacherCodesBtn" type="button">
+    Send selected codes
+  </button>
+<button class="glip-btn" id="editTeachersBtn" type="button">
+    Edit Teachers
+  </button>
+</div>
+</div>
+<p class="panel-message teacher-message" id="teacherManagementMessage"></p>
+
+<div class="topics-table-wrap" id="teachersTableWrap">
+<table class="topics-table management-table teachers-table" id="teachersTable" style="visibility: hidden">
+<thead>
+<tr>
+<th data-label="Full Name" data-sort-field="full_name">
+            Full Name ↕
+          </th>
+<th data-label="Code" data-sort-field="code">
+            Code ↕
+          </th>
+<th data-label="Email" data-sort-field="email">
+            Email ↕
+          </th>
+<th data-label="Role" data-sort-field="role">
+            Role ↕
+          </th>
+<th data-label="Status" data-sort-field="active">
+            Status ↕
+          </th>
+</tr>
+</thead>
+<tbody id="teachersTableBody">
+</tbody>
+</table>
+</div>
+</fieldset>
+</div>
+<div class="site-footer" id="siteFooter"></div>
+</div>
+<script>
+    document.addEventListener("glipReady", function () {
+      requireRole("admin", "owner");
+    });
+  </script></body>
+</html>

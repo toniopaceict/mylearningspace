@@ -1,0 +1,29 @@
+Creating the new school
+
+When you create the next school, add its configuration to:
+
+js/school-config.js
+
+For example:
+
+newschool: {
+  label: "New School",
+  webAppUrl:
+    "https://script.google.com/macros/s/NEW_DEPLOYMENT_ID/exec"
+}
+
+The following three values must match exactly:
+
+GitHub folder:       schools/newschool/
+school-config key:   newschool
+Settings school_id:  newschool
+
+Copy:
+
+schools/demo/
+
+to:
+
+schools/newschool/
+
+The copied login page does not need its school name edited manually. It will display the label from school-config.js.

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="../../assets/GLIP-icon-transparent.png">
+  <title>GLIP – Content Validator</title>
+  <script>
+    window.PAGE_CONFIG = { pageKind: "management", pageTitle: "GLIP – Content Validator" };
+    window.PAGE_MENU_CONTEXT = { type: "management" };
+  </script>
+  <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
+</head>
+<body>
+  <div id="header-placeholder"></div>
+  <div class="page-shell">
+    <header class="page-hero">
+      <div class="page-hero-panel">
+        <div class="page-hero-divider-top"></div>
+        <img class="page-hero-brand-icon" src="../../assets/GLIP-icon-transparent-cropped.png" alt="GLIP logo">
+        <div class="page-hero-logo">GLIP</div>
+        <p class="page-hero-topline">Guided Learning for Independent Progress</p>
+        <h1>Content Validator</h1>
+        <h2>Owner Area</h2>
+        <div class="page-hero-divider-bottom"></div>
+      </div>
+    </header>
+
+    <div class="wrap management-wrap">
+      <fieldset class="task-box panel-box topics-box">
+        <legend>Publish Check</legend>
+        <p class="q">Run a read-only check of Activities, relationships, progress sheets and published activity pages. The check runs only when you press Validate and makes no changes.</p>
+        <button id="runContentValidation" class="glip-btn" type="button">Validate</button>
+        <p id="contentValidationMessage" class="panel-message">No validation has been run during this session.</p>
+        <div id="validationSummary" class="performance-summary-grid"></div>
+      </fieldset>
+
+      <fieldset class="task-box panel-box topics-box">
+        <legend>Errors</legend>
+        <div class="panel-header">
+          <p class="q panel-top-text"></p>
+          <div class="panel-right teacher-actions">
+            <button id="exportValidationErrors" class="glip-btn glip-btn-secondary" type="button" disabled>Export Errors</button>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table class="topics-table management-table" data-sortable="true">
+            <thead>
+              <tr>
+                <th data-sort-key="area" aria-sort="none"><span class="sort-label">Area</span><span class="sort-indicator" aria-hidden="true"> ↕</span></th>
+                <th data-sort-key="item" aria-sort="none"><span class="sort-label">Item</span><span class="sort-indicator" aria-hidden="true"> ↕</span></th>
+                <th data-sort-key="row" aria-sort="none"><span class="sort-label">Sheet Row</span><span class="sort-indicator" aria-hidden="true"> ↕</span></th>
+                <th data-sort-key="problem" aria-sort="none"><span class="sort-label">Problem</span><span class="sort-indicator" aria-hidden="true"> ↕</span></th>
+              </tr>
+            </thead>
+            <tbody id="validationErrors"><tr><td colspan="4">Run Validate to begin.</td></tr></tbody>
+          </table>
+        </div>
+      </fieldset>
+
+      <fieldset class="task-box panel-box topics-box">
+        <legend>Warnings</legend>
+        <div class="table-scroll">
+          <table class="topics-table management-table" data-sortable="true">
+            <thead>
+              <tr>
+                <th data-sort-key="area" aria-sort="none"><span class="sort-label">Area</span><span class="sort-indicator" aria-hidden="true"> ↕</span></th>
+                <th data-sort-key="item" aria-sort="none"><span class="sort-label">Item</span><span class="sort-indicator" aria-hidden="true"> ↕</span></th>
+                <th data-sort-key="row" aria-sort="none"><span class="sort-label">Sheet Row</span><span class="sort-indicator" aria-hidden="true"> ↕</span></th>
+                <th data-sort-key="warning" aria-sort="none"><span class="sort-label">Warning</span><span class="sort-indicator" aria-hidden="true"> ↕</span></th>
+              </tr>
+            </thead>
+            <tbody id="validationWarnings"><tr><td colspan="4">Run Validate to begin.</td></tr></tbody>
+          </table>
+        </div>
+      </fieldset>
+
+      <fieldset class="task-box panel-box topics-box">
+        <legend>Passed</legend>
+        <div class="table-scroll">
+          <table class="topics-table management-table" data-sortable="true">
+            <thead>
+              <tr>
+                <th data-sort-key="area" aria-sort="none"><span class="sort-label">Area</span><span class="sort-indicator" aria-hidden="true"> ↕</span></th>
+                <th data-sort-key="item" aria-sort="none"><span class="sort-label">Item</span><span class="sort-indicator" aria-hidden="true"> ↕</span></th>
+                <th data-sort-key="row" aria-sort="none"><span class="sort-label">Sheet Row</span><span class="sort-indicator" aria-hidden="true"> ↕</span></th>
+                <th data-sort-key="result" aria-sort="none"><span class="sort-label">Result</span><span class="sort-indicator" aria-hidden="true"> ↕</span></th>
+              </tr>
+            </thead>
+            <tbody id="validationPassed"><tr><td colspan="4">Run Validate to begin.</td></tr></tbody>
+          </table>
+        </div>
+      </fieldset>
+
+      <fieldset class="task-box panel-box topics-box">
+        <legend>Validator Information</legend>
+        <p class="q">Progress sheets are inspected but never modified.</p>
+        <p class="q">Published URL checking requires one-time authorisation by the Apps Script project owner.</p>
+        <p class="q">The validator does not change Activities, progress records or published content.</p>
+        <p class="q">Export Errors creates a CSV record of the current errors so that they can be addressed one by one.</p>
+      </fieldset>
+    </div>
+    <div class="site-footer" id="siteFooter"></div>
+  </div>
+  <script>document.addEventListener("glipReady", function () { requireRole("owner"); });</script>
+</body>
+</html>

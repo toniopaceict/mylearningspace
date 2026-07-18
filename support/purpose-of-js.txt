@@ -1,0 +1,26 @@
+landing-page.js
+Controls the first page after login or entry. This is usually the page that shows the available topics or cards and handles loading that data, often from your Apps Script or a JSON source.
+
+lesson-page.js
+Handles shared behaviour for lesson pages. This would normally include things such as page setup, common lesson interactions and possibly linking in features like mark as complete.
+
+lightbox.js
+Opens images in an enlarged pop-up view when clicked. Useful for quiz questions or lesson content where students need to click an image to see it more clearly.
+
+mark-complete.js
+Sends the student's completion record to Google Sheets through your Apps Script. This is the script behind the Mark as Complete button.
+
+pdf-export.js
+Exports the page as a PDF using html2pdf.js or a similar setup. This is the one used for Save as PDF.
+
+practice-page.js
+Handles shared behaviour for practice pages. Similar to lesson-page.js, but for practice activities. It may also work with upload and completion features.
+
+quiz-engine.js
+This is the main logic for the MCQ quiz system. It usually renders questions, checks answers, gives feedback, calculates marks and updates the score.
+
+quiz-page.js
+Controls page-level behaviour for quiz pages. In many setups, this works together with quiz-engine.js and may initialise the quiz, connect buttons and manage layout-specific actions.
+
+upload-file.js
+Uploads a student file, often a PDF or other attachment, to Google Drive through your Apps Script. This is the script behind the Upload File or Upload PDF button.

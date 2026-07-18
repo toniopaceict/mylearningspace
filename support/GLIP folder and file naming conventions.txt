@@ -1,0 +1,523 @@
+## GLIP Folder and File Naming Conventions
+
+GLIP uses the folder path and file names to detect the current school, subject and level automatically. This avoids editing code when copying pages to a new school, subject or level.
+
+### 1. School Folder Naming
+
+Each school must have its own folder inside:
+
+```text
+/schools/
+```
+
+The school folder name must be lowercase and should not contain spaces.
+
+Correct examples:
+
+```text
+/schools/mcast/
+/schools/demo/
+/schools/st-martins/
+```
+
+Avoid:
+
+```text
+/schools/MCAST/
+/schools/Demo School/
+/schools/demo_school/
+```
+
+The folder name is used as the school ID.
+
+For example:
+
+```text
+/schools/demo/
+```
+
+means:
+
+```javascript
+SCHOOL = "demo"
+```
+
+The same school ID must also exist in `school-config.js`.
+
+Example:
+
+```javascript
+demo: {
+  label: "Demo School",
+  webAppUrl: "DEMO_APPS_SCRIPT_URL"
+}
+```
+
+---
+
+### 2. Subject Visibility Pages
+
+Subject visibility pages must follow this structure:
+
+```text
+/schools/[school]/subject-visibility/level-[level]/subjects-[level]-home.html
+/schools/[school]/subject-visibility/level-[level]/subjects-[level]-settings.html
+```
+
+Examples:
+
+```text
+/schools/mcast/subject-visibility/level-04/subjects-04-home.html
+/schools/mcast/subject-visibility/level-04/subjects-04-settings.html
+```
+
+```text
+/schools/demo/subject-visibility/level-05/subjects-05-home.html
+/schools/demo/subject-visibility/level-05/subjects-05-settings.html
+```
+
+The level must appear in both the folder and file name.
+
+Correct:
+
+```text
+level-04/subjects-04-home.html
+level-05/subjects-05-settings.html
+```
+
+Avoid mismatches such as:
+
+```text
+level-04/subjects-05-home.html
+level-05/subjects-04-settings.html
+```
+
+---
+
+### 3. Topic Visibility Pages
+
+Topic visibility pages must follow this structure:
+
+```text
+/schools/[school]/topic-visibility/[subject]/level-[level]/[subject]-topics-[level]-home.html
+/schools/[school]/topic-visibility/[subject]/level-[level]/[subject]-topics-[level]-settings.html
+```
+
+Examples:
+
+```text
+/schools/mcast/topic-visibility/word/level-04/word-topics-04-home.html
+/schools/mcast/topic-visibility/word/level-04/word-topics-04-settings.html
+```
+
+```text
+/schools/demo/topic-visibility/excel/level-05/excel-topics-05-home.html
+/schools/demo/topic-visibility/excel/level-05/excel-topics-05-settings.html
+```
+
+The subject must appear in both the folder and the file name.
+
+Correct:
+
+```text
+topic-visibility/word/level-04/word-topics-04-home.html
+topic-visibility/excel/level-05/excel-topics-05-settings.html
+```
+
+Avoid mismatches such as:
+
+```text
+topic-visibility/word/level-04/excel-topics-04-home.html
+topic-visibility/excel/level-05/word-topics-05-settings.html
+```
+
+---
+
+### 4. Subject IDs
+
+Subject folder names should match the subject IDs used in Google Sheets and Apps Script.
+
+Recommended subject IDs:
+
+```text
+word
+excel
+powerpoint
+database
+```
+
+These same IDs should be used in:
+
+```text
+topic-visibility/[subject]/
+content/[subject]/
+Google Sheets subject_id column
+Google Sheets topic_id values
+```
+
+Example:
+
+```text
+/content/word/
+/schools/mcast/topic-visibility/word/
+subject_id = word
+```
+
+---
+
+### 5. Level Naming
+
+Levels must always use two digits.
+
+Correct:
+
+```text
+level-04
+level-05
+level-06
+```
+
+File names must also use two digits:
+
+```text
+subjects-04-home.html
+subjects-04-settings.html
+word-topics-04-home.html
+word-topics-04-settings.html
+```
+
+Avoid:
+
+```text
+level-4
+subjects-4-home.html
+word-topics-4-home.html
+```
+
+Using two digits keeps sorting clean and allows the code to detect the level reliably.
+
+---
+
+### 6. Content Folder Naming
+
+Learning content is shared across schools and should stay outside the school folders.
+
+Use:
+
+```text
+/content/[subject]/topic-[topic-number]/
+```
+
+Examples:
+
+```text
+/content/word/topic-01/
+/content/word/topic-02/
+/content/excel/topic-01/
+```
+
+Topic folders must use two digits:
+
+```text
+topic-01
+topic-02
+topic-03
+```
+
+Avoid:
+
+```text
+topic-1
+topic2
+Topic-02
+```
+
+---
+
+### 7. Topic Home Pages
+
+Each topic folder should contain a topic home page using the same topic number.
+
+Correct:
+
+```text
+/content/word/topic-02/topic-02-home.html
+/content/excel/topic-01/topic-01-home.html
+```
+
+Avoid:
+
+```text
+/content/word/topic-02/home.html
+/content/word/topic-02/topic-home.html
+/content/word/topic-02/topic-2-home.html
+```
+
+---
+
+### 8. Topic Images
+
+Topic images should follow this structure:
+
+```text
+/content/[subject]/topic-[topic-number]/assets/topic-[topic-number].jpg
+```
+
+Example:
+
+```text
+/content/word/topic-02/assets/topic-02.jpg
+/content/excel/topic-01/assets/topic-01.jpg
+```
+
+Subject images should follow this structure:
+
+```text
+/content/[subject]/assets/icon-[subject].jpg
+```
+
+Examples:
+
+```text
+/content/word/assets/icon-word.jpg
+/content/excel/assets/icon-excel.jpg
+```
+
+---
+
+### 9. Topic IDs in Google Sheets
+
+Topic IDs should follow this pattern:
+
+```text
+[subject]_l[level]_t[topic]
+```
+
+Examples:
+
+```text
+word_l4_t1
+word_l4_t2
+excel_l5_t1
+```
+
+The topic number at the end is used by the code to locate the correct content folder.
+
+Example:
+
+```text
+word_l4_t2
+```
+
+points to:
+
+```text
+/content/word/topic-02/
+```
+
+---
+
+### 10. Activity IDs
+
+Activity IDs should follow this pattern:
+
+```text
+[subject]_l[level]_t[topic]_[activity][number]
+```
+
+Examples:
+
+```text
+word_l4_t2_lesson1
+word_l4_t2_practice1
+word_l4_t2_quiz1
+word_l4_t2_fillblank1
+word_l4_t2_reflection
+```
+
+These IDs are used for progress tracking, badges and reporting.
+
+---
+
+### 11. Copying Pages to a New School
+
+To create the same pages for another school:
+
+1. Copy the school folder.
+2. Rename the copied folder to the new school ID.
+3. Add the new school to `school-config.js`.
+4. Use a separate Apps Script deployment URL for that school.
+5. Do not change the HTML code if the naming conventions are followed.
+
+Example:
+
+```text
+/schools/mcast/
+```
+
+copied to:
+
+```text
+/schools/demo/
+```
+
+Then add:
+
+```javascript
+demo: {
+  label: "Demo School",
+  webAppUrl: "DEMO_APPS_SCRIPT_URL"
+}
+```
+
+---
+
+### 12. Copying Pages to a New Level
+
+To create Level 5 pages from Level 4 pages:
+
+1. Copy:
+
+```text
+level-04/
+```
+
+2. Rename the folder to:
+
+```text
+level-05/
+```
+
+3. Rename the files inside.
+
+Example:
+
+```text
+subjects-04-home.html
+subjects-04-settings.html
+```
+
+become:
+
+```text
+subjects-05-home.html
+subjects-05-settings.html
+```
+
+For topic visibility pages:
+
+```text
+word-topics-04-home.html
+word-topics-04-settings.html
+```
+
+become:
+
+```text
+word-topics-05-home.html
+word-topics-05-settings.html
+```
+
+No code should need to be changed.
+
+---
+
+### 13. Copying Pages to a New Subject
+
+To create Excel topic pages from Word topic pages:
+
+1. Copy:
+
+```text
+topic-visibility/word/
+```
+
+2. Rename it to:
+
+```text
+topic-visibility/excel/
+```
+
+3. Rename the files inside.
+
+Example:
+
+```text
+word-topics-04-home.html
+word-topics-04-settings.html
+```
+
+become:
+
+```text
+excel-topics-04-home.html
+excel-topics-04-settings.html
+```
+
+No code should need to be changed if the subject folder and file name match.
+
+---
+
+### 14. Common Mistakes to Avoid
+
+Do not mix school, subject or level names.
+
+Wrong:
+
+```text
+/schools/demo/topic-visibility/word/level-04/excel-topics-04-home.html
+```
+
+Correct:
+
+```text
+/schools/demo/topic-visibility/word/level-04/word-topics-04-home.html
+```
+
+Wrong:
+
+```text
+/schools/mcast/subject-visibility/level-05/subjects-04-home.html
+```
+
+Correct:
+
+```text
+/schools/mcast/subject-visibility/level-05/subjects-05-home.html
+```
+
+Wrong:
+
+```text
+/content/word/topic-2/
+```
+
+Correct:
+
+```text
+/content/word/topic-02/
+```
+
+---
+
+### 15. General Rule
+
+The folder path and file name must agree.
+
+For subject pages:
+
+```text
+level-04 → subjects-04
+level-05 → subjects-05
+```
+
+For topic pages:
+
+```text
+topic-visibility/word → word-topics
+topic-visibility/excel → excel-topics
+level-04 → topics-04
+level-05 → topics-05
+```
+
+If the path and file name follow these rules, GLIP will automatically detect the correct school, subject and level.

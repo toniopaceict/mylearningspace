@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<link href="../../assets/GLIP-icon-transparent.png" rel="icon"/>
+<title>GLIP – Activity Management</title>
+<script>
+    window.PAGE_CONFIG = {
+      pageKind: "management",
+      pageTitle: "GLIP – Activity Management"
+    };
+
+    window.PAGE_MENU_CONTEXT = {
+      type: "management"
+    };
+  </script>
+<script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
+<style>
+    .activity-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .activity-panel-header .q {
+      margin: 0;
+    }
+
+    .activity-add-grid {
+      display: grid;
+      grid-template-columns: minmax(250px, 1.35fr) minmax(180px, 0.9fr) minmax(230px, 1fr) minmax(230px, 1fr);
+      gap: 0.65rem;
+      align-items: end;
+      margin-top: 1rem;
+    }
+
+    .activity-add-grid .tracker-input {
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .activity-add-actions {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+
+    .activity-search-panel {
+      display: grid;
+      grid-template-columns: minmax(260px, 500px) minmax(180px, 220px) auto;
+      gap: 0.5rem;
+      align-items: end;
+      justify-content: start;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: 1px solid var(--glip-border, #0b4f8a);
+      border-radius: 10px;
+    }
+
+    .activity-search-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .activity-search-field label {
+      font-weight: 500;
+    }
+
+    .activity-search-panel .tracker-input {
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .activity-search-clear {
+      align-self: end;
+    }
+
+    .activity-record-count {
+      grid-column: 1 / -1;
+      margin: 0.15rem 0 0;
+    }
+
+    .activities-table-wrap {
+      overflow-x: auto;
+    }
+
+    #activitiesTable {
+      width: 100%;
+      min-width: 1160px;
+      table-layout: fixed;
+    }
+
+    #activitiesTable th,
+    #activitiesTable td {
+      vertical-align: middle;
+      overflow-wrap: anywhere;
+    }
+
+    #activitiesTable th:nth-child(1),
+    #activitiesTable td:nth-child(1) { width: 7%; }
+
+    #activitiesTable th:nth-child(2),
+    #activitiesTable td:nth-child(2) { width: 8%; }
+
+    #activitiesTable th:nth-child(3),
+    #activitiesTable td:nth-child(3) { width: 12%; }
+
+    #activitiesTable th:nth-child(4),
+    #activitiesTable td:nth-child(4) { width: 10%; }
+
+    #activitiesTable th:nth-child(5),
+    #activitiesTable td:nth-child(5) { width: 18%; }
+
+    #activitiesTable th:nth-child(6),
+    #activitiesTable td:nth-child(6) { width: 23%; }
+
+    #activitiesTable th:nth-child(7),
+    #activitiesTable td:nth-child(7) { width: 10%; }
+
+    #activitiesTable th:nth-child(8),
+    #activitiesTable td:nth-child(8) { width: 6%; }
+
+    #activitiesTable th:nth-child(9),
+    #activitiesTable td:nth-child(9) { width: 8%; }
+
+    #activitiesTable td .tracker-input {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    #activitiesTable textarea.tracker-input {
+      min-height: 48px;
+      line-height: 1.3;
+      resize: vertical;
+      white-space: normal;
+    }
+
+    #activitiesTable td:nth-child(6) {
+      white-space: normal;
+    }
+
+    .activity-edit-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .activity-field-changed {
+      background: #fff8c6 !important;
+      border: 2px solid #b00020 !important;
+    }
+
+    @media (max-width: 760px) {
+      .activity-panel-header {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .activity-panel-header .panel-right {
+        width: 100%;
+      }
+
+      .activity-panel-header .panel-right button {
+        width: 100%;
+      }
+
+      .activity-add-grid,
+      .activity-search-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .activity-record-count {
+        grid-column: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+<div id="header-placeholder"></div>
+<div class="page-shell">
+<header class="page-hero">
+<div class="page-hero-panel">
+<div class="page-hero-divider-top"></div>
+<img alt="GLIP logo" class="page-hero-brand-icon" src="../../assets/GLIP-icon-transparent-cropped.png"/>
+<div class="page-hero-logo">GLIP</div>
+<p class="page-hero-topline">
+          Guided Learning for Independent Progress
+        </p>
+<h1>Activity Management</h1>
+<h2>Owner Area</h2>
+<div class="page-hero-divider-bottom"></div>
+</div>
+</header>
+<div class="wrap management-wrap">
+<fieldset class="task-box panel-box topics-box">
+<legend>Add Activity</legend>
+<p class="q">
+          Select the topic and activity type. GLIP generates the Activity ID
+          automatically and creates the relevant progress column.
+        </p>
+<div class="activity-add-grid">
+<select class="tracker-input" id="activityTopic">
+<option value="">Select level, subject and topic</option>
+</select>
+<select class="tracker-input" id="activityType">
+<option value="">Select activity type</option>
+</select>
+<input aria-label="Automatically generated Activity ID" class="tracker-input" id="activityId" placeholder="Activity ID generated automatically" readonly=""/>
+<input class="tracker-input" id="activityTitle" placeholder="Activity title"/>
+<input class="tracker-input" id="activitySortOrder" min="1" placeholder="Sort order" step="1" type="number"/>
+<select class="tracker-input" id="activityVisible">
+<option value="true">Visible</option>
+<option value="false">Hidden</option>
+</select>
+<select class="tracker-input" id="activityActive">
+<option value="true">Active</option>
+<option value="false">Inactive</option>
+</select>
+</div>
+<div class="activity-add-actions">
+<button class="glip-btn" id="saveActivityBtn" type="button">
+            Save Activity
+          </button>
+<button class="glip-btn glip-btn-secondary" id="cancelAddActivityBtn" type="button">
+            Cancel
+          </button>
+</div>
+<p class="panel-message text-center" id="activityMessage"></p>
+
+<div class="page-loading-box text-center" id="activitiesLoadingProgress" style="display: none">
+<div class="glip-progress show topics-progress">
+<div class="glip-progress-bar"></div>
+</div>
+<p>Loading activities...</p>
+</div>
+</fieldset>
+<fieldset class="task-box panel-box topics-box">
+<legend>Activities</legend>
+<div class="panel-header activity-panel-header">
+<p class="q panel-top-text">
+            Search, sort and edit the activities used in GLIP content and progress tracking.
+          </p>
+<div class="panel-right teacher-actions" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+<div class="activity-edit-actions">
+<button class="glip-btn" id="editActivitiesBtn" type="button">
+                Edit Activities
+              </button>
+</div>
+<p class="panel-message text-center" id="activityEditMessage" style="margin: 0;"></p>
+
+</div>
+</div>
+<div class="activity-search-panel">
+<div class="activity-search-field">
+<label for="activitySearch">Search</label>
+<input class="tracker-input" id="activitySearch" placeholder="Type to search..." type="search"/>
+</div>
+<div class="activity-search-field">
+<label for="activitySearchColumn">Search in</label>
+<select class="tracker-input" id="activitySearchColumn">
+<option value="all">All columns</option>
+<option value="level">Level</option>
+<option value="subject">Subject</option>
+<option value="topic">Topic</option>
+<option value="activity_type">Type</option>
+<option value="activity_id">Activity ID</option>
+<option value="activity_title">Title</option>
+<option value="visible">Visibility</option>
+<option value="sort_order">Sort</option>
+<option value="active">Status</option>
+</select>
+</div>
+<button class="glip-btn glip-btn-secondary activity-search-clear" id="clearActivitySearch" type="button">
+            Clear
+          </button>
+<p class="activity-record-count" id="activityRecordCount">
+            Showing 0 of 0 records
+          </p>
+</div>
+<div class="topics-table-wrap activities-table-wrap">
+<table class="topics-table management-table activities-table" id="activitiesTable" style="visibility: hidden">
+<thead>
+<tr>
+<th data-label="Level" data-sort-field="level">Level ↕</th>
+<th data-label="Subject" data-sort-field="subject">Subject ↕</th>
+<th data-label="Topic" data-sort-field="topic">Topic ↕</th>
+<th data-label="Type" data-sort-field="activity_type">Type ↕</th>
+<th data-label="Activity ID" data-sort-field="activity_id">Activity ID ↕</th>
+<th data-label="Title" data-sort-field="activity_title">Title ↕</th>
+<th data-label="Visibility" data-sort-field="visible">Visibility ↕</th>
+<th data-label="Sort" data-sort-field="sort_order">Sort ↕</th>
+<th data-label="Status" data-sort-field="active">Status ↕</th>
+</tr>
+</thead>
+<tbody id="activitiesTableBody">
+<tr>
+<td colspan="9">Loading activities...</td>
+</tr>
+</tbody>
+</table>
+</div>
+</fieldset>
+</div>
+</div>
+<script src="../../js/optimistic-update.js"></script>
+<script src="../../js/activity-management.js"></script>
+<script>
+    document.addEventListener("glipReady", function () {
+      requireRole("owner");
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" href="../../assets/GLIP-icon-transparent.png">
+  <title>GLIP – Performance Monitor</title>
+  <script>
+    window.PAGE_CONFIG = { pageKind: "management", pageTitle: "GLIP – Performance Monitor" };
+    window.PAGE_MENU_CONTEXT = { type: "management" };
+  </script>
+  <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
+</head>
+<body>
+  <div id="header-placeholder"></div>
+  <div class="page-shell">
+    <header class="page-hero">
+      <div class="page-hero-panel">
+        <div class="page-hero-divider-top"></div>
+        <img class="page-hero-brand-icon" src="../../assets/GLIP-icon-transparent-cropped.png" alt="GLIP logo">
+        <div class="page-hero-logo">GLIP</div>
+        <p class="page-hero-topline">Guided Learning for Independent Progress</p>
+        <h1>Performance Monitor</h1>
+        <h2>Admin Area</h2>
+        <div class="page-hero-divider-bottom"></div>
+      </div>
+    </header>
+
+    <div class="wrap management-wrap">
+      <fieldset class="task-box panel-box topics-box">
+        <legend>System health</legend>
+        <div id="performanceSummary" class="performance-summary-grid"></div>
+
+        <h3>Slowest actions</h3>
+        <div class="topics-table-wrap">
+          <table class="topics-table management-table">
+            <thead><tr><th>Action</th><th>Requests</th><th>Average</th><th>Maximum</th><th>Failures</th></tr></thead>
+            <tbody id="slowestActionsBody"></tbody>
+          </table>
+        </div>
+
+        <h3>Recent failures</h3>
+        <div class="topics-table-wrap">
+          <table class="topics-table management-table">
+            <thead><tr><th>Timestamp</th><th>Role</th><th>Action</th><th>Error</th></tr></thead>
+            <tbody id="recentFailuresBody"></tbody>
+          </table>
+        </div>
+      </fieldset>
+
+      <fieldset class="task-box panel-box topics-box">
+        <legend>Filters</legend>
+        <div class="performance-filter-grid">
+          <label>From<input type="date" id="perfDateFrom" class="tracker-input"></label>
+          <label>To<input type="date" id="perfDateTo" class="tracker-input"></label>
+          <label>School<select id="perfSchool" class="tracker-input"><option value="">All</option></select></label>
+          <label>Action<select id="perfAction" class="tracker-input"><option value="">All</option></select></label>
+          <label>Role<select id="perfRole" class="tracker-input"><option value="">All</option></select></label>
+          <label>Session<select id="perfSession" class="tracker-input"><option value="">All</option></select></label>
+          <label>Page<select id="perfPage" class="tracker-input"><option value="">All</option></select></label>
+          <label>Initiator<select id="perfInitiator" class="tracker-input"><option value="">All</option></select></label>
+          <label>Target dataset<select id="perfTarget" class="tracker-input"><option value="">All</option></select></label>
+          <label>Cache<select id="perfCache" class="tracker-input"><option value="">All</option><option>hit</option><option>miss</option><option>not_used</option><option>unknown</option></select></label>
+          <label>Status<select id="perfStatus" class="tracker-input"><option value="">All</option><option value="success">Success</option><option value="failure">Failure</option></select></label>
+          <label>Minimum duration (ms)<input type="number" min="0" id="perfMin" class="tracker-input"></label>
+          <label>Search<input type="search" id="perfSearch" class="tracker-input"></label>
+        </div>
+        <div class="panel-right">
+          <button class="glip-btn" id="applyPerfFilters">Apply filters</button>
+          <button class="glip-btn glip-btn-secondary" id="resetPerfFilters">Reset</button>
+          <button class="glip-btn glip-btn-danger" id="clearPerformanceLog">Clear log</button>
+        </div>
+        <p id="performanceMessage" class="panel-message"></p>
+      </fieldset>
+
+      <fieldset class="task-box panel-box topics-box">
+        <legend>Session explorer</legend>
+        <p class="q">Select a session to view its requests in sequence. Gaps in sequence numbers may represent requests that were deliberately excluded from logging or had not yet been submitted when the data was loaded.</p>
+        <div id="performanceSessions" class="performance-session-list"></div>
+      </fieldset>
+
+      <fieldset class="task-box panel-box topics-box">
+        <legend>Performance log</legend>
+        <p id="retentionText" class="q"></p>
+        <p class="performance-delay-legend">
+          Total delay: <span class="performance-delay-good">under 2 s</span>
+          <span class="performance-delay-warning">2–5 s</span>
+          <span class="performance-delay-high">5–10 s</span>
+          <span class="performance-delay-danger">over 10 s</span>
+        </p>
+        <div class="topics-table-wrap">
+          <table id="performanceTable" class="topics-table management-table">
+            <thead>
+              <tr>
+                <th data-field="timestamp">Timestamp ↕</th>
+                <th data-field="page_name">Page ↕</th>
+                <th data-field="session_id">Session ↕</th>
+                <th data-field="request_sequence">Seq. ↕</th>
+                <th data-field="elapsed_ms">Elapsed ↕</th>
+                <th data-field="role">Role ↕</th>
+                <th data-field="action">Action ↕</th>
+                <th data-field="bootstrap_stage">Stage ↕</th>
+                <th data-field="request_initiator">Initiator ↕</th>
+                <th data-field="target_dataset">Target ↕</th>
+                <th data-field="total_delay_ms">Total delay ms ↕</th>
+                <th data-field="browser_duration_ms">Browser ms ↕</th>
+                <th data-field="server_duration_ms">Server ms ↕</th>
+                <th data-field="server_share">Server share ↕</th>
+                <th data-field="spreadsheet_read_ms">Read ms ↕</th>
+                <th data-field="spreadsheet_write_ms">Write ms ↕</th>
+                <th data-field="cache_result">Cache ↕</th>
+                <th data-field="cache_age_ms">Cache age ms ↕</th>
+                <th data-field="status">Status ↕</th>
+                <th>Error</th>
+                <th>Diagnostic breakdown</th>
+              </tr>
+            </thead>
+            <tbody id="performanceTableBody"></tbody>
+          </table>
+        </div>
+      </fieldset>
+    </div>
+    <div class="site-footer" id="siteFooter"></div>
+  </div>
+  <script>document.addEventListener("glipReady", function () { requireRole("owner"); });</script>
+</body>
+</html>

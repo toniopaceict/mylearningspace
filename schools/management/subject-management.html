@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<link href="../../assets/GLIP-icon-transparent.png" rel="icon"/>
+<title>GLIP – Subject Management</title>
+<script>
+    window.PAGE_CONFIG = {
+      pageKind: "management",
+      pageTitle: "GLIP – Subject Management"
+    };
+
+    window.PAGE_MENU_CONTEXT = {
+      type: "management"
+    };
+  </script>
+<script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
+</head>
+<body>
+<div id="header-placeholder"></div>
+<div class="page-shell">
+<header class="page-hero">
+<div class="page-hero-panel">
+<div class="page-hero-divider-top"></div>
+<img alt="GLIP logo" class="page-hero-brand-icon" src="../../assets/GLIP-icon-transparent-cropped.png"/>
+<div class="page-hero-logo">GLIP</div>
+<p class="page-hero-topline">
+          Guided Learning for Independent Progress
+        </p>
+<h1>Subject Management</h1>
+<h2>Admin Area</h2>
+<div class="page-hero-divider-bottom"></div>
+</div>
+</header>
+<div class="wrap management-wrap">
+<fieldset class="task-box panel-box topics-box" id="addCurriculumPanel">
+<legend>Add Subject Assignment</legend>
+<p class="q">
+          Assign a subject to a level. This controls which subjects are available for each level in GLIP.
+        </p>
+<button class="progress-help-icon" data-glip-help="" data-help-text="
+
+
+
+
+
+          
+
+&lt;br&gt;
+
+Use this page to assign subjects to levels.
+
+&lt;br&gt;&lt;br&gt;
+
+Subject assignments determine which subjects are available for each level in GLIP.
+
+&lt;br&gt;&lt;br&gt;
+
+For example, if Word and Excel are assigned to Level 4, students and teachers in Level 4 will only see those subjects (subject to their own permissions).
+
+&lt;br&gt;&lt;br&gt;
+
+Subject Management does not create new levels or new subjects. Levels must already exist in Level Management and subjects must already exist in Subject Management before they can be linked together.
+
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Level&lt;/b&gt;&lt;br&gt;
+
+Select the level to which the subject should belong.
+
+&lt;br&gt;&lt;br&gt;
+
+Examples:&lt;br&gt;
+
+level-03&lt;br&gt;
+level-04&lt;br&gt;
+level-05
+
+&lt;br&gt;&lt;br&gt;
+
+Only existing levels can be selected.
+
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Subject&lt;/b&gt;&lt;br&gt;
+
+Select the subject that will be available for the selected level.
+
+&lt;br&gt;&lt;br&gt;
+
+Examples:&lt;br&gt;
+
+Word&lt;br&gt;
+Excel&lt;br&gt;
+PowerPoint
+
+&lt;br&gt;&lt;br&gt;
+
+Only existing subjects can be selected.
+
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Visibility&lt;/b&gt;&lt;br&gt;
+
+Visibility determines whether the subject is shown to users.
+
+&lt;br&gt;&lt;br&gt;
+
+TRUE = Students, teachers and administrators can see the subject (provided they have permission).
+
+&lt;br&gt;
+
+FALSE = The subject remains assigned to the level but is hidden from users.
+
+&lt;br&gt;&lt;br&gt;
+
+Visibility is useful when preparing a subject before it is released or when temporarily hiding a subject without removing its assignment to the level.
+
+&lt;br&gt;&lt;br&gt;
+
+Changing Visibility does not delete any student progress or teacher assignments.
+
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Status&lt;/b&gt;&lt;br&gt;
+
+Status determines whether the subject assignment itself is active.
+
+&lt;br&gt;&lt;br&gt;
+
+TRUE = The subject assignment is active.
+
+&lt;br&gt;
+
+FALSE = The subject assignment is inactive.
+
+&lt;br&gt;&lt;br&gt;
+
+If the subject assignment is active but the selected level is inactive, GLIP shows the status as &lt;b&gt;Active (pending)&lt;/b&gt;. This means the record has been prepared, but it will not be available to students or teachers until the level is activated.
+
+&lt;br&gt;&lt;br&gt;
+
+Inactive subject assignments are normally used to preserve historical information from previous academic years while preventing new assignments.
+
+&lt;br&gt;&lt;br&gt;
+
+If a subject assignment is no longer required but historical data should be retained, it is usually better to set Status to FALSE rather than delete the record.
+
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Sort Order&lt;/b&gt;&lt;br&gt;
+
+Sort Order controls the order in which subjects appear throughout GLIP.
+
+&lt;br&gt;&lt;br&gt;
+
+Examples:&lt;br&gt;
+
+1&lt;br&gt;
+2&lt;br&gt;
+3
+
+&lt;br&gt;&lt;br&gt;
+
+Subjects with lower numbers appear first.
+
+&lt;br&gt;&lt;br&gt;
+
+Example:&lt;br&gt;
+
+1 Word&lt;br&gt;
+2 Excel&lt;br&gt;
+3 PowerPoint
+
+&lt;br&gt;&lt;br&gt;
+
+Sort Order should normally contain whole numbers.
+
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Save Subject Assignment&lt;/b&gt;&lt;br&gt;
+
+Creates the subject assignment and immediately makes it available according to the Visibility and Status settings.
+
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;What causes an error?&lt;/b&gt;&lt;br&gt;
+
+An error will be shown if:
+
+&lt;br&gt;&lt;br&gt;
+
+* the level is not selected&lt;br&gt;
+* the subject is not selected&lt;br&gt;
+* the same level and subject combination already exists&lt;br&gt;
+* Visibility is not TRUE or FALSE&lt;br&gt;
+* Status is not TRUE or FALSE&lt;br&gt;
+* Sort Order is missing or is not a valid number
+
+
+
+
+
+
+          
+          " data-help-title="Add Subject Assignment" type="button">
+          ?
+        </button>
+<div class="tracker-row">
+<select class="tracker-input" id="newCurriculumLevel">
+<option value="">Loading levels...</option>
+</select>
+<select class="tracker-input" id="newCurriculumSubject">
+<option value="">Loading subjects...</option>
+</select>
+<select class="tracker-input" id="newCurriculumVisible">
+<option value="true">Visible</option>
+<option value="false">Hidden</option>
+</select>
+<input class="tracker-input" id="newCurriculumSortOrder" min="1" placeholder="Sort order" required="" step="1" type="number"/>
+<select class="tracker-input" id="newCurriculumActive">
+<option value="true">Active</option>
+<option value="false">Inactive</option>
+</select>
+</div>
+<div class="tracker-row">
+<button class="glip-btn" id="saveCurriculumBtn" type="button">
+            Save
+          </button>
+</div>
+<p class="panel-message text-center" id="addCurriculumMessage"></p>
+<div class="page-loading-box text-center" id="curriculumLoadingProgress" style="display: none">
+<div class="glip-progress show topics-progress">
+<div class="glip-progress-bar"></div>
+</div>
+<p>Loading subject assignments...</p>
+</div>
+
+</fieldset>
+<fieldset class="task-box panel-box topics-box">
+<legend>Subject Management</legend>
+<button class="progress-help-icon" data-glip-help="" data-help-text="
+
+
+
+
+&lt;br&gt;
+
+Use this page to view, edit, export, import and manage the subjects assigned to each level in GLIP.
+
+&lt;br&gt;&lt;br&gt;
+
+Subject assignments control which subjects belong to each level.
+
+&lt;br&gt;&lt;br&gt;
+
+Every subject shown to students, teachers and administrators must be assigned to the appropriate level here.
+
+&lt;br&gt;&lt;br&gt;
+
+For example:
+
+&lt;br&gt;&lt;br&gt;
+
+Level 3 → PowerPoint&lt;br&gt;
+Level 4 → Word, Excel&lt;br&gt;
+Level 5 → Word
+
+&lt;br&gt;&lt;br&gt;
+
+Only subjects assigned to a level here can later be assigned to teachers and students.
+
+&lt;br&gt;&lt;br&gt;
+
+If a subject has not been assigned to a particular level, it cannot be assigned to students or teachers, even if the subject itself exists.
+
+&lt;br&gt;&lt;br&gt;
+
+          &lt;b&gt;⚠ and amber strip&lt;/b&gt;&lt;br&gt;
+            ⚠ indicates that the level is inactive in the Level Management page. The amber strip on the left marks an active record linked to an inactive parent. The row remains editable for planning purposes, but it is not available to teachers or students until the level is activated.
+
+&lt;br&gt;&lt;br&gt;
+          
+&lt;b&gt;Visibility&lt;/b&gt;&lt;br&gt;
+
+Visibility controls whether a subject is displayed to users.
+
+&lt;br&gt;&lt;br&gt;
+
+TRUE = The subject is visible.
+
+&lt;br&gt;
+
+FALSE = The subject is hidden.
+
+&lt;br&gt;&lt;br&gt;
+
+Active subjects linked to an inactive level are shown as pending. This is useful when preparing new material before students begin studying it or when temporarily hiding a subject during the academic year.
+
+&lt;br&gt;&lt;br&gt;
+
+Hidden subjects remain in the database and can be made visible again at any time.
+
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Status&lt;/b&gt;&lt;br&gt;
+
+Status shows whether the subject assignment is active and whether it is ready for use.
+
+&lt;br&gt;&lt;br&gt;
+
+Active = The subject assignment is active and its level is active.
+
+&lt;br&gt;
+
+Active (pending) = The subject assignment is active, but its level is inactive. This is used when preparing future subject assignments. It is not available to students or teachers yet.
+
+&lt;br&gt;
+
+Inactive = The subject assignment itself is inactive.
+
+&lt;br&gt;&lt;br&gt;
+
+Inactive subject assignments are normally retained for historical reference and previous academic years.
+Inactive is generally preferable to deleting subject assignments because it preserves historical information.
+
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Sort Order&lt;/b&gt;&lt;br&gt;
+
+Sort Order determines the order in which subjects appear throughout GLIP.
+
+&lt;br&gt;&lt;br&gt;
+
+Example:
+
+&lt;br&gt;&lt;br&gt;
+
+1 Word&lt;br&gt;
+2 Excel&lt;br&gt;
+3 PowerPoint
+
+&lt;br&gt;&lt;br&gt;
+
+Changing the Sort Order changes only the display order. It does not affect student progress, teacher assignments or permissions.
+
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;What is allowed?&lt;/b&gt;&lt;br&gt;
+
+You may:
+
+&lt;br&gt;&lt;br&gt;
+
+* add new subject-level combinations&lt;br&gt;
+* edit Visibility&lt;br&gt;
+* edit Status&lt;br&gt;
+* change Sort Order
+
+&lt;br&gt;&lt;br&gt;
+
+Each subject can appear only once for a particular level.
+
+&lt;br&gt;&lt;br&gt;
+
+The same subject may be assigned to multiple levels.
+
+&lt;br&gt;&lt;br&gt;
+
+Examples:
+
+&lt;br&gt;&lt;br&gt;
+
+✓ Level 3 → Word&lt;br&gt;
+✓ Level 4 → Word&lt;br&gt;
+✓ Level 5 → Word
+
+&lt;br&gt;&lt;br&gt;
+
+✗ Level 4 → Word (entered twice)
+
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;What causes an error?&lt;/b&gt;&lt;br&gt;
+
+An error will be shown if:
+
+&lt;br&gt;&lt;br&gt;
+
+* the level does not exist&lt;br&gt;
+* the subject does not exist&lt;br&gt;
+* the same level and subject combination already exists&lt;br&gt;
+* Visibility is not TRUE or FALSE&lt;br&gt;
+* Status is not TRUE or FALSE&lt;br&gt;
+* Sort Order is missing or is not a number&lt;br&gt;
+* the imported CSV contains missing or incorrect column headings
+
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;CSV Import Format&lt;/b&gt;&lt;br&gt;
+
+Always use the exported CSV as the template.
+
+&lt;br&gt;&lt;br&gt;
+
+Example:
+
+&lt;br&gt;&lt;br&gt;
+
+level_code,subject_code,visible,sort_order,active&lt;br&gt;
+level-03,powerpoint,TRUE,1,TRUE&lt;br&gt;
+level-04,word,TRUE,1,TRUE&lt;br&gt;
+level-04,excel,TRUE,2,TRUE&lt;br&gt;
+level-05,word,TRUE,1,TRUE
+
+&lt;br&gt;&lt;br&gt;
+
+&lt;b&gt;Important notes&lt;/b&gt;&lt;br&gt;
+
+Before importing or clearing the table, GLIP automatically downloads a backup of the current subject assignments.
+
+&lt;br&gt;&lt;br&gt;
+
+If validation errors are found, the import will be blocked until the problems have been corrected.
+
+&lt;br&gt;&lt;br&gt;
+
+Changes made to subject assignments may affect which subjects are available to students and teachers throughout GLIP.
+
+
+          
+
+          
+          " data-help-title="Subject Management" type="button">
+          ?
+        </button>
+<div class="panel-header">
+<p class="q panel-top-text">
+            View and edit which subjects belong to each level.
+          </p>
+<div class="panel-right teacher-actions">
+<button class="glip-btn" id="editCurriculumBtn" type="button">
+              Edit Subject Assignments
+            </button>
+</div>
+</div>
+<p class="panel-message teacher-message" id="curriculumManagementMessage"></p>
+
+<div class="topics-table-wrap">
+<table class="topics-table management-table curriculum-table" id="curriculumTable" style="visibility: hidden">
+<thead>
+<tr>
+<th data-label="Level" data-sort-field="level">Level ↕</th>
+<th data-label="Subject" data-sort-field="subject">Subject ↕</th>
+<th data-label="Visible" data-sort-field="visible">Visible ↕</th>
+<th data-label="Sort Order" data-sort-field="sort_order">Sort Order ↕</th>
+<th data-label="Status" data-sort-field="active">Status ↕</th>
+</tr>
+</thead>
+<tbody id="curriculumTableBody"></tbody>
+</table>
+</div>
+</fieldset>
+</div>
+<div class="site-footer" id="siteFooter"></div>
+</div>
+<script>
+    document.addEventListener("glipReady", function () {
+      requireRole("owner", "admin", "lead_teacher");
+    });
+  </script>
+</body>
+</html>
