@@ -1,0 +1,1 @@
+window.GLIP_VERSION = "2026.06.17.1";

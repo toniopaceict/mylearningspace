@@ -1,0 +1,345 @@
+(function () {
+  "use strict";
+
+  
+  
+  const GLIP_ASSET_VERSION = "298";
+  const GLIP_BASE_URL = "https://toniopaceict.github.io/mylearningspace";
+
+  window.GLIP_ASSET_VERSION = GLIP_ASSET_VERSION;
+  window.GLIP_BASE_URL = GLIP_BASE_URL;
+
+  loadCssOnce(versionedAssetUrl("/css/main.css"));
+
+  loadScriptOnce(versionedAssetUrl("/js/cache-manager.js"), function () {
+    loadScriptOnce(versionedAssetUrl("/js/school-config.js"), function () {
+      loadScriptOnce(versionedAssetUrl("/js/performance-monitor-client.js"), function () {
+    loadScriptOnce(versionedAssetUrl("/js/roles.js"), function () {
+      loadScriptOnce(versionedAssetUrl("/js/role-guard.js"), function () {
+        loadScriptOnce(versionedAssetUrl("/js/menu-config.js"), function () {
+          loadScriptOnce(versionedAssetUrl("/js/management-cache.js"), function () {
+            loadScriptOnce(versionedAssetUrl("/js/header.js"), function () {
+              loadPageSpecificScripts(function () {
+                document.dispatchEvent(new CustomEvent("glipReady"));
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+  });
+  });
+
+  function versionedAssetUrl(path) {
+    if (!path) return path;
+
+    if (/^https?:\/\//i.test(path)) {
+      return addVersion(path);
+    }
+
+    return addVersion(GLIP_BASE_URL + path);
+  }
+
+  function addVersion(url) {
+    if (!url) return url;
+
+    if (url.indexOf("?v=") !== -1 || url.indexOf("&v=") !== -1) {
+      return url;
+    }
+
+    return url + (url.indexOf("?") === -1 ? "?" : "&") + "v=" + encodeURIComponent(GLIP_ASSET_VERSION);
+  }
+
+  function getPageKind(config) {
+    if (config && config.pageKind) {
+      return String(config.pageKind).toLowerCase();
+    }
+
+    const path = window.location.pathname.toLowerCase();
+
+    if (path.indexOf("/schools/management/") !== -1) return "management";
+    if (path.indexOf("quiz") !== -1) return "quiz";
+    if (path.indexOf("practice") !== -1) return "practice";
+    if (path.indexOf("fill-blank") !== -1 || path.indexOf("fillblank") !== -1) return "fillblank";
+    if (path.indexOf("lesson") !== -1) return "lesson";
+    if (path.indexOf("topic-") !== -1 && path.indexOf("-home") !== -1) return "topic-home";
+    if (path.indexOf("reflection") !== -1) return "reflection";
+
+    return "";
+  }
+
+function getManagementScripts() {
+  const path = window.location.pathname.toLowerCase();
+  const page = path.split("/").pop();
+
+const managementScriptsByPage = {
+  "performance-monitor.html": ["/js/performance-monitor.js"],
+  "content-validator.html": ["/js/content-validator.js"],
+  "teacher-management.html": [
+    "/js/admin-csv-tools.js",
+    "/js/table-filter.js",
+    "/js/teacher-management.js"
+  ],
+
+  "class-management.html": [
+    "/js/admin-csv-tools.js",
+    "/js/table-filter.js",
+    "/js/class-management.js"
+  ],
+
+  "student-management.html": [
+    "/js/admin-csv-tools.js",
+    "/js/table-filter.js",
+    "/js/student-management.js"
+  ],
+
+  "teaching-assignments.html": [
+    "/js/admin-csv-tools.js",
+    "/js/table-filter.js",
+    "/js/teaching-assignments.js"
+  ],
+
+"subject-management.html": [
+  "/js/admin-csv-tools.js",
+  "/js/table-filter.js",
+  "/js/subject-management.js"
+],
+
+  "topic-management.html": [
+  "/js/admin-csv-tools.js",
+  "/js/table-filter.js",
+  "/js/topic-management.js"
+],
+
+  "level-management.html": [
+  "/js/admin-csv-tools.js",
+  "/js/table-filter.js",
+  "/js/level-management.js"
+],
+  
+
+"student-subject-management.html": [
+  "/js/admin-csv-tools.js",
+  "/js/table-filter.js",
+  "/js/student-subject-management.js"
+],
+
+"work-folder-management.html": [
+  "/js/table-filter.js",
+  "/js/work-folder-management.js"
+],
+
+"class-resources.html": [
+  "/js/class-resources.js"
+]
+};
+
+  return managementScriptsByPage[page] || [];
+}
+  
+
+  function loadPageSpecificScripts(callback) {
+    const config = window.PAGE_CONFIG || {};
+    const pageKind = getPageKind(config);
+    const scripts = [];
+
+    scripts.push("/js/accessibility.js");
+
+    if (pageKind === "lesson" || pageKind === "practice" || pageKind === "fillblank") {
+      scripts.push("/js/mark-complete.js");
+      scripts.push("/js/lesson-page.js");
+    }
+
+    if (pageKind === "practice" || pageKind === "fillblank") {
+      scripts.push("/js/drag-drop.js");
+    }
+
+    if (pageKind === "practice") {
+      scripts.push("/js/lightbox.js");
+      scripts.push("https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js");
+      scripts.push("/js/pdf-export.js");
+      scripts.push("/js/practice-page.js");
+    }
+
+    if (pageKind === "quiz") {
+      scripts.push("/js/quiz-engine.js");
+      scripts.push("/js/mark-complete.js");
+      scripts.push("/js/lightbox.js");
+      scripts.push("/js/pdf-export.js");
+      scripts.push("/js/quiz-page.js");
+    }
+
+    if (pageKind === "fillblank") {
+      scripts.push("/js/activity-submission.js");
+    }
+
+    if (pageKind === "topic-home") {
+      scripts.push("/js/landing-page.js");
+    }
+
+    if (pageKind === "management") {
+      scripts.push("/js/management-cache.js");
+      scripts.push("/js/optimistic-update.js");
+      getManagementScripts().forEach(function (scriptPath) {
+        scripts.push(scriptPath);
+      });
+    }
+
+    if (Array.isArray(config.extraScripts)) {
+      config.extraScripts.forEach(function (scriptPath) {
+        scripts.push(scriptPath);
+      });
+    }
+
+    loadScriptList(deduplicate(scripts), callback);
+  }
+
+  function loadScriptList(paths, callback) {
+    const list = (paths || []).slice();
+
+    function next() {
+      const path = list.shift();
+
+      if (!path) {
+        if (callback) callback();
+        return;
+      }
+
+      if (/^https?:\/\//i.test(path)) {
+        loadScriptOnce(path, next);
+      } else {
+        loadScriptOnce(versionedAssetUrl(path), next);
+      }
+    }
+
+    next();
+  }
+
+  function deduplicate(items) {
+    const seen = {};
+
+    return items.filter(function (item) {
+      if (!item || seen[item]) return false;
+
+      seen[item] = true;
+      return true;
+    });
+  }
+
+  function loadCssOnce(href) {
+    const baseHref = href.split("?")[0];
+
+    const existing = Array.prototype.find.call(
+      document.querySelectorAll("link[rel='stylesheet']"),
+      function (link) {
+        return link.href && link.href.split("?")[0] === baseHref;
+      }
+    );
+
+    if (existing) return;
+
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = href;
+
+    document.head.appendChild(link);
+  }
+
+  function loadScriptOnce(src, callback) {
+    const baseSrc = src.split("?")[0];
+
+    const existing = Array.prototype.find.call(
+      document.querySelectorAll("script[src]"),
+      function (script) {
+        return script.src && script.src.split("?")[0] === baseSrc;
+      }
+    );
+
+    if (existing) {
+      if (callback) {
+        if (existing.dataset.glipLoaded === "true") {
+          callback();
+        } else {
+          existing.addEventListener("load", callback, { once: true });
+        }
+      }
+
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = src;
+    script.defer = true;
+
+    script.onload = function () {
+      script.dataset.glipLoaded = "true";
+      if (callback) callback();
+    };
+
+    document.head.appendChild(script);
+  }
+
+  function initGlipHelpModal() {
+    if (document.getElementById("glipHelpModal")) return;
+
+    const modal = document.createElement("div");
+    modal.id = "glipHelpModal";
+    modal.className = "glip-help-modal";
+
+    modal.innerHTML = `
+      <div class="glip-help-modal-box" role="dialog" aria-modal="true">
+        <button class="glip-help-close" type="button" aria-label="Close help">&times;</button>
+        <h2 id="glipHelpTitle">Help</h2>
+        <p id="glipHelpText" class="glip-help-text"></p>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const helpTitle = document.getElementById("glipHelpTitle");
+    const helpText = document.getElementById("glipHelpText");
+
+    function openModal(button) {
+      helpTitle.textContent = button.dataset.helpTitle || "Help";
+      helpText.innerHTML = button.dataset.helpText || "Help information is not available.";
+
+      modal.classList.add("is-visible");
+    }
+
+    function closeModal() {
+      modal.classList.remove("is-visible");
+    }
+
+    document.addEventListener("click", function (e) {
+      const helpBtn = e.target.closest("[data-glip-help]");
+
+      if (helpBtn) {
+        openModal(helpBtn);
+        return;
+      }
+
+      if (e.target === modal || e.target.closest(".glip-help-close")) {
+        closeModal();
+      }
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        closeModal();
+      }
+    });
+  }
+
+  function runWhenDomReady(callback) {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", callback);
+    } else {
+      callback();
+    }
+  }
+
+  runWhenDomReady(function () {
+    initGlipHelpModal();
+  });
+})();
