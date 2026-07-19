@@ -7,6 +7,12 @@
       webAppUrl: "https://script.google.com/macros/s/AKfycby8gBQU17qcDvWDMLKxcdhzWRcgtscTS7_mr5OYEeQKRoY6l_645znyqaBUhSqIk8Td/exec"
     },
 
+    michael: {
+      label: "St Raphael's School",
+      webAppUrl: "https://script.google.com/macros/s/AKfycbyBqXP62z6NBh5QulyefkF-iXXCccBv4w-LvJDWMbIGzAvIBO0cNrobJYtmvmSwQCq5TQ/exec"
+    },
+    
+
     demo: {
       label: "Demo School",
       webAppUrl: "https://script.google.com/macros/s/AKfycbymb_aa7J8xt_elqj3MARgt_1BwBZz06_YPGbZEt6VajPnMDcxu78wElqc-BARJ4w0nIQ/exec"
