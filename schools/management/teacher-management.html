@@ -42,6 +42,9 @@
     </p>
 <button class="progress-help-icon" data-glip-help="" data-help-text="
     
+   &lt;b&gt;Title:&lt;/b&gt;&lt;br&gt;
+    Enter the teacher's title, such as Mr, Ms or Dr. This field is optional.
+    &lt;br&gt;&lt;br&gt;
    &lt;b&gt;Name and Surname:&lt;/b&gt;&lt;br&gt;
     Enter the teacher's first name and surname.
     &lt;br&gt;&lt;br&gt;
@@ -65,6 +68,7 @@
   ?
 </button>
 <div class="tracker-row">
+<input class="tracker-input" id="newTeacherTitle" placeholder="Title (optional)" type="text"/>
 <input class="tracker-input" id="newTeacherName" placeholder="Name" type="text"/>
 <input class="tracker-input" id="newTeacherSurname" placeholder="Surname" type="text"/>
 <input class="tracker-input" id="newTeacherCode" placeholder="Login code" type="text"/>
@@ -160,6 +164,9 @@
 <table class="topics-table management-table teachers-table" id="teachersTable" style="visibility: hidden">
 <thead>
 <tr>
+<th data-label="Title" data-sort-field="teacher_title">
+            Title ↕
+          </th>
 <th data-label="Full Name" data-sort-field="full_name">
             Full Name ↕
           </th>

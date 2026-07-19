@@ -136,6 +136,7 @@ function getWebAppUrl() {
   }
 
   function clearAddTeacherForm() {
+    document.getElementById("newTeacherTitle").value = "";
     document.getElementById("newTeacherName").value = "";
     document.getElementById("newTeacherSurname").value = "";
     document.getElementById("newTeacherCode").value = "";
@@ -165,6 +166,7 @@ function getWebAppUrl() {
   }
 
 function saveTeacher() {
+  const teacherTitle = document.getElementById("newTeacherTitle").value.trim();
   const teacherName = document.getElementById("newTeacherName").value.trim();
   const teacherSurname = document.getElementById("newTeacherSurname").value.trim();
   const code = document.getElementById("newTeacherCode").value.trim();
@@ -175,10 +177,10 @@ function saveTeacher() {
     setAddTeacherMessage("Teacher name, surname, login code, email and role are required.", "error"); return;
   }
   const temporaryId = "pending-teacher-" + Date.now();
-  currentTeachers.push({ teacher_id: temporaryId, teacher_name: teacherName, teacher_surname: teacherSurname, full_name: (teacherName + " " + teacherSurname).trim(), code: code, email: email, role: role, active: true });
+  currentTeachers.push({ teacher_id: temporaryId, teacher_title: teacherTitle, teacher_name: teacherName, teacher_surname: teacherSurname, full_name: (teacherName + " " + teacherSurname).trim(), code: code, email: email, role: role, active: true });
   renderTeachers(currentTeachers); clearAddTeacherForm();
   GLIPOptimisticUpdate.run({
-    request: function () { return postToGlip({ action: "addTeacherAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), teacher_name: teacherName, teacher_surname: teacherSurname, code: code, email: email, role: role, send_code_email: sendCodeEmail }); },
+    request: function () { return postToGlip({ action: "addTeacherAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), teacher_title: teacherTitle, teacher_name: teacherName, teacher_surname: teacherSurname, code: code, email: email, role: role, send_code_email: sendCodeEmail }); },
     failureMessage: "Could not add teacher.",
     onSuccess: function (result) { setAddTeacherMessage(result.message || "Teacher added successfully.", "success"); },
     resync: resyncTeachersSilently,
@@ -233,6 +235,7 @@ if (typeof window.setupGlipTableFilter === "function") {
     filterId: "teachers",
     tableId: "teachersTable",
 fields: [
+  { value: "teacher_title", label: "Title" },
   { value: "full_name", label: "Full Name", getValue: function (teacher) { return teacher.full_name || ""; } },
   { value: "code", label: "Code" },
   { value: "email", label: "Email" },
@@ -284,7 +287,7 @@ function loadTeachers() {
 
       tbody.innerHTML = `
         <tr>
-          <td colspan="5">${escapeHtml(
+          <td colspan="6">${escapeHtml(
             error.message || "Could not load teachers."
           )}</td>
         </tr>
@@ -361,7 +364,7 @@ function loadTeachers() {
 
       tbody.innerHTML = `
         <tr>
-          <td colspan="5">No teachers found.</td>
+          <td colspan="6">No teachers found.</td>
         </tr>
       `;
       return;
@@ -385,6 +388,7 @@ function loadTeachers() {
             data-teacher-id="${escapeHtml(teacher.teacher_id)}"
             data-teacher-index="${index}"
           >
+<td>${escapeHtml(teacher.teacher_title || "")}</td>
 <td>${formatTeacherName(teacher)}</td>
 <td>${escapeHtml(teacher.code)}</td>
 <td>${escapeHtml(teacher.email)}</td>
@@ -423,6 +427,15 @@ function formatTeacherName(teacher) {
 function renderTeacherEditRow(teacher) {
   return `
     <tr data-teacher-row="${escapeHtml(teacher.teacher_id)}" class="${!teacher.active ? "inactive-record-row" : ""}">
+      <td>
+        <input
+          type="text"
+          class="tracker-input"
+          data-field="teacher_title"
+          value="${escapeHtml(teacher.teacher_title || "")}"
+          placeholder="Title"
+        />
+      </td>
       <td>
         <div class="teacher-name-edit-stack">
           <input
@@ -511,6 +524,7 @@ function renderTeacherEditRow(teacher) {
 
       if (!existing) return;
 
+      existing.teacher_title = update.teacher_title || "";
       existing.teacher_name = update.teacher_name;
       existing.teacher_surname = update.teacher_surname;
       existing.full_name = [update.teacher_name || "", update.teacher_surname || ""].join(" ").trim();
