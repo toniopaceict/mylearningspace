@@ -1,3 +1,12 @@
+<!--
+=========================================================
+GLIP PAGE INFORMATION
+
+Help file:
+    /help/help.html
+
+=========================================================
+-->
 <!DOCTYPE html>
 
 <html lang="en">
@@ -40,88 +49,7 @@
 <p class="q">
           Assign a teacher to a level, subject and class.
         </p>
-<button class="progress-help-icon" data-glip-help="" data-help-text="
-        
 
-&lt;br&gt;
-
-Use this page to assign teachers to classes and subjects. &lt;br&gt;&lt;br&gt;
-
-A teaching assignment tells GLIP which teacher is responsible for a particular subject within a particular class. &lt;br&gt;&lt;br&gt;
-
-Example:&lt;br&gt;
-Peter Borg → Physics → 4A-26 &lt;br&gt;&lt;br&gt;
-
-This assignment allows the teacher to access the subject, view students and record progress for the assigned class. &lt;br&gt;&lt;br&gt;
-
-&lt;b&gt;Before creating assignments&lt;/b&gt;&lt;br&gt;
-Teaching assignments depend on records that already exist elsewhere in GLIP. &lt;br&gt;&lt;br&gt;
-
-Before creating an assignment, make sure that: &lt;br&gt;&lt;br&gt;
-
-* the teacher exists in Teacher Management&lt;br&gt;
-* the class exists in Class Management&lt;br&gt;
-* the level exists in Level Management&lt;br&gt;
-* the subject exists in Subject Management&lt;br&gt;
-* the subject has been assigned to the level through Subject Management &lt;br&gt;&lt;br&gt;
-
-If any of these records do not exist, they must be created first. &lt;br&gt;&lt;br&gt;
-
-For example: &lt;br&gt;
-If you want to assign a teacher to class &lt;b&gt;4A-27&lt;/b&gt; but that class has not yet been created in Class Management, the assignment cannot be created until the class exists. &lt;br&gt;&lt;br&gt;
-
-Similarly, if a new level or subject is required, it must first be created in the appropriate management page before assignments can be made. &lt;br&gt;&lt;br&gt;
-
-&lt;b&gt;Active&lt;/b&gt;&lt;br&gt;
-The Active field determines whether the assignment is currently available in GLIP. &lt;br&gt;&lt;br&gt;
-
-TRUE = The assignment is active and available to the teacher. &lt;br&gt;
-FALSE = The assignment is archived and hidden from normal use. &lt;br&gt;&lt;br&gt;
-
-Assignments are normally set to TRUE. &lt;br&gt;&lt;br&gt;
-
-You may set an assignment to FALSE if: &lt;br&gt;
-
-* a teacher is no longer teaching the class&lt;br&gt;
-* the assignment belongs to a previous academic year&lt;br&gt;
-* the assignment needs to be retained for historical reference but should no longer be used &lt;br&gt;&lt;br&gt;
-
-GLIP does not delete teaching assignments through this page. Set Active to FALSE to retain the assignment for historical reference and allow it to be reactivated later. &lt;br&gt;&lt;br&gt;
-
-&lt;b&gt;What causes an error?&lt;/b&gt;&lt;br&gt;
-An error will be shown if: &lt;br&gt;&lt;br&gt;
-
-* a required field is left blank&lt;br&gt;
-* the teacher does not exist&lt;br&gt;
-* the class does not exist&lt;br&gt;
-* the subject does not exist&lt;br&gt;
-* the level or subject assignment is missing&lt;br&gt;
-* the active value is not TRUE or FALSE&lt;br&gt;
-* the CSV contains missing or incorrect column headings &lt;br&gt;&lt;br&gt;
-
-&lt;b&gt;CSV Import Format&lt;/b&gt;&lt;br&gt;
-Use the exported CSV file as the template for imports. &lt;br&gt;&lt;br&gt;
-
-Example: &lt;br&gt;&lt;br&gt;
-
-teacher_code,class_code,subject_code,access_type,can_view_progress,can_override,active&lt;br&gt;
-PB001,4A-26,physics,current,TRUE,TRUE,TRUE&lt;br&gt;
-PB001,4A-26,chemistry,current,TRUE,TRUE,TRUE&lt;br&gt;
-MB002,5A-26,geography,current,TRUE,FALSE,TRUE &lt;br&gt;&lt;br&gt;
-
-&lt;b&gt;Important notes&lt;/b&gt;&lt;br&gt;
-Before importing or clearing the table, GLIP downloads a backup of the current data. &lt;br&gt;&lt;br&gt;
-
-If validation errors are found, the import will be blocked and a summary of the problems will be displayed. &lt;br&gt;&lt;br&gt;
-
-Teaching assignments are not deleted through GLIP. To remove current access while retaining the record, set Active to FALSE.
-
-
-
-          
-          " data-help-title="Add Teaching Assignment" type="button">
-          ?
-        </button>
 <div class="tracker-row assignment-primary-row">
 <select class="tracker-input" id="newClassTeacherTeacher">
 <option value="">Loading teachers...</option>
@@ -162,78 +90,7 @@ Teaching assignments are not deleted through GLIP. To remove current access whil
 </fieldset>
 <fieldset class="task-box panel-box topics-box">
 <legend>Teaching Assignments</legend>
-<button class="progress-help-icon" data-glip-help="" data-help-text="
 
-&lt;br&gt;
-
-Use this page to add, edit, export, import or clear classes used in GLIP. &lt;br&gt;&lt;br&gt;
-
-Classes are linked to students, subject assignments and teaching assignments. For this reason, class records should be kept stable once they are in use. &lt;br&gt;&lt;br&gt;
-
-&lt;b&gt;Class Code&lt;/b&gt;&lt;br&gt;
-The class code is the short code used by GLIP to identify the class. &lt;br&gt;&lt;br&gt;
-Examples:&lt;br&gt;
-3A-25&lt;br&gt;
-4A-26&lt;br&gt;
-5A-26 &lt;br&gt;&lt;br&gt;
-The first part normally identifies the level and class group. The last two digits normally identify the academic year. For example, &lt;b&gt;4A-26&lt;/b&gt; can be used for class 4A in the academic year ending in 2026. &lt;br&gt;&lt;br&gt;
-
-&lt;b&gt;Class Label&lt;/b&gt;&lt;br&gt;
-The class label is the name shown to users. &lt;br&gt;&lt;br&gt;
-Examples:&lt;br&gt;
-3A (main)&lt;br&gt;
-4A (main)&lt;br&gt;
-5A (Evening) &lt;br&gt;&lt;br&gt;
-
-&lt;b&gt;Level&lt;/b&gt;&lt;br&gt;
-Each class must be linked to one valid level. &lt;br&gt;&lt;br&gt;
-Examples:&lt;br&gt;
-level-03&lt;br&gt;
-level-04&lt;br&gt;
-level-05 &lt;br&gt;&lt;br&gt;
-
-&lt;b&gt;Active&lt;/b&gt;&lt;br&gt;
-Use &lt;b&gt;TRUE&lt;/b&gt; for classes currently in use.&lt;br&gt;
-Use &lt;b&gt;FALSE&lt;/b&gt; to archive classes that should no longer be used for new assignments. &lt;br&gt;&lt;br&gt;
-
-
-  
-&lt;b&gt;Sort Order&lt;/b&gt;&lt;br&gt;
-Sort order controls the order in which classes appear in lists. &lt;br&gt;&lt;br&gt;
-
-&lt;b&gt;What is allowed?&lt;/b&gt;&lt;br&gt;
-You can add new classes, edit existing class labels, change the level, change the active status and change the sort order. &lt;br&gt;&lt;br&gt;
-Class codes should be unique. Do not use the same class code for two different classes. &lt;br&gt;&lt;br&gt;
-
-&lt;b&gt;What causes an error?&lt;/b&gt;&lt;br&gt;
-An error will be shown if: &lt;br&gt;&lt;br&gt;
-
-* a required field is left blank&lt;br&gt;
-* the class code is already used by another class&lt;br&gt;
-* the level does not exist&lt;br&gt;
-* the active value is not TRUE or FALSE&lt;br&gt;
-* the sort order is missing or is not a number&lt;br&gt;
-* the imported CSV has missing or incorrect column headings &lt;br&gt;&lt;br&gt;
-
-&lt;b&gt;CSV Import Format&lt;/b&gt;&lt;br&gt;
-When importing, use the same headings as the exported CSV file. Do not rename, remove or reorder the headings unless the import instructions say this is allowed. &lt;br&gt;&lt;br&gt;
-
-Example CSV: &lt;br&gt;&lt;br&gt;
-class_code,class_label,level_code,active,sort_order&lt;br&gt;
-3A-25,3A (main),level-03,TRUE,1&lt;br&gt;
-4A-26,4A (main),level-04,TRUE,2&lt;br&gt;
-5A-26,5A (main),level-05,TRUE,3&lt;br&gt;
-4B-26,4B (Evening),level-04,TRUE,4 &lt;br&gt;&lt;br&gt;
-
-&lt;b&gt;Important notes&lt;/b&gt;&lt;br&gt;
-Before importing or clearing the table, GLIP downloads a backup of the current data. &lt;br&gt;&lt;br&gt;
-If the CSV contains errors, the import will be blocked. Correct the CSV and import it again. &lt;br&gt;&lt;br&gt;
-Clearing the table removes all class records apart from the headings. Only do this if you are sure that you want to rebuild the class list.
-
-
-  " data-help-title="Teaching Assignments" type="button">
-  ?
-</button>
 <div class="panel-header">
 <p class="q panel-top-text">
             View and edit teacher assignments by level, subject and class.

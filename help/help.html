@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="/mylearningspace/assets/GLIP-icon-transparent.png" />
+  <title>GLIP – Help</title>
+  <script>
+    window.PAGE_CONFIG = {
+      pageKind: "help",
+      pageTitle: "GLIP – Help",
+      extraScripts: ["/js/help-page.js"]
+    };
+    window.PAGE_MENU_CONTEXT = { type: "home" };
+  </script>
+  <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
+</head>
+<body>
+  <div id="header-placeholder"></div>
+  <div class="page-shell">
+    <header class="page-hero">
+      <div class="page-hero-panel">
+        <div class="page-hero-divider-top"></div>
+        <img alt="GLIP logo" class="page-hero-brand-icon" src="/mylearningspace/assets/GLIP-icon-transparent-cropped.png" />
+        <div class="page-hero-logo">GLIP</div>
+        <p class="page-hero-topline">Guided Learning for Independent Progress</p>
+        <h1>Help Centre</h1>
+        <h2>Choose a section below</h2>
+        <div class="page-hero-divider-bottom"></div>
+      </div>
+    </header>
+    <main class="wrap management-wrap help-page-wrap">
+      <div class="tracker-row help-page-actions">
+        <button type="button" class="glip-btn glip-btn-secondary" id="glipHelpReturnBtn">Return to GLIP</button>
+      </div>
+      <div id="glipHelpStatus" class="form-message help-status-message" role="status" aria-live="polite" hidden></div>
+      <p class="help-page-intro">Select a heading to expand or collapse its instructions. Only sections relevant to your current role are shown.</p>
+      <details class="help-topic" id="activity" data-roles="student subject_teacher lead_teacher admin owner">
+        <summary>Learning Activities</summary>
+        <div class="help-topic-body">
+          <section class="help-subsection">
+            <h3>Using an activity page</h3>
+            <div class="help-page-text">
+              Activity pages may contain written instructions, videos, images, links, questions and interactive tasks.
+              Follow the instructions shown on the page and complete each part in order.
+              <br><br>
+              <b>Uploading work:</b><br>
+              Where an upload option is provided, select the requested file from your device and wait for the upload to finish before leaving the page.
+              <br><br>
+              <b>Drag and drop:</b><br>
+              Drag each item to the appropriate answer area. On a touch screen, press and hold the item briefly before moving it.
+              <br><br>
+              <b>Magnifying images:</b><br>
+              Select an image when the magnify option is available. The enlarged image can then be closed to return to the activity.
+              <br><br>
+              <b>Progress:</b><br>
+              Use the completion control provided on the page when you have finished the activity. Do not close the page while a save or upload is still in progress.
+            </div>
+          </section>
+        </div>
+      </details>
+      <details class="help-topic" id="level-management" data-roles="admin owner">
+        <summary>Level Management</summary>
+        <div class="help-topic-body">
+        <section class="help-subsection">
+          <h3>Add Level</h3>
+          <div class="help-page-text"><b>Add Level</b><br/>
+Use this section to add a new school level to GLIP.
+<br/><br/>
+<b>Level Code</b><br/>
+The unique code used internally by GLIP to identify the level.
+<br/><br/>
+Examples:<br/>
+level-03<br/>
+level-04<br/>
+level-05
+<br/><br/>
+Do not use duplicate level codes.
+<br/><br/>
+<b>Level Name</b><br/>
+The friendly name shown to administrators, teachers and students.
+<br/><br/>
+Examples:<br/>
+Level 3<br/>
+Level 4<br/>
+Level 5
+<br/><br/>
+<b>Sort Order</b><br/>
+Controls the order in which levels appear in GLIP. Sort Order is required and must be a whole number of 1 or greater.
+<br/><br/>
+Examples:<br/>
+1<br/>
+2<br/>
+3
+<br/><br/>
+Do not leave Sort Order blank. Do not use 0, negative numbers or text.
+<br/><br/>
+<b>Status</b><br/>
+Active levels can be used when creating classes and subject assignments. Inactive levels remain in the database for historical records but should not be used for new setup work.
+<br/><br/>
+<b>Important</b><br/>
+Levels are not tied to a scholastic year. Classes are year-specific, but levels such as Level 3, Level 4 and Level 5 are part of the school's structure.</div>
+        </section>
+        <section class="help-subsection">
+          <h3>Level Management</h3>
+          <div class="help-page-text"><b>Level Management</b><br/>
+This page is used to manage the levels offered by the school.
+<br/><br/>
+<b>Purpose</b><br/>
+Levels define the structure of the school in GLIP. Classes, subject assignments, teaching assignments and student subject assignments all depend on levels.
+<br/><br/>
+<b>Examples</b><br/>
+level-03 – Level 3<br/>
+level-04 – Level 4<br/>
+level-05 – Level 5
+<br/><br/>
+<b>Level Code</b><br/>
+The unique code used internally by GLIP. It should remain stable because other records refer to it.
+<br/><br/>
+<b>Level Name</b><br/>
+The display name shown in GLIP.
+<br/><br/>
+<b>Sort Order</b><br/>
+Controls the order in which levels appear throughout GLIP. It must be a whole number of 1 or greater.
+<br/><br/>
+<b>Status</b><br/>
+Active levels can be used for new classes and subject setup. Inactive levels can be used for planning. Records linked to inactive
+levels may show ⚠ on other management pages, and students and teachers will not see those items until the level is active.
+<br/><br/>
+<b>No Deletion</b><br/>
+Levels are not deleted through GLIP. If a level is no longer used, mark it as inactive. This protects historical data and avoids breaking links to existing classes, subject assignments, students and progress records.
+<br/><br/>
+<b>CSV Export and Import</b><br/>
+The CSV uses administrator-friendly columns:
+<br/><br/>
+level_code,level_name,sort_order,active
+<br/><br/>
+Example:<br/>
+level-03,Level 3,1,TRUE<br/>
+level-04,Level 4,2,TRUE<br/>
+level-05,Level 5,3,TRUE</div>
+        </section>
+        </div>
+      </details>
+      <details class="help-topic" id="class-management" data-roles="admin owner">
+        <summary>Class Management</summary>
+        <div class="help-topic-body">
+        <section class="help-subsection">
+          <h3>Add Class</h3>
+          <div class="help-page-text">Use this form to add a new class to GLIP. A class must belong to an existing level.
+<br/><br/>
+<b>Level</b><br/>
+Select the level to which the class belongs.
+<br/><br/>
+Only levels that already exist in the Levels table are shown in this list. This field is required.
+If the required level is not shown, it must first be added to the Levels table.
+<br/><br/>
+<b>Class Code</b><br/>
+Enter a short, unique code for the class. This code identifies the class internally and is also used during CSV import to update existing classes. Use a stable format such as 4A-26, where 4A is the class and 26 refers to the academic year ending in 2026.
+<br/><br/>
+Accepted examples:<br/>
+3A-25<br/>
+4A-26<br/>
+5A-26<br/>
+4B-26
+<br/><br/>
+This field is required and must be unique.
+<br/><br/>
+Examples that will generate an error:<br/>
+blank value<br/>
+a class code that already exists when adding a new class<br/>
+4A 26
+<br/><br/>
+<b>Class Label</b><br/>
+Enter the class name as users should see it in GLIP.
+<br/><br/>
+Accepted examples:<br/>
+3A (main)<br/>
+4A (main)<br/>
+4A (Boys)<br/>
+4A (Girls)<br/>
+5A (main)
+<br/><br/>
+This field is required.
+<br/><br/>
+Examples that will generate an error:<br/>
+blank value
+<br/><br/>
+The class label does not need to be unique, but it should be clear for users.
+<br/><br/>
+<b>Sort Order</b><br/>
+Enter a number to control the order in which classes appear in tables and dropdown lists.
+<br/><br/>
+Accepted examples:<br/>
+1<br/>
+2<br/>
+3<br/>
+10
+<br/><br/>
+Examples that will generate an error:<br/>
+abc<br/>
+first<br/>
+1A<br/>
+4A-26
+<br/><br/>
+Use whole numbers only. Smaller numbers appear before larger numbers.
+<br/><br/>
+<b>Status</b><br/>
+Choose whether the class is active or inactive.
+<br/><br/>
+Accepted values:<br/>
+Active<br/>
+Inactive
+<br/><br/>
+Active classes are available for normal use. Inactive classes remain stored for reference but should not normally appear in selection lists.
+<br/><br/>
+<b>Save Class</b><br/>
+Click Save Class to add the class to the Classes table. GLIP will create the internal class ID automatically. You do not need to type class_id or level_id.</div>
+        </section>
+        <section class="help-subsection">
+          <h3>Class Management</h3>
+          <div class="help-page-text">Use this area to manage the classes available in GLIP. Classes are linked to levels and are used throughout the system when assigning students, teachers and subjects.
+<br/><br/>
+<b>Viewing Classes</b><br/>
+The table displays all classes currently stored in GLIP. Each class belongs to a level and has a unique class code and a user-friendly class label.
+<br/><br/>
+<b>Level</b><br/>
+Shows the level to which the class belongs.
+<br/><br/>
+Examples:<br/>
+Level 3<br/>
+Level 4<br/>
+Level 5
+<br/><br/>
+<b>Class Code</b><br/>
+The unique code used internally by GLIP to identify a class.
+<br/><br/>
+Examples:<br/>
+3A-25<br/>
+4A-26<br/>
+5A-26
+<br/><br/>
+The first part identifies the class itself. For example, 4A refers to class 4A.
+<br/><br/>
+The last two digits identify the academic year. For example:
+<br/>
+4A-25 = academic year 2024–2025<br/>
+4A-26 = academic year 2025–2026<br/>
+4A-27 = academic year 2026–2027
+<br/><br/>
+This allows GLIP to distinguish between classes from different academic years and retain historical records for revision and reporting purposes.
+<br/><br/>
+Class codes should remain stable because they are used during CSV imports and when linking students, teachers and subjects to classes.
+<br/><br/>
+<b>Class Label</b><br/>
+The name displayed to users throughout GLIP.
+<br/><br/>
+Examples:<br/>
+3A (main)<br/>
+4A (main)<br/>
+4A (Boys)<br/>
+4A (Girls)
+<br/><br/>
+The label can be changed without affecting existing student or teacher assignments.
+<br/><br/>
+<b>Sort Order</b><br/>
+Controls the order in which classes appear in tables, dropdown lists and other management pages.
+<br/><br/>
+Classes with smaller numbers appear before classes with larger numbers.
+<br/><br/>
+<b>Status</b><br/>
+Shows whether the class is active or inactive.
+<br/><br/>
+Active classes are available for normal use.<br/>
+Inactive classes are retained for reference but should not normally appear in selection lists.
+<br/><br/>
+<b>Sorting</b><br/>
+Click any column heading to sort the table. Click the same heading again to reverse the sort order.
+<br/><br/>
+<b>Edit Classes</b><br/>
+Click Edit Classes to switch the table into edit mode. Editable fields will appear directly inside the table. Any fields you modify are highlighted so that you can easily see pending changes before saving. Click Save Changes to save all edited class records at once. Click Cancel to discard all unsaved changes and reload the current data from GLIP.
+<br/><br/>
+<b>Import CSV</b><br/>
+Imports classes from a CSV file.
+<br/><br/>
+Before any data is changed, GLIP validates the entire file and displays a validation summary.
+<br/><br/>
+Examples of validation checks include:
+<br/>
+Missing level<br/>
+Invalid level<br/>
+Missing class code<br/>
+Duplicate class code<br/>
+Missing class label<br/>
+Invalid status value<br/>
+Invalid sort order
+<br/><br/>
+Existing classes are matched using the class code. If the class code already exists, the existing class is updated.<br/> If the class code does not exist, a new class is created automatically.
+<br/><br/>
+<b>Error Report</b><br/>
+If validation errors are found, you can download a CSV report showing all problems that must be corrected before importing again.
+<br/><br/>
+<b>Automatic Backup</b><br/>
+Before any import or table clear operation, GLIP automatically downloads a backup copy of the current data.
+<br/><br/>
+<b>Clear Table</b><br/>
+Removes all class records from the Classes table while keeping the column headings intact.</div>
+        </section>
+        </div>
+      </details>
+      <details class="help-topic" id="subject-management" data-roles="admin owner">
+        <summary>Subject Management</summary>
+        <div class="help-topic-body">
+        <section class="help-subsection">
+          <h3>Add Subject Assignment</h3>
+          <div class="help-page-text"><br/>
+
+Use this page to assign subjects to levels.
+
+<br/><br/>
+
+Subject assignments determine which subjects are available for each level in GLIP.
+
+<br/><br/>
+
+For example, if Word and Excel are assigned to Level 4, students and teachers in Level 4 will only see those subjects (subject to their own permissions).
+
+<br/><br/>
+
+Subject Management does not create new levels or new subjects. Levels must already exist in Level Management and subjects must already exist in Subject Management before they can be linked together.
+
+<br/><br/>
+<b>Level</b><br/>
+
+Select the level to which the subject should belong.
+
+<br/><br/>
+
+Examples:<br/>
+
+level-03<br/>
+level-04<br/>
+level-05
+
+<br/><br/>
+
+Only existing levels can be selected.
+
+<br/><br/>
+<b>Subject</b><br/>
+
+Select the subject that will be available for the selected level.
+
+<br/><br/>
+
+Examples:<br/>
+
+Word<br/>
+Excel<br/>
+PowerPoint
+
+<br/><br/>
+
+Only existing subjects can be selected.
+
+<br/><br/>
+<b>Visibility</b><br/>
+
+Visibility determines whether the subject is shown to users.
+
+<br/><br/>
+
+TRUE = Students, teachers and administrators can see the subject (provided they have permission).
+
+<br/>
+
+FALSE = The subject remains assigned to the level but is hidden from users.
+
+<br/><br/>
+
+Visibility is useful when preparing a subject before it is released or when temporarily hiding a subject without removing its assignment to the level.
+
+<br/><br/>
+
+Changing Visibility does not delete any student progress or teacher assignments.
+
+<br/><br/>
+<b>Status</b><br/>
+
+Status determines whether the subject assignment itself is active.
+
+<br/><br/>
+
+TRUE = The subject assignment is active.
+
+<br/>
+
+FALSE = The subject assignment is inactive.
+
+<br/><br/>
+
+If the subject assignment is active but the selected level is inactive, GLIP shows the status as <b>Active (pending)</b>. This means the record has been prepared, but it will not be available to students or teachers until the level is activated.
+
+<br/><br/>
+
+Inactive subject assignments are normally used to preserve historical information from previous academic years while preventing new assignments.
+
+<br/><br/>
+
+If a subject assignment is no longer required but historical data should be retained, it is usually better to set Status to FALSE rather than delete the record.
+
+<br/><br/>
+<b>Sort Order</b><br/>
+
+Sort Order controls the order in which subjects appear throughout GLIP.
+
+<br/><br/>
+
+Examples:<br/>
+
+1<br/>
+2<br/>
+3
+
+<br/><br/>
+
+Subjects with lower numbers appear first.
+
+<br/><br/>
+
+Example:<br/>
+
+1 Word<br/>
+2 Excel<br/>
+3 PowerPoint
+
+<br/><br/>
+
+Sort Order should normally contain whole numbers.
+
+<br/><br/>
+<b>Save Subject Assignment</b><br/>
+
+Creates the subject assignment and immediately makes it available according to the Visibility and Status settings.
+
+<br/><br/>
+<b>What causes an error?</b><br/>
+
+An error will be shown if:
+
+<br/><br/>
+
+* the level is not selected<br/>
+* the subject is not selected<br/>
+* the same level and subject combination already exists<br/>
+* Visibility is not TRUE or FALSE<br/>
+* Status is not TRUE or FALSE<br/>
+* Sort Order is missing or is not a valid number</div>
+        </section>
+        <section class="help-subsection">
+          <h3>Subject Management</h3>
+          <div class="help-page-text"><br/>
+
+Use this page to view, edit, export, import and manage the subjects assigned to each level in GLIP.
+
+<br/><br/>
+
+Subject assignments control which subjects belong to each level.
+
+<br/><br/>
+
+Every subject shown to students, teachers and administrators must be assigned to the appropriate level here.
+
+<br/><br/>
+
+For example:
+
+<br/><br/>
+
+Level 3 → PowerPoint<br/>
+Level 4 → Word, Excel<br/>
+Level 5 → Word
+
+<br/><br/>
+
+Only subjects assigned to a level here can later be assigned to teachers and students.
+
+<br/><br/>
+
+If a subject has not been assigned to a particular level, it cannot be assigned to students or teachers, even if the subject itself exists.
+
+<br/><br/>
+<b>⚠ and amber strip</b><br/>
+            ⚠ indicates that the level is inactive in the Level Management page. The amber strip on the left marks an active record linked to an inactive parent. The row remains editable for planning purposes, but it is not available to teachers or students until the level is activated.
+
+<br/><br/>
+<b>Visibility</b><br/>
+
+Visibility controls whether a subject is displayed to users.
+
+<br/><br/>
+
+TRUE = The subject is visible.
+
+<br/>
+
+FALSE = The subject is hidden.
+
+<br/><br/>
+
+Active subjects linked to an inactive level are shown as pending. This is useful when preparing new material before students begin studying it or when temporarily hiding a subject during the academic year.
+
+<br/><br/>
+
+Hidden subjects remain in the database and can be made visible again at any time.
+
+<br/><br/>
+<b>Status</b><br/>
+
+Status shows whether the subject assignment is active and whether it is ready for use.
+
+<br/><br/>
+
+Active = The subject assignment is active and its level is active.
+
+<br/>
+
+Active (pending) = The subject assignment is active, but its level is inactive. This is used when preparing future subject assignments. It is not available to students or teachers yet.
+
+<br/>
+
+Inactive = The subject assignment itself is inactive.
+
+<br/><br/>
+
+Inactive subject assignments are normally retained for historical reference and previous academic years.
+Inactive is generally preferable to deleting subject assignments because it preserves historical information.
+
+<br/><br/>
+<b>Sort Order</b><br/>
+
+Sort Order determines the order in which subjects appear throughout GLIP.
+
+<br/><br/>
+
+Example:
+
+<br/><br/>
+
+1 Word<br/>
+2 Excel<br/>
+3 PowerPoint
+
+<br/><br/>
+
+Changing the Sort Order changes only the display order. It does not affect student progress, teacher assignments or permissions.
+
+<br/><br/>
+<b>What is allowed?</b><br/>
+
+You may:
+
+<br/><br/>
+
+* add new subject-level combinations<br/>
+* edit Visibility<br/>
+* edit Status<br/>
+* change Sort Order
+
+<br/><br/>
+
+Each subject can appear only once for a particular level.
+
+<br/><br/>
+
+The same subject may be assigned to multiple levels.
+
+<br/><br/>
+
+Examples:
+
+<br/><br/>
+
+✓ Level 3 → Word<br/>
+✓ Level 4 → Word<br/>
+✓ Level 5 → Word
+
+<br/><br/>
+
+✗ Level 4 → Word (entered twice)
+
+<br/><br/>
+<b>What causes an error?</b><br/>
+
+An error will be shown if:
+
+<br/><br/>
+
+* the level does not exist<br/>
+* the subject does not exist<br/>
+* the same level and subject combination already exists<br/>
+* Visibility is not TRUE or FALSE<br/>
+* Status is not TRUE or FALSE<br/>
+* Sort Order is missing or is not a number<br/>
+* the imported CSV contains missing or incorrect column headings
+
+<br/><br/>
+<b>CSV Import Format</b><br/>
+
+Always use the exported CSV as the template.
+
+<br/><br/>
+
+Example:
+
+<br/><br/>
+
+level_code,subject_code,visible,sort_order,active<br/>
+level-03,powerpoint,TRUE,1,TRUE<br/>
+level-04,word,TRUE,1,TRUE<br/>
+level-04,excel,TRUE,2,TRUE<br/>
+level-05,word,TRUE,1,TRUE
+
+<br/><br/>
+<b>Important notes</b><br/>
+
+Before importing or clearing the table, GLIP automatically downloads a backup of the current subject assignments.
+
+<br/><br/>
+
+If validation errors are found, the import will be blocked until the problems have been corrected.
+
+<br/><br/>
+
+Changes made to subject assignments may affect which subjects are available to students and teachers throughout GLIP.</div>
+        </section>
+        </div>
+      </details>
+      <details class="help-topic" id="curriculum-management" data-roles="admin owner">
+        <summary>Curriculum Management</summary>
+        <div class="help-topic-body">
+        <section class="help-subsection">
+          <h3>Add Curriculum Item</h3>
+          <div class="help-page-text"><br/>
+
+Use this page to assign subjects to levels.
+
+<br/><br/>
+
+The curriculum determines which subjects are available for each level in GLIP.
+
+<br/><br/>
+
+For example, if Word and Excel are assigned to Level 4, students and teachers in Level 4 will only see those subjects (subject to their own permissions).
+
+<br/><br/>
+
+The Curriculum page does not create new levels or new subjects. Levels must already exist in Level Management and subjects must already exist in Subject Management before they can be linked together.
+
+<br/><br/>
+<b>Level</b><br/>
+
+Select the level to which the subject should belong.
+
+<br/><br/>
+
+Examples:<br/>
+
+level-03<br/>
+level-04<br/>
+level-05
+
+<br/><br/>
+
+Only existing levels can be selected.
+
+<br/><br/>
+<b>Subject</b><br/>
+
+Select the subject that will be available for the selected level.
+
+<br/><br/>
+
+Examples:<br/>
+
+Word<br/>
+Excel<br/>
+PowerPoint
+
+<br/><br/>
+
+Only existing subjects can be selected.
+
+<br/><br/>
+<b>Visibility</b><br/>
+
+Visibility determines whether the subject is shown to users.
+
+<br/><br/>
+
+TRUE = Students, teachers and administrators can see the subject (provided they have permission).
+
+<br/>
+
+FALSE = The subject remains in the curriculum but is hidden from users.
+
+<br/><br/>
+
+Visibility is useful when preparing a subject before it is released or when temporarily hiding a subject without removing it from the curriculum.
+
+<br/><br/>
+
+Changing Visibility does not delete any student progress or teacher assignments.
+
+<br/><br/>
+<b>Status</b><br/>
+
+Status determines whether the curriculum record itself is active.
+
+<br/><br/>
+
+TRUE = The curriculum record is active.
+
+<br/>
+
+FALSE = The curriculum record is inactive.
+
+<br/><br/>
+
+If the curriculum record is active but the selected level is inactive, GLIP shows the status as <b>Active (pending)</b>. This means the record has been prepared, but it will not be available to students or teachers until the level is activated.
+
+<br/><br/>
+
+Inactive curriculum records are normally used to preserve historical information from previous academic years while preventing new assignments.
+
+<br/><br/>
+
+If a curriculum record is no longer required but historical data should be retained, it is usually better to set Status to FALSE rather than delete the record.
+
+<br/><br/>
+<b>Sort Order</b><br/>
+
+Sort Order controls the order in which subjects appear throughout GLIP.
+
+<br/><br/>
+
+Examples:<br/>
+
+1<br/>
+2<br/>
+3
+
+<br/><br/>
+
+Subjects with lower numbers appear first.
+
+<br/><br/>
+
+Example:<br/>
+
+1 Word<br/>
+2 Excel<br/>
+3 PowerPoint
+
+<br/><br/>
+
+Sort Order should normally contain whole numbers.
+
+<br/><br/>
+<b>Save Curriculum</b><br/>
+
+Creates the curriculum record and immediately makes it available according to the Visibility and Status settings.
+
+<br/><br/>
+<b>What causes an error?</b><br/>
+
+An error will be shown if:
+
+<br/><br/>
+
+* the level is not selected<br/>
+* the subject is not selected<br/>
+* the same level and subject combination already exists<br/>
+* Visibility is not TRUE or FALSE<br/>
+* Status is not TRUE or FALSE<br/>
+* Sort Order is missing or is not a valid number</div>
+        </section>
+        <section class="help-subsection">
+          <h3>Curriculum Management</h3>
+          <div class="help-page-text"><br/>
+
+Use this page to view, edit, export, import and manage the curriculum used by GLIP.
+
+<br/><br/>
+
+The curriculum is one of the most important tables in GLIP because it controls which subjects belong to each level.
+
+<br/><br/>
+
+Every subject that appears to students, teachers and administrators is determined by the curriculum.
+
+<br/><br/>
+
+For example:
+
+<br/><br/>
+
+Level 3 → PowerPoint<br/>
+Level 4 → Word, Excel<br/>
+Level 5 → Word
+
+<br/><br/>
+
+Only subjects linked through the curriculum can later be assigned to teachers and students.
+
+<br/><br/>
+
+If a subject has not been added to the curriculum for a particular level, it cannot be assigned to students or teachers, even if the subject itself exists.
+
+<br/><br/>
+<b>⚠ and amber strip</b><br/>
+            ⚠ indicates that the level is inactive in the Level Management page. The amber strip on the left marks an active record linked to an inactive parent. The row remains editable for planning purposes, but it is not available to teachers or students until the level is activated.
+
+<br/><br/>
+<b>Visibility</b><br/>
+
+Visibility controls whether a subject is displayed to users.
+
+<br/><br/>
+
+TRUE = The subject is visible.
+
+<br/>
+
+FALSE = The subject is hidden.
+
+<br/><br/>
+
+Active subjects linked to an inactive level are shown as pending. This is useful when preparing new material before students begin studying it or when temporarily hiding a subject during the academic year.
+
+<br/><br/>
+
+Hidden subjects remain in the database and can be made visible again at any time.
+
+<br/><br/>
+<b>Status</b><br/>
+
+Status shows whether the curriculum record is active and whether it is ready for use.
+
+<br/><br/>
+
+Active = The curriculum record is active and its level is active.
+
+<br/>
+
+Active (pending) = The curriculum record is active, but its level is inactive. This is used when preparing future curriculum items. It is not available to students or teachers yet.
+
+<br/>
+
+Inactive = The curriculum record itself is inactive.
+
+<br/><br/>
+
+Inactive curriculum records are normally retained for historical reference and previous academic years.
+Inactive is generally preferable to deleting curriculum records because it preserves historical information.
+
+<br/><br/>
+<b>Sort Order</b><br/>
+
+Sort Order determines the order in which subjects appear throughout GLIP.
+
+<br/><br/>
+
+Example:
+
+<br/><br/>
+
+1 Word<br/>
+2 Excel<br/>
+3 PowerPoint
+
+<br/><br/>
+
+Changing the Sort Order changes only the display order. It does not affect student progress, teacher assignments or permissions.
+
+<br/><br/>
+<b>What is allowed?</b><br/>
+
+You may:
+
+<br/><br/>
+
+* add new subject-level combinations<br/>
+* edit Visibility<br/>
+* edit Status<br/>
+* change Sort Order
+
+<br/><br/>
+
+Each subject can appear only once for a particular level.
+
+<br/><br/>
+
+The same subject may be assigned to multiple levels.
+
+<br/><br/>
+
+Examples:
+
+<br/><br/>
+
+✓ Level 3 → Word<br/>
+✓ Level 4 → Word<br/>
+✓ Level 5 → Word
+
+<br/><br/>
+
+✗ Level 4 → Word (entered twice)
+
+<br/><br/>
+<b>What causes an error?</b><br/>
+
+An error will be shown if:
+
+<br/><br/>
+
+* the level does not exist<br/>
+* the subject does not exist<br/>
+* the same level and subject combination already exists<br/>
+* Visibility is not TRUE or FALSE<br/>
+* Status is not TRUE or FALSE<br/>
+* Sort Order is missing or is not a number<br/>
+* the imported CSV contains missing or incorrect column headings
+
+<br/><br/>
+<b>CSV Import Format</b><br/>
+
+Always use the exported CSV as the template.
+
+<br/><br/>
+
+Example:
+
+<br/><br/>
+
+level_code,subject_code,visible,sort_order,active<br/>
+level-03,powerpoint,TRUE,1,TRUE<br/>
+level-04,word,TRUE,1,TRUE<br/>
+level-04,excel,TRUE,2,TRUE<br/>
+level-05,word,TRUE,1,TRUE
+
+<br/><br/>
+<b>Important notes</b><br/>
+
+Before importing or clearing the table, GLIP automatically downloads a backup of the current curriculum.
+
+<br/><br/>
+
+If validation errors are found, the import will be blocked until the problems have been corrected.
+
+<br/><br/>
+
+Changes made to the curriculum may affect which subjects are available to students and teachers throughout GLIP.</div>
+        </section>
+        </div>
+      </details>
+      <details class="help-topic" id="curriculum-topic-management" data-roles="admin owner">
+        <summary>Curriculum Topic Management</summary>
+        <div class="help-topic-body">
+        <section class="help-subsection">
+          <h3>Curriculum Topic Management</h3>
+          <div class="help-page-text">Use this page to manage which topics belong to each subject at each level.
+
+<br/><br/>
+
+Topics are linked to curriculum items (Level + Subject). For example:
+
+<br/><br/>
+
+Level 3 → Physics → Topic 1<br/>
+Level 3 → Physics → Topic 2<br/>
+Level 3 → Physics → Topic 3<br/>
+Level 4 → Physics → Topic 1<br/>
+Level 4 → Chemistry → Topic 1
+
+<br/><br/>
+<b>⚠ and amber strip</b><br/>
+
+The ⚠ symbol indicates that this topic assignment depends on an inactive parent record (for example an inactive level, curriculum item or topic).
+They remain editable so that future work can be prepared before it is released to teachers and students.
+<br/><br/>
+<b>Visible</b><br/>
+Visibility controls whether a topic is shown to users. Changing Visibility never deletes student progress or teacher assignments.
+Visible = The topic is displayed to users who have permission to access that subject.
+Hidden = The topic remains stored but is not displayed.
+
+<br/><br/>
+
+If the assignment is active but one of its parent records is inactive, the topic is shown as <b>Visible (pending)</b>.
+          This means the topic is ready but will not become visible until the parent record is activated.
+
+<br/><br/>
+<b>Status</b><br/>
+
+Status controls whether the topic assignment itself is active. Active = The topic assignment is available for use. Active (pending) = The assignment is active but one or more parent records are inactive.
+          The assignment has been prepared but is not yet available. Inactive = The topic assignment itself has been deactivated. Inactive records are normally retained for
+          historical reference rather than deleted.
+
+<br/><br/>
+<b>Sort Order</b><br/>
+
+Sort Order determines the order in which topics appear within a subject. The numbering restarts for each subject. Changing the Sort Order changes only the display order.
+          It does not affect student progress or teacher assignments.
+
+<br/><br/>
+<b>Edit Topic Assignments</b><br/>
+
+Click Edit Topic Assignments to modify existing records.
+
+<br/><br/>
+
+You may:
+
+<br/><br/>
+
+* change Visibility<br/>
+* change Status<br/>
+* change Sort Order
+
+<br/><br/>
+
+The linked level, subject and topic cannot be changed after the record has been created. If a different combination is required, create a new assignment instead.
+
+<br/><br/>
+<b>Adding Topic Assignments</b><br/>
+
+When creating a new topic assignment:
+
+<br/><br/>
+
+If the required <b>level and subject</b> do not appear in the first list, they must first be added in <b>Curriculum Management</b>.
+
+<br/><br/>
+
+If the required <b>topic</b> does not appear in the second list, check that:
+
+<br/><br/>
+
+* the topic has already been created in Topic Management;<br/>
+* the topic belongs to the selected subject;<br/>
+* the topic is active.
+
+<br/><br/>
+
+Each topic may appear only once for the same Level and Subject combination.
+
+<br/><br/>
+<b>What causes an error?</b><br/>
+
+An error will be shown if:
+
+<br/><br/>
+
+* the level and subject are not selected;<br/>
+* the topic is not selected;<br/>
+* the same topic is already assigned to the selected Level and Subject;<br/>
+* Sort Order is missing or is not a whole number;<br/>
+* Visibility is not TRUE or FALSE;<br/>
+* Status is not TRUE or FALSE.</div>
+        </section>
+        </div>
+      </details>
+      <details class="help-topic" id="topic-management" data-roles="lead_teacher admin owner">
+        <summary>Topic Management</summary>
+        <div class="help-topic-body">
+        <section class="help-subsection">
+          <h3>Topic Management</h3>
+          <div class="help-page-text">Use this page to manage which topics belong to each subject at each level.
+
+<br/><br/>
+
+Topics are linked to subject assignments (Level + Subject). For example:
+
+<br/><br/>
+
+Level 3 → Physics → Topic 1<br/>
+Level 3 → Physics → Topic 2<br/>
+Level 3 → Physics → Topic 3<br/>
+Level 4 → Physics → Topic 1<br/>
+Level 4 → Chemistry → Topic 1
+
+<br/><br/>
+<b>⚠ and amber strip</b><br/>
+
+The ⚠ symbol indicates that this topic assignment depends on an inactive parent record (for example an inactive level, subject assignment or topic).
+They remain editable so that future work can be prepared before it is released to teachers and students.
+<br/><br/>
+<b>Visible</b><br/>
+Visibility controls whether a topic is shown to users. Changing Visibility never deletes student progress or teacher assignments.
+Visible = The topic is displayed to users who have permission to access that subject.
+Hidden = The topic remains stored but is not displayed.
+
+<br/><br/>
+
+If the assignment is active but one of its parent records is inactive, the topic is shown as <b>Visible (pending)</b>.
+          This means the topic is ready but will not become visible until the parent record is activated.
+
+<br/><br/>
+<b>Status</b><br/>
+
+Status controls whether the topic assignment itself is active. Active = The topic assignment is available for use. Active (pending) = The assignment is active but one or more parent records are inactive.
+          The assignment has been prepared but is not yet available. Inactive = The topic assignment itself has been deactivated. Inactive records are normally retained for
+          historical reference rather than deleted.
+
+<br/><br/>
+<b>Sort Order</b><br/>
+
+Sort Order determines the order in which topics appear within a subject. The numbering restarts for each subject. Changing the Sort Order changes only the display order.
+          It does not affect student progress or teacher assignments.
+
+<br/><br/>
+<b>Edit Topic Assignments</b><br/>
+
+Click Edit Topic Assignments to modify existing records.
+
+<br/><br/>
+
+You may:
+
+<br/><br/>
+
+* change Visibility<br/>
+* change Status<br/>
+* change Sort Order
+
+<br/><br/>
+
+The linked level, subject and topic cannot be changed after the record has been created. If a different combination is required, create a new assignment instead.
+
+<br/><br/>
+<b>Adding Topic Assignments</b><br/>
+
+When creating a new topic assignment:
+
+<br/><br/>
+
+If the required <b>level and subject</b> do not appear in the first list, they must first be added in <b>Subject Management</b>.
+
+<br/><br/>
+
+If the required <b>topic</b> does not appear in the second list, check that:
+
+<br/><br/>
+
+* the topic has already been created in Topic Management;<br/>
+* the topic belongs to the selected subject;<br/>
+* the topic is active.
+
+<br/><br/>
+
+Each topic may appear only once for the same Level and Subject combination.
+
+<br/><br/>
+<b>What causes an error?</b><br/>
+
+An error will be shown if:
+
+<br/><br/>
+
+* the level and subject are not selected;<br/>
+* the topic is not selected;<br/>
+* the same topic is already assigned to the selected Level and Subject;<br/>
+* Sort Order is missing or is not a whole number;<br/>
+* Visibility is not TRUE or FALSE;<br/>
+* Status is not TRUE or FALSE.</div>
+        </section>
+        </div>
+      </details>
+      <details class="help-topic" id="teacher-management" data-roles="admin owner">
+        <summary>Teacher Management</summary>
+        <div class="help-topic-body">
+        <section class="help-subsection">
+          <h3>Add Teacher</h3>
+          <div class="help-page-text"><b>Title:</b><br/>
+    Enter the teacher's title, such as Mr, Ms or Dr. This field is optional.
+    <br/><br/>
+<b>Name and Surname:</b><br/>
+    Enter the teacher's first name and surname.
+    <br/><br/>
+<b>Login Code:</b><br/>
+    Create a unique login code for the teacher. The teacher will use this code to sign in to GLIP.
+    <br/><br/>
+<b>Email Address:</b><br/>
+    Enter the teacher's email address. This is used when sending login details by email.
+    <br/><br/>
+<b>Role:</b><br/>
+    Select the teacher's role:
+    Admin, Lead Teacher or Subject Teacher.
+    <br/><br/>
+<b>Send Code by Email:</b><br/>
+    When enabled, GLIP will automatically email the teacher their login code after the account is created.
+    <br/><br/>
+<b>Save Teacher:</b><br/>
+    Click Save Teacher to create the account.</div>
+        </section>
+        <section class="help-subsection">
+          <h3>Teacher Management</h3>
+          <div class="help-page-text"><b>Sorting:</b><br/>
+    Click any column heading to sort the table. Click again to reverse the sort order.
+    <br/><br/>
+<b>Selecting Teachers:</b><br/>
+    Click a row to select a teacher.
+    <br/><br/>
+<b>Multiple Selection:</b><br/>
+    Hold Ctrl while clicking to select or deselect multiple teachers.
+    <br/><br/>
+<b>Range Selection:</b><br/>
+    Hold Shift and click another row to select all teachers between the two rows.
+    <br/><br/>
+<b>Send Selected Codes:</b><br/>
+    Emails the login codes of all selected teachers.
+    <br/><br/>
+<b>Edit Teachers:</b><br/>
+    Switches the table into edit mode.
+    <br/><br/>
+<b>Save Changes:</b><br/>
+    After editing teacher details, click Save Changes to update the records.
+    <br/><br/>
+<b>Teacher Roles:</b><br/>
+    Owner – school administration plus platform tools such as Activity Management and Performance Monitor.<br/>
+    Admin – full access to school administration.
+    Lead Teacher – manages subjects and topics assigned to them.
+    Subject Teacher – manages learning content and students assigned to them.
+    <br/><br/>
+<b>Account Status:</b><br/>
+    Active teachers can access GLIP.
+    Inactive teachers cannot log in until reactivated.</div>
+        </section>
+        </div>
+      </details>
+      <details class="help-topic" id="student-management" data-roles="admin owner">
+        <summary>Student Management</summary>
+        <div class="help-topic-body">
+        <section class="help-subsection">
+          <h3>Add Student</h3>
+          <div class="help-page-text"><b>Add Student</b><br/>
+Use this form to create a new student account and assign the student to a class.
+<br/><br/>
+<b>Name and Surname</b><br/>
+Enter the student's first name and surname as they should appear throughout GLIP.
+<br/><br/>
+<b>Login Code</b><br/>
+Enter a unique login code for the student. Login codes are used when students sign in to GLIP and must not be shared by multiple students. The login code is also used when importing student records from CSV files.
+<br/><br/>
+<b>Email Address</b><br/>
+Email addresses are optional. If an email address is provided, GLIP can send login details directly to the student. Multiple students may share the same email address if required.
+<br/><br/>
+<b>Level</b><br/>
+Select the student's level. The available classes will automatically update to show only classes belonging to the selected level.
+<br/><br/>
+<b>Class</b><br/>
+Select the class group to which the student belongs. Students can only be assigned to classes available within the selected level.
+<br/><br/>
+<b>Send Code by Email</b><br/>
+If selected, GLIP will automatically email the student's login details after the account is created. If no email address is provided, the student account will still be created but no email will be sent.
+<br/><br/>
+<b>Save Student</b><br/>
+Creates the student account and stores it in the GLIP database. The new student will immediately appear in the Student Management table below.
+<br/><br/>
+<b>Account Status</b><br/>
+New student accounts are created as active by default and can log in immediately unless later marked as inactive.</div>
+        </section>
+        <section class="help-subsection">
+          <h3>Student Management</h3>
+          <div class="help-page-text"><b>Student Management</b><br/>
+This page is used to create, edit, import, export and manage student accounts in GLIP.
+<br/><br/>
+<b>Selecting Students</b><br/>
+Click a row to select a student. Hold Ctrl while clicking to select or deselect multiple students. Hold Shift and click another row to select all students between the two rows.
+<br/><br/>
+<b>Send Selected Codes</b><br/>
+Select one or more students and click Send Selected Codes to email their GLIP login details. The system reports how many emails were sent successfully and how many failed. Students without a valid email address are skipped and reported as failed.
+<br/><br/>
+<b>Edit Students</b><br/>
+Click Edit Students to switch the table into edit mode. Student details can then be updated directly within the table. After editing student records, click Save Changes to update the database. Modified fields are highlighted before saving. Cancels edit mode and discards any unsaved changes made during the current editing session.
+<br/><br/>
+<b>Levels and Classes</b><br/>
+Each student must belong to a level and a class. Changing the level automatically updates the available class list. Only classes belonging to the selected level can be chosen.
+<br/><br/>
+<b>Account Status</b><br/>
+Active students can log in and access GLIP normally. Inactive students remain in the database but cannot log in until reactivated.
+<br/><br/>
+<b>Export CSV</b><br/>
+Exports all student records to an administrator-friendly CSV file. The exported file uses clear codes such as level_code and class_code rather than internal database IDs. The file may be edited in Excel and imported again later.            
+<br/><br/>
+<b>Import CSV</b><br/>
+Imports student records from a CSV file by using the exported CSV as the template. Existing students are matched using their
+            login code and are updated automatically while new (unique) student codes create new student records. Internal IDs are generated and managed automatically by GLIP.
+
+  <br/><br/>
+<b>CSV Import Format</b><br/>
+Use the exported CSV as the template.
+<br/><br/>
+<b>CSV Validation</b><br/>
+Before any import is performed, GLIP validates the file structure, required fields, level and class combinations, email formats, duplicate student codes and other data integrity rules. Imports containing errors are blocked until the issues are corrected.
+<br/><br/>
+<b>Import Backups</b><br/>
+Before importing a CSV file, GLIP automatically downloads a backup of the current student table. This allows records to be restored if required.
+<br/><br/>
+<b>Clear Table</b><br/>
+Removes all student records from the Students table while keeping the column headings. A backup CSV is automatically downloaded before the table is cleared.
+<br/><br/>
+<b>Student Codes</b><br/>
+Student login codes should be unique. During CSV imports, the login code is used to determine whether a student should be updated or added as a new record.
+<br/><br/>
+<b>Email Addresses</b><br/>
+Email addresses are optional. Multiple students may share the same email address if required. However, students without an email address will not be able to receive login details by email.</div>
+        </section>
+        </div>
+      </details>
+      <details class="help-topic" id="teaching-assignments" data-roles="admin owner">
+        <summary>Teaching Assignments</summary>
+        <div class="help-topic-body">
+        <section class="help-subsection">
+          <h3>Add Teaching Assignment</h3>
+          <div class="help-page-text"><br/>
+
+Use this page to assign teachers to classes and subjects. <br/><br/>
+
+A teaching assignment tells GLIP which teacher is responsible for a particular subject within a particular class. <br/><br/>
+
+Example:<br/>
+Peter Borg → Physics → 4A-26 <br/><br/>
+
+This assignment allows the teacher to access the subject, view students and record progress for the assigned class. <br/><br/>
+<b>Before creating assignments</b><br/>
+Teaching assignments depend on records that already exist elsewhere in GLIP. <br/><br/>
+
+Before creating an assignment, make sure that: <br/><br/>
+
+* the teacher exists in Teacher Management<br/>
+* the class exists in Class Management<br/>
+* the level exists in Level Management<br/>
+* the subject exists in Subject Management<br/>
+* the subject has been assigned to the level through Subject Management <br/><br/>
+
+If any of these records do not exist, they must be created first. <br/><br/>
+
+For example: <br/>
+If you want to assign a teacher to class <b>4A-27</b> but that class has not yet been created in Class Management, the assignment cannot be created until the class exists. <br/><br/>
+
+Similarly, if a new level or subject is required, it must first be created in the appropriate management page before assignments can be made. <br/><br/>
+<b>Active</b><br/>
+The Active field determines whether the assignment is currently available in GLIP. <br/><br/>
+
+TRUE = The assignment is active and available to the teacher. <br/>
+FALSE = The assignment is archived and hidden from normal use. <br/><br/>
+
+Assignments are normally set to TRUE. <br/><br/>
+
+You may set an assignment to FALSE if: <br/>
+
+* a teacher is no longer teaching the class<br/>
+* the assignment belongs to a previous academic year<br/>
+* the assignment needs to be retained for historical reference but should no longer be used <br/><br/>
+
+GLIP does not delete teaching assignments through this page. Set Active to FALSE to retain the assignment for historical reference and allow it to be reactivated later. <br/><br/>
+<b>What causes an error?</b><br/>
+An error will be shown if: <br/><br/>
+
+* a required field is left blank<br/>
+* the teacher does not exist<br/>
+* the class does not exist<br/>
+* the subject does not exist<br/>
+* the level or subject assignment is missing<br/>
+* the active value is not TRUE or FALSE<br/>
+* the CSV contains missing or incorrect column headings <br/><br/>
+<b>CSV Import Format</b><br/>
+Use the exported CSV file as the template for imports. <br/><br/>
+
+Example: <br/><br/>
+
+teacher_code,class_code,subject_code,access_type,can_view_progress,can_override,active<br/>
+PB001,4A-26,physics,current,TRUE,TRUE,TRUE<br/>
+PB001,4A-26,chemistry,current,TRUE,TRUE,TRUE<br/>
+MB002,5A-26,geography,current,TRUE,FALSE,TRUE <br/><br/>
+<b>Important notes</b><br/>
+Before importing or clearing the table, GLIP downloads a backup of the current data. <br/><br/>
+
+If validation errors are found, the import will be blocked and a summary of the problems will be displayed. <br/><br/>
+
+Teaching assignments are not deleted through GLIP. To remove current access while retaining the record, set Active to FALSE.</div>
+        </section>
+        <section class="help-subsection">
+          <h3>Teaching Assignments</h3>
+          <div class="help-page-text"><br/>
+
+Use this page to add, edit, export, import or clear classes used in GLIP. <br/><br/>
+
+Classes are linked to students, subject assignments and teaching assignments. For this reason, class records should be kept stable once they are in use. <br/><br/>
+<b>Class Code</b><br/>
+The class code is the short code used by GLIP to identify the class. <br/><br/>
+Examples:<br/>
+3A-25<br/>
+4A-26<br/>
+5A-26 <br/><br/>
+The first part normally identifies the level and class group. The last two digits normally identify the academic year. For example, <b>4A-26</b> can be used for class 4A in the academic year ending in 2026. <br/><br/>
+<b>Class Label</b><br/>
+The class label is the name shown to users. <br/><br/>
+Examples:<br/>
+3A (main)<br/>
+4A (main)<br/>
+5A (Evening) <br/><br/>
+<b>Level</b><br/>
+Each class must be linked to one valid level. <br/><br/>
+Examples:<br/>
+level-03<br/>
+level-04<br/>
+level-05 <br/><br/>
+<b>Active</b><br/>
+Use <b>TRUE</b> for classes currently in use.<br/>
+Use <b>FALSE</b> to archive classes that should no longer be used for new assignments. <br/><br/>
+<b>Sort Order</b><br/>
+Sort order controls the order in which classes appear in lists. <br/><br/>
+<b>What is allowed?</b><br/>
+You can add new classes, edit existing class labels, change the level, change the active status and change the sort order. <br/><br/>
+Class codes should be unique. Do not use the same class code for two different classes. <br/><br/>
+<b>What causes an error?</b><br/>
+An error will be shown if: <br/><br/>
+
+* a required field is left blank<br/>
+* the class code is already used by another class<br/>
+* the level does not exist<br/>
+* the active value is not TRUE or FALSE<br/>
+* the sort order is missing or is not a number<br/>
+* the imported CSV has missing or incorrect column headings <br/><br/>
+<b>CSV Import Format</b><br/>
+When importing, use the same headings as the exported CSV file. Do not rename, remove or reorder the headings unless the import instructions say this is allowed. <br/><br/>
+
+Example CSV: <br/><br/>
+class_code,class_label,level_code,active,sort_order<br/>
+3A-25,3A (main),level-03,TRUE,1<br/>
+4A-26,4A (main),level-04,TRUE,2<br/>
+5A-26,5A (main),level-05,TRUE,3<br/>
+4B-26,4B (Evening),level-04,TRUE,4 <br/><br/>
+<b>Important notes</b><br/>
+Before importing or clearing the table, GLIP downloads a backup of the current data. <br/><br/>
+If the CSV contains errors, the import will be blocked. Correct the CSV and import it again. <br/><br/>
+Clearing the table removes all class records apart from the headings. Only do this if you are sure that you want to rebuild the class list.</div>
+        </section>
+        </div>
+      </details>
+      <details class="help-topic" id="student-subject-management" data-roles="admin owner">
+        <summary>Student Assignments</summary>
+        <div class="help-topic-body">
+        <section class="help-subsection">
+          <h3>Add Student Assignment</h3>
+          <div class="help-page-text"><b>Purpose:</b><br/>
+            Use this section to add a new subject assignment for a student.
+            <br/><br/>
+<b>Student:</b><br/>
+            Select the student who should receive the assignment.
+            <br/><br/>
+<b>Level and Subject:</b><br/>
+            Select the curriculum level and then the subject. Inactive levels and inactive subject assignments remain available for planning and are marked with ⚠.
+            <br/><br/>
+<b>Assignment Type:</b><br/>
+            Current is normally used for the student's present level. Revision is normally used for a subject from another level.
+            <br/><br/>
+
+            Existing assignments for the student are preserved when the new assignment is saved.</div>
+        </section>
+        <section class="help-subsection">
+          <h3>Student Assignments</h3>
+          <div class="help-page-text"><b>Purpose:</b><br/>
+            This screen controls which subjects are assigned to each student and which subjects each student can access.
+            <br/><br/>
+<b>Select a Student:</b><br/>
+            Click a student row to view or modify their assigned subjects.
+            <br/><br/>
+<b>Assignment Type</b><br/>
+            Each subject assignment has one of two types - Current (The student's normal subject for their current level) and
+          Revision (A subject from a previous level that remains available for revision.).            
+                   
+          <br/><br/>
+<b>Subjects:</b><br/>
+            Only subjects available for the student's level are shown.
+            <br/><br/>
+<b>Save Assignments:</b><br/>
+            Saves the selected subjects to the StudentSubjects sheet.
+            <br/><br/>
+<b>Cancel:</b><br/>
+            Discards any unsaved changes and restores the current assignments.</div>
+        </section>
+        </div>
+      </details>
+      <details class="help-topic" id="work-folder-management" data-roles="subject_teacher lead_teacher admin owner">
+        <summary>Work Folder Management</summary>
+        <div class="help-topic-body">
+        <section class="help-subsection">
+          <h3>Class Folder Management</h3>
+          <div class="help-page-text">Use this page to set or update the Work Folder and Class Resource Folder links for your own teaching assignments.<br/><br/>
+
+Each row represents one class and subject assigned to you. Only the <b>Work Folder</b> and <b>Class Resources</b> columns can be edited. The level, subject and class are read-only
+          because they are controlled by the administrator.<br/><br/>
+
+If a class, subject or level is missing, it means the assignment has not been created for you by the administrator.<br/><br/>
+<b>Work Folder</b><br/>
+The work folder is the location where you keep your students' work for a particular class and subject.
+          It can be a folder in Google Drive, Microsoft OneDrive, or any other online storage service that your school uses. Each class and subject can have its own separate work folder.
+<br/><br/>
+          Simply enter the Folder ID or Folder URL provided by your cloud storage service. Once saved, GLIP will use this information whenever a work folder is opened for that class and subject.
+          
+          
+          <br/><br/></div>
+        </section>
+        </div>
+      </details>
+      <details class="help-topic" id="subjects-home" data-roles="student subject_teacher lead_teacher admin owner">
+        <summary>Subjects</summary>
+        <div class="help-topic-body">
+        <section class="help-subsection">
+          <h3>Help</h3>
+          <div class="help-page-text"></div>
+        </section>
+        </div>
+      </details>
+      <details class="help-topic" id="topics-home" data-roles="student subject_teacher lead_teacher admin owner">
+        <summary>Topics</summary>
+        <div class="help-topic-body">
+        <section class="help-subsection">
+          <h3>Help</h3>
+          <div class="help-page-text"></div>
+        </section>
+        </div>
+      </details>
+    </main>
+  </div>
+  <div id="footer-placeholder"></div>
+</body>
+</html>

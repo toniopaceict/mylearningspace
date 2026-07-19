@@ -482,6 +482,41 @@ function highlightCurrentPage() {
   });
 }
 
+
+function getHelpSectionForCurrentPage() {
+  const path = window.location.pathname.toLowerCase();
+  const filename = path.split("/").pop() || "";
+
+  if (path.indexOf("/mylearningspace/help/") !== -1) {
+    return "";
+  }
+
+  if (/\/content\/[^/]+\/topic-[^/]+\/topic-[^/]+-home\.html$/i.test(path)) {
+    return "topics-home";
+  }
+
+  if (/\/content\/[^/]+\/topic-[^/]+\/[^/]+\.html$/i.test(path)) {
+    return "activity";
+  }
+
+  return filename.replace(/\.html$/i, "") || "general";
+}
+
+function buildHelpUrl(helpSection) {
+  const url = new URL(
+    "/mylearningspace/help/help.html",
+    window.location.origin
+  );
+
+  url.searchParams.set("section", helpSection || "general");
+  url.searchParams.set(
+    "return",
+    window.location.pathname + window.location.search + window.location.hash
+  );
+
+  return url.toString();
+}
+
   function addGlipUserBar() {
 const userType = sessionStorage.getItem("glipUserType");
 
@@ -535,13 +570,24 @@ if (classLabel) {
     const bar = document.createElement("div");
     bar.className = "glip-user-bar is-visible";
     
+const helpSection = getHelpSectionForCurrentPage();
+
 bar.innerHTML = `
-  <span class="glip-user-name">
-    Logged in as ${escapeHtml(displayName)}${escapeHtml(roleLabel)}
-  </span>
-  <button type="button" class="glip-btn" id="glipLogoutBtn">
-    Log out
-  </button>
+  <div class="glip-user-bar-left">
+    ${helpSection ? `
+      <button type="button" class="glip-btn glip-btn-secondary glip-help-header-btn" id="glipHeaderHelpBtn">
+        Help
+      </button>
+    ` : ""}
+  </div>
+  <div class="glip-user-bar-right">
+    <span class="glip-user-name">
+      Logged in as ${escapeHtml(displayName)}${escapeHtml(roleLabel)}
+    </span>
+    <button type="button" class="glip-btn" id="glipLogoutBtn">
+      Log out
+    </button>
+  </div>
 `;
     
     const pageHero = document.querySelector(".page-hero");
@@ -551,6 +597,14 @@ bar.innerHTML = `
     } else {
       headerPlaceholder.insertAdjacentElement("afterend", bar);
     }
+
+const helpButton = bar.querySelector("#glipHeaderHelpBtn");
+
+if (helpButton && helpSection) {
+  helpButton.addEventListener("click", function () {
+    window.open(buildHelpUrl(helpSection), "_blank", "noopener");
+  });
+}
 
 const backgroundBtn = document.getElementById("glipDisplayToggle");
 

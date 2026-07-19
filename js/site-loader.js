@@ -3,7 +3,7 @@
 
   
   
-  const GLIP_ASSET_VERSION = "306";
+  const GLIP_ASSET_VERSION = "308";
   const GLIP_BASE_URL = "https://toniopaceict.github.io/mylearningspace";
 
   window.GLIP_ASSET_VERSION = GLIP_ASSET_VERSION;
@@ -280,57 +280,6 @@ const managementScriptsByPage = {
     document.head.appendChild(script);
   }
 
-  function initGlipHelpModal() {
-    if (document.getElementById("glipHelpModal")) return;
-
-    const modal = document.createElement("div");
-    modal.id = "glipHelpModal";
-    modal.className = "glip-help-modal";
-
-    modal.innerHTML = `
-      <div class="glip-help-modal-box" role="dialog" aria-modal="true">
-        <button class="glip-help-close" type="button" aria-label="Close help">&times;</button>
-        <h2 id="glipHelpTitle">Help</h2>
-        <p id="glipHelpText" class="glip-help-text"></p>
-      </div>
-    `;
-
-    document.body.appendChild(modal);
-
-    const helpTitle = document.getElementById("glipHelpTitle");
-    const helpText = document.getElementById("glipHelpText");
-
-    function openModal(button) {
-      helpTitle.textContent = button.dataset.helpTitle || "Help";
-      helpText.innerHTML = button.dataset.helpText || "Help information is not available.";
-
-      modal.classList.add("is-visible");
-    }
-
-    function closeModal() {
-      modal.classList.remove("is-visible");
-    }
-
-    document.addEventListener("click", function (e) {
-      const helpBtn = e.target.closest("[data-glip-help]");
-
-      if (helpBtn) {
-        openModal(helpBtn);
-        return;
-      }
-
-      if (e.target === modal || e.target.closest(".glip-help-close")) {
-        closeModal();
-      }
-    });
-
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") {
-        closeModal();
-      }
-    });
-  }
-
   function runWhenDomReady(callback) {
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", callback);
@@ -339,7 +288,4 @@ const managementScriptsByPage = {
     }
   }
 
-  runWhenDomReady(function () {
-    initGlipHelpModal();
-  });
 })();

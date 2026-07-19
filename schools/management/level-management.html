@@ -1,3 +1,12 @@
+<!--
+=========================================================
+GLIP PAGE INFORMATION
+
+Help file:
+    /help/help.html
+
+=========================================================
+-->
 <!doctype html>
 <html lang="en">
   <head>
@@ -57,57 +66,7 @@
             Add a new level offered by the school.
           </p>
 
-          <button
-            type="button"
-            class="progress-help-icon"
-            data-glip-help
-            data-help-title="Add Level"
-            data-help-text="
-<b>Add Level</b><br>
-Use this section to add a new school level to GLIP.
-<br><br>
-
-<b>Level Code</b><br>
-The unique code used internally by GLIP to identify the level.
-<br><br>
-Examples:<br>
-level-03<br>
-level-04<br>
-level-05
-<br><br>
-Do not use duplicate level codes.
-<br><br>
-
-<b>Level Name</b><br>
-The friendly name shown to administrators, teachers and students.
-<br><br>
-Examples:<br>
-Level 3<br>
-Level 4<br>
-Level 5
-<br><br>
-
-<b>Sort Order</b><br>
-Controls the order in which levels appear in GLIP. Sort Order is required and must be a whole number of 1 or greater.
-<br><br>
-Examples:<br>
-1<br>
-2<br>
-3
-<br><br>
-Do not leave Sort Order blank. Do not use 0, negative numbers or text.
-<br><br>
-
-<b>Status</b><br>
-Active levels can be used when creating classes and subject assignments. Inactive levels remain in the database for historical records but should not be used for new setup work.
-<br><br>
-
-<b>Important</b><br>
-Levels are not tied to a scholastic year. Classes are year-specific, but levels such as Level 3, Level 4 and Level 5 are part of the school's structure.
-"
-          >
-            ?
-          </button>
+          
 
           <div class="tracker-row">
             <input
@@ -170,60 +129,7 @@ Levels are not tied to a scholastic year. Classes are year-specific, but levels 
         <fieldset class="task-box panel-box topics-box">
           <legend>Level Management</legend>
 
-          <button
-            type="button"
-            class="progress-help-icon"
-            data-glip-help
-            data-help-title="Level Management"
-            data-help-text="
-<b>Level Management</b><br>
-This page is used to manage the levels offered by the school.
-<br><br>
-
-<b>Purpose</b><br>
-Levels define the structure of the school in GLIP. Classes, subject assignments, teaching assignments and student subject assignments all depend on levels.
-<br><br>
-
-<b>Examples</b><br>
-level-03 – Level 3<br>
-level-04 – Level 4<br>
-level-05 – Level 5
-<br><br>
-
-<b>Level Code</b><br>
-The unique code used internally by GLIP. It should remain stable because other records refer to it.
-<br><br>
-
-<b>Level Name</b><br>
-The display name shown in GLIP.
-<br><br>
-
-<b>Sort Order</b><br>
-Controls the order in which levels appear throughout GLIP. It must be a whole number of 1 or greater.
-<br><br>
-
-<b>Status</b><br>
-Active levels can be used for new classes and subject setup. Inactive levels can be used for planning. Records linked to inactive
-levels may show ⚠ on other management pages, and students and teachers will not see those items until the level is active.
-<br><br>
-
-<b>No Deletion</b><br>
-Levels are not deleted through GLIP. If a level is no longer used, mark it as inactive. This protects historical data and avoids breaking links to existing classes, subject assignments, students and progress records.
-<br><br>
-
-<b>CSV Export and Import</b><br>
-The CSV uses administrator-friendly columns:
-<br><br>
-level_code,level_name,sort_order,active
-<br><br>
-Example:<br>
-level-03,Level 3,1,TRUE<br>
-level-04,Level 4,2,TRUE<br>
-level-05,Level 5,3,TRUE
-"
-          >
-            ?
-          </button>
+          
 
           <div class="panel-header">
             <p class="q panel-top-text">

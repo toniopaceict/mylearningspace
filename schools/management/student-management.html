@@ -1,3 +1,12 @@
+<!--
+=========================================================
+GLIP PAGE INFORMATION
+
+Help file:
+    /help/help.html
+
+=========================================================
+-->
 
 <!doctype html>
 <html lang="en">
@@ -57,50 +66,7 @@
             Enter the student details below.
           </p>
 
-          <button
-            type="button"
-            class="progress-help-icon"
-            data-glip-help
-            data-help-title="Add Student"
-data-help-text="
-<b>Add Student</b><br>
-Use this form to create a new student account and assign the student to a class.
-<br><br>
-
-<b>Name and Surname</b><br>
-Enter the student's first name and surname as they should appear throughout GLIP.
-<br><br>
-
-<b>Login Code</b><br>
-Enter a unique login code for the student. Login codes are used when students sign in to GLIP and must not be shared by multiple students. The login code is also used when importing student records from CSV files.
-<br><br>
-
-<b>Email Address</b><br>
-Email addresses are optional. If an email address is provided, GLIP can send login details directly to the student. Multiple students may share the same email address if required.
-<br><br>
-
-<b>Level</b><br>
-Select the student's level. The available classes will automatically update to show only classes belonging to the selected level.
-<br><br>
-
-<b>Class</b><br>
-Select the class group to which the student belongs. Students can only be assigned to classes available within the selected level.
-<br><br>
-
-<b>Send Code by Email</b><br>
-If selected, GLIP will automatically email the student's login details after the account is created. If no email address is provided, the student account will still be created but no email will be sent.
-<br><br>
-
-<b>Save Student</b><br>
-Creates the student account and stores it in the GLIP database. The new student will immediately appear in the Student Management table below.
-<br><br>
-
-<b>Account Status</b><br>
-New student accounts are created as active by default and can log in immediately unless later marked as inactive.
-"
-          >
-            ?
-          </button>
+          
 
           <div class="tracker-row">
             <input
@@ -193,79 +159,7 @@ New student accounts are created as active by default and can log in immediately
         <fieldset class="task-box panel-box topics-box">
           <legend>Student Management</legend>
 
-          <button
-            type="button"
-            class="progress-help-icon"
-            data-glip-help
-            data-help-title="Student Management"
-
-
-data-help-text="
-<b>Student Management</b><br>
-This page is used to create, edit, import, export and manage student accounts in GLIP.
-<br><br>
-
-<b>Selecting Students</b><br>
-Click a row to select a student. Hold Ctrl while clicking to select or deselect multiple students. Hold Shift and click another row to select all students between the two rows.
-<br><br>
-
-
-<b>Send Selected Codes</b><br>
-Select one or more students and click Send Selected Codes to email their GLIP login details. The system reports how many emails were sent successfully and how many failed. Students without a valid email address are skipped and reported as failed.
-<br><br>
-
-<b>Edit Students</b><br>
-Click Edit Students to switch the table into edit mode. Student details can then be updated directly within the table. After editing student records, click Save Changes to update the database. Modified fields are highlighted before saving. Cancels edit mode and discards any unsaved changes made during the current editing session.
-<br><br>
-
-<b>Levels and Classes</b><br>
-Each student must belong to a level and a class. Changing the level automatically updates the available class list. Only classes belonging to the selected level can be chosen.
-<br><br>
-
-<b>Account Status</b><br>
-Active students can log in and access GLIP normally. Inactive students remain in the database but cannot log in until reactivated.
-<br><br>
-
-<b>Export CSV</b><br>
-Exports all student records to an administrator-friendly CSV file. The exported file uses clear codes such as level_code and class_code rather than internal database IDs. The file may be edited in Excel and imported again later.            
-<br><br>
-
-<b>Import CSV</b><br>
-Imports student records from a CSV file by using the exported CSV as the template. Existing students are matched using their
-            login code and are updated automatically while new (unique) student codes create new student records. Internal IDs are generated and managed automatically by GLIP.
-
-  <br><br>
-
-<b>CSV Import Format</b><br>
-Use the exported CSV as the template.
-<br><br>
-
-<b>CSV Validation</b><br>
-Before any import is performed, GLIP validates the file structure, required fields, level and class combinations, email formats, duplicate student codes and other data integrity rules. Imports containing errors are blocked until the issues are corrected.
-<br><br>
-
-<b>Import Backups</b><br>
-Before importing a CSV file, GLIP automatically downloads a backup of the current student table. This allows records to be restored if required.
-<br><br>
-
-<b>Clear Table</b><br>
-Removes all student records from the Students table while keeping the column headings. A backup CSV is automatically downloaded before the table is cleared.
-<br><br>
-
-<b>Student Codes</b><br>
-Student login codes should be unique. During CSV imports, the login code is used to determine whether a student should be updated or added as a new record.
-<br><br>
-
-<b>Email Addresses</b><br>
-Email addresses are optional. Multiple students may share the same email address if required. However, students without an email address will not be able to receive login details by email.
-"
-
-
-
-            
-          >
-            ?
-          </button>
+          
 
           <div class="panel-header">
             <p class="q panel-top-text">
