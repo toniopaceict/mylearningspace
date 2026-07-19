@@ -1456,14 +1456,24 @@ body.glip-dyslexia-bg .scenario-table tr:nth-child(even) td {
   max-width: 1200px;
 }
 
+/* Add Teacher: keep all six fields on one line without widening the fieldset. */
+#addTeacherPanel {
+  min-inline-size: 0;
+  overflow: hidden;
+}
+
 #addTeacherPanel .tracker-row:first-of-type {
+  width: 100%;
+  max-width: 100%;
   flex-wrap: nowrap;
+  justify-content: center;
   gap: 10px;
 }
 
 #addTeacherPanel .tracker-row:first-of-type .tracker-input {
   width: auto;
   min-width: 0;
+  max-width: 100%;
 }
 
 #addCurriculumPanel > .tracker-row:first-of-type,
@@ -1518,27 +1528,27 @@ body.glip-dyslexia-bg .scenario-table tr:nth-child(even) td {
 
 
 #newTeacherTitle {
-  flex: 0.75 1 0;
+  flex: 0 1 105px;
 }
 
 #newTeacherName {
-  flex: 1 1 0;
+  flex: 1 1 145px;
 }
 
 #newTeacherSurname {
-  flex: 1 1 0;
+  flex: 1 1 145px;
 }
 
 #newTeacherCode {
-  flex: 0.7 1 0;
+  flex: 0 1 110px;
 }
 
 #newTeacherEmail {
-  flex: 1.45 1 0;
+  flex: 1.45 1 210px;
 }
 
 #newTeacherRole {
-  flex: 0.85 1 0;
+  flex: 0 1 135px;
 }
 
 
