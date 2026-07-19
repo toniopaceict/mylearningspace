@@ -361,61 +361,6 @@ body.glip-dyslexia-bg {
   outline-offset: 2px;
 }
 
-/* =========================
-   GLIP HELP POPUP
-========================= */
-
-.glip-help-modal {
-  position: fixed;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: var(--z-modal);
-  background: rgba(0, 0, 0, 0.18);
-}
-
-.glip-help-modal.is-visible {
-  display: flex;
-}
-
-.glip-help-modal-box {
-  background: var(--color-white);
-  border-radius: 16px;
-  padding: 22px 24px;
-  width: min(650px, calc(100vw - 32px));
-  box-shadow: 0 14px 40px rgba(11, 60, 111, 0.22);
-  position: relative;
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-.glip-help-modal-box h2 {
-  margin: 0 0 16px;
-  font-size: 1.25rem;
-  color: var(--color-primary);
-}
-
-.glip-help-close {
-  position: absolute;
-  top: 10px;
-  right: var(--space-md);
-  border: none;
-  background: transparent;
-  font-size: 1.6rem;
-  line-height: 1;
-  cursor: pointer;
-  color: var(--color-primary);
-}
-
-.glip-help-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  margin: var(--space-md) 0;
-  color: #243b53;
-}
-
 /* ==========================
    Confirmation Modal
    ========================== */
@@ -3941,3 +3886,118 @@ body.glip-management-page::before {
 
 /* Performance Monitor derived timing indicators */
 .performance-delay-legend{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 14px}.performance-delay-legend span{display:inline-block;padding:4px 8px;border:1px solid #cbd5df;border-radius:5px;font-weight:600}.performance-delay-good{background:#edf8f1}.performance-delay-warning{background:#fff8dc}.performance-delay-high{background:#fff0dc}.performance-delay-danger{background:#fdeceb;color:#8f1d14;font-weight:700}.performance-share-low{background:#f7f9fb}.performance-share-medium{background:#fff8dc}.performance-share-high{background:#fdeceb;color:#8f1d14;font-weight:700}#performanceTable td.performance-delay-good,#performanceTable td.performance-delay-warning,#performanceTable td.performance-delay-high,#performanceTable td.performance-delay-danger,#performanceTable td.performance-share-low,#performanceTable td.performance-share-medium,#performanceTable td.performance-share-high{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+
+/* =========================
+   HEADER HELP AND HELP PAGES
+========================= */
+
+.glip-user-bar {
+  justify-content: space-between;
+}
+
+.glip-user-bar-left,
+.glip-user-bar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.glip-help-header-btn,
+.glip-btn-secondary {
+  background: #e9ecef;
+  border-color: #c8ced4;
+  color: #39424e;
+  font-weight: 600;
+}
+
+.glip-help-header-btn:hover,
+.glip-btn-secondary:hover {
+  background: #dde2e6;
+  border-color: #b8c0c7;
+  color: #29313a;
+}
+
+.help-page-wrap {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.help-page-actions {
+  justify-content: flex-start;
+  margin-bottom: 0;
+}
+
+.help-content-section {
+  position: relative;
+}
+
+.help-page-text {
+  line-height: 1.65;
+}
+
+.help-page-text b {
+  color: var(--color-primary);
+}
+
+@media (max-width: 700px) {
+  .glip-user-bar {
+    align-items: stretch;
+    gap: var(--space-sm);
+  }
+
+  .glip-user-bar-right {
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+}
+
+.help-page-intro {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.help-status-message {
+  margin: 0;
+}
+
+.help-topic {
+  border: 1px solid var(--color-border, #c8ced4);
+  border-radius: 6px;
+  background: var(--color-surface, #fff);
+  overflow: hidden;
+}
+
+.help-topic > summary {
+  cursor: pointer;
+  padding: 0.9rem 1rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  background: #eceff2;
+  color: var(--color-text, #222);
+  user-select: none;
+}
+
+.help-topic > summary:hover,
+.help-topic[open] > summary {
+  background: #e1e6ea;
+}
+
+.help-topic > summary:focus-visible {
+  outline: 3px solid var(--color-primary, #245b8f);
+  outline-offset: -3px;
+}
+
+.help-topic-body {
+  padding: 1rem;
+}
+
+.help-subsection + .help-subsection {
+  border-top: 1px solid var(--color-border, #d7dce1);
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+.help-subsection h3 {
+  margin-top: 0;
+}
