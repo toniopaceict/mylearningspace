@@ -1517,6 +1517,10 @@ body.glip-dyslexia-bg .scenario-table tr:nth-child(even) td {
 }
 
 
+#newTeacherTitle {
+  flex: 0.75 1 0;
+}
+
 #newTeacherName {
   flex: 1 1 0;
 }
@@ -1530,11 +1534,11 @@ body.glip-dyslexia-bg .scenario-table tr:nth-child(even) td {
 }
 
 #newTeacherEmail {
-  flex: 1.5 1 0;
+  flex: 1.45 1 0;
 }
 
 #newTeacherRole {
-  flex: 0.8 1 0;
+  flex: 0.85 1 0;
 }
 
 
@@ -1550,29 +1554,56 @@ body.glip-dyslexia-bg .scenario-table tr:nth-child(even) td {
   background: rgba(70, 166, 232, 0.22);
 }
 
+/* Teacher Management: six balanced columns. */
+.teachers-table {
+  width: 100%;
+  min-width: 900px;
+  table-layout: fixed;
+}
+
+.teachers-table th,
+.teachers-table td {
+  overflow-wrap: anywhere;
+}
+
+/* Title */
 .teachers-table th:nth-child(1),
 .teachers-table td:nth-child(1) {
-  width: 28%;
+  width: 8%;
 }
 
+/* Full Name */
 .teachers-table th:nth-child(2),
 .teachers-table td:nth-child(2) {
-  width: 12%;
+  width: 24%;
 }
 
+/* Code */
 .teachers-table th:nth-child(3),
 .teachers-table td:nth-child(3) {
-  width: 34%;
+  width: 10%;
 }
 
+/* Email */
 .teachers-table th:nth-child(4),
 .teachers-table td:nth-child(4) {
-  width: 13%;
+  width: 30%;
 }
 
+/* Role */
 .teachers-table th:nth-child(5),
 .teachers-table td:nth-child(5) {
-  width: 13%;
+  width: 14%;
+}
+
+/* Status */
+.teachers-table th:nth-child(6),
+.teachers-table td:nth-child(6) {
+  width: 14%;
+}
+
+.teachers-table td:nth-child(4) {
+  word-break: break-word;
 }
 
 .name-edit-stack,
