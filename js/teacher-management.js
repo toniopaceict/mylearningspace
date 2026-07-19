@@ -248,6 +248,12 @@ fields: [
   });
 }
   
+function excludeOwnerTeachers(teachers) {
+  return (teachers || []).filter(function (teacher) {
+    return String(teacher.role || "").trim().toLowerCase() !== "owner";
+  });
+}
+
 function loadTeachers() {
   const tbody = document.getElementById("teachersTableBody");
   if (!tbody) return;
@@ -267,7 +273,7 @@ function loadTeachers() {
 
       setTeachersLoadingState(false);
 
-      currentTeachers = (result.teachers || []).map(function (teacher) {
+      currentTeachers = excludeOwnerTeachers(result.teachers).map(function (teacher) {
         teacher.full_name = [
           teacher.teacher_name || "",
           teacher.teacher_surname || ""
@@ -545,7 +551,7 @@ function resyncTeachersSilently() {
     .then(function (result) {
       if (!result || result.status !== "success") return;
 
-      currentTeachers = (result.teachers || []).map(function (teacher) {
+      currentTeachers = excludeOwnerTeachers(result.teachers).map(function (teacher) {
         teacher.full_name = [
           teacher.teacher_name || "",
           teacher.teacher_surname || ""
@@ -568,7 +574,18 @@ function resyncTeachersSilently() {
     const rows = document.querySelectorAll("[data-teacher-row]"); const teachersToSave = [];
     rows.forEach(function (row) {
       const teacher = { teacher_id: row.dataset.teacherRow };
-      row.querySelectorAll("[data-field]").forEach(function (field) { teacher[field.dataset.field] = field.dataset.field === "active" ? field.value === "true" : field.value.trim(); });
+      row.querySelectorAll("[data-field]").forEach(function (field) {
+        teacher[field.dataset.field] =
+          field.dataset.field === "active"
+            ? field.value === "true"
+            : field.value.trim();
+      });
+
+      if (String(teacher.role || "").toLowerCase() === "owner") {
+        setMessage("The Owner role cannot be assigned from Teacher Management.", "error");
+        return;
+      }
+
       teachersToSave.push(teacher);
     });
     const previousTeachers = currentTeachers.map(function (item) { return Object.assign({}, item); });
@@ -709,7 +726,6 @@ function sendSelectedTeacherCodes() {
 
   function renderRoleOptions(currentRole) {
     const roles = [
-      { value: "owner", label: "Owner" },
       {
         value: "subject_teacher",
         label: "Subject"
@@ -739,8 +755,6 @@ function sendSelectedTeacherCodes() {
   }
 
   function formatRole(role) {
-    if (role === "owner") return "Owner";
-    if (role === "owner") return "Owner";
     if (role === "admin") return "Admin";
     if (role === "lead_teacher") return "Lead";
     if (role === "subject_teacher") return "Subject";
