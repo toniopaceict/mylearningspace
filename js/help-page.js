@@ -1,43 +1,29 @@
 (function () {
   "use strict";
 
-  function getSafeReturnPath() {
-    const params = new URLSearchParams(window.location.search);
-    const value = params.get("return") || "";
-
-    if (
-      value.startsWith("/mylearningspace/") &&
-      !value.startsWith("/mylearningspace/help/")
-    ) {
-      return value;
-    }
-
-    const school =
-      sessionStorage.getItem("glipSchool") ||
-      (typeof window.getCurrentSchoolId === "function"
-        ? window.getCurrentSchoolId()
-        : "");
-
-    return school
-      ? `/mylearningspace/schools/${encodeURIComponent(school)}/subjects-home.html`
-      : "/mylearningspace/";
+  function normaliseRole(value) {
+    return String(value || "").trim().toLowerCase();
   }
 
   function getCurrentRole() {
-    return String(sessionStorage.getItem("glipUserType") || "")
-      .trim()
-      .toLowerCase();
+    const params = new URLSearchParams(window.location.search);
+
+    return normaliseRole(
+      params.get("role") || sessionStorage.getItem("glipUserType") || ""
+    );
   }
 
   function isAllowedForRole(element, role) {
     const roles = String(element.dataset.roles || "")
       .split(/\s+/)
-      .map(function (value) {
-        return value.trim().toLowerCase();
-      })
+      .map(normaliseRole)
       .filter(Boolean);
 
-    return roles.length === 0 || roles.includes(role);
+    if (roles.length === 0 || !role || role === "owner") {
+      return true;
+    }
+
+    return roles.includes(role);
   }
 
   function filterSectionsByRole() {
@@ -82,14 +68,6 @@
   }
 
   function initialiseHelpPage() {
-    const button = document.getElementById("glipHelpReturnBtn");
-
-    if (button) {
-      button.addEventListener("click", function () {
-        window.location.href = getSafeReturnPath();
-      });
-    }
-
     filterSectionsByRole();
     openRequestedSection();
   }

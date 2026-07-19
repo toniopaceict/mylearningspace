@@ -509,10 +509,14 @@ function buildHelpUrl(helpSection) {
   );
 
   url.searchParams.set("section", helpSection || "general");
-  url.searchParams.set(
-    "return",
-    window.location.pathname + window.location.search + window.location.hash
-  );
+
+  const currentRole = String(
+    sessionStorage.getItem("glipUserType") || ""
+  ).trim().toLowerCase();
+
+  if (currentRole) {
+    url.searchParams.set("role", currentRole);
+  }
 
   return url.toString();
 }
