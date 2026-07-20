@@ -46,6 +46,523 @@
         <div id="glipHelpSearchStatus" class="help-search-status" role="status" aria-live="polite"></div>
       </div>
       <p class="help-page-intro">Select a heading to expand or collapse its instructions. Only sections relevant to your current role are shown.</p>
+     
+      
+      
+      
+      
+      <details class="help-topic" id="help-centre-integration" data-roles="owner">
+  <summary>Help Centre Integration</summary>
+
+  <div class="help-topic-body">
+
+    <section class="help-subsection">
+      <h3>Purpose</h3>
+
+      <p>
+        GLIP uses one shared Help Centre for the entire platform. All help
+        content is stored in:
+      </p>
+
+      <p>
+        <code>/help/help.html</code>
+      </p>
+
+      <p>
+        Individual GLIP pages do not require separate help files. Instead, each
+        page identifies the section of the Help Centre that should open when
+        the user selects <strong>Help</strong>.
+      </p>
+
+      <p>
+        This approach provides one source of truth, reduces maintenance and
+        allows related pages to share the same instructions.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>How the Help button works</h3>
+
+      <p>
+        Every GLIP page defines a logical Help section key in its page
+        configuration.
+      </p>
+
+      <pre><code>window.PAGE_CONFIG = {
+  pageTitle: "Teacher Management",
+  pageKind: "management",
+  helpSection: "teacher-management"
+};</code></pre>
+
+      <p>
+        The shared header reads the value of <code>helpSection</code>. It then
+        opens the Help Centre and passes the requested section in the URL.
+      </p>
+
+      <pre><code>/help/help.html?section=teacher-management</code></pre>
+
+      <p>
+        The Help Centre finds the matching section, expands it and scrolls to
+        it automatically.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Logical Help keys</h3>
+
+      <p>
+        A Help key identifies a feature. It is not required to match the HTML
+        filename or folder name.
+      </p>
+
+      <p>Use lowercase words separated by hyphens, for example:</p>
+
+      <pre><code>teacher-management
+student-management
+topic-management
+subjects-home
+topics-home
+activity
+progress-management
+content-validator
+performance-monitor</code></pre>
+
+      <p>Avoid spaces, underscores and capital letters.</p>
+
+      <pre><code>Teacher Management
+teacher_management
+TeacherManagement</code></pre>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Why Help keys are independent of filenames</h3>
+
+      <p>
+        The Help Centre should continue to work when a page is renamed or
+        moved.
+      </p>
+
+      <p>
+        For example, a page named:
+      </p>
+
+      <pre><code>teacher-management.html</code></pre>
+
+      <p>could later be renamed to:</p>
+
+      <pre><code>staff-management.html</code></pre>
+
+      <p>
+        The Help integration would remain unchanged as long as the page keeps:
+      </p>
+
+      <pre><code>helpSection: "teacher-management"</code></pre>
+
+      <p>
+        The logical key represents the feature rather than its current file
+        location.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Adding Help to a new page</h3>
+
+      <p>
+        When a new GLIP page is created, complete the following steps.
+      </p>
+
+      <ol>
+        <li>
+          Add a logical <code>helpSection</code> value to the page's
+          <code>PAGE_CONFIG</code>.
+        </li>
+        <li>
+          Add a matching collapsible section to
+          <code>/help/help.html</code>.
+        </li>
+        <li>
+          Set the roles that should see the section using
+          <code>data-roles</code>.
+        </li>
+        <li>
+          Test the Help button while logged in using each relevant role.
+        </li>
+      </ol>
+
+      <p>Example page configuration:</p>
+
+      <pre><code>window.PAGE_CONFIG = {
+  pageTitle: "New Management Page",
+  pageKind: "management",
+  helpSection: "new-management-page"
+};</code></pre>
+
+      <p>Matching Help Centre section:</p>
+
+      <pre><code>&lt;details
+  class="help-topic"
+  id="new-management-page"
+  data-roles="admin owner"&gt;
+
+  &lt;summary&gt;New Management Page&lt;/summary&gt;
+
+  &lt;div class="help-topic-body"&gt;
+    &lt;section class="help-subsection"&gt;
+      &lt;h3&gt;Overview&lt;/h3&gt;
+      &lt;p&gt;Add the instructions here.&lt;/p&gt;
+    &lt;/section&gt;
+  &lt;/div&gt;
+
+&lt;/details&gt;</code></pre>
+
+      <p>
+        The section's <code>id</code> must exactly match the page's
+        <code>helpSection</code> value.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Adding a general Help section</h3>
+
+      <p>
+        A Help section does not need to be linked to a GLIP page. General
+        guidance can be added directly to the Help Centre.
+      </p>
+
+      <p>For example:</p>
+
+      <pre><code>&lt;details
+  class="help-topic"
+  id="about-glip"
+  data-roles="student subject_teacher lead_teacher admin owner"&gt;
+
+  &lt;summary&gt;About GLIP&lt;/summary&gt;
+
+  &lt;div class="help-topic-body"&gt;
+    &lt;section class="help-subsection"&gt;
+      &lt;h3&gt;What is GLIP?&lt;/h3&gt;
+      &lt;p&gt;Add the general information here.&lt;/p&gt;
+    &lt;/section&gt;
+  &lt;/div&gt;
+
+&lt;/details&gt;</code></pre>
+
+      <p>
+        The section will appear in the Help Centre and in Help search results,
+        even though no page opens it automatically.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Sharing one Help section between several pages</h3>
+
+      <p>
+        Several pages can use the same Help section by assigning them the same
+        logical Help key.
+      </p>
+
+      <p>
+        For example, lessons, practices, quizzes, reflections and other
+        learning activities can all use:
+      </p>
+
+      <pre><code>helpSection: "activity"</code></pre>
+
+      <p>
+        They will all open the following shared section:
+      </p>
+
+      <pre><code>&lt;details class="help-topic" id="activity"&gt;
+  ...
+&lt;/details&gt;</code></pre>
+
+      <p>
+        This should be used when the instructions are common to the pages, such
+        as uploading work, using drag and drop, enlarging images and recording
+        progress.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Duplicate page names</h3>
+
+      <p>
+        Duplicate filenames do not require special handling because Help is
+        controlled by logical keys rather than filenames.
+      </p>
+
+      <p>
+        Pages with the same filename may share one Help section:
+      </p>
+
+      <pre><code>helpSection: "settings"</code></pre>
+
+      <p>
+        The shared section may contain separate subsections for the different
+        contexts in which the page is used.
+      </p>
+
+      <p>
+        Alternatively, pages with the same filename may use different Help
+        keys when their instructions are substantially different.
+      </p>
+
+      <pre><code>helpSection: "admin-settings"
+
+helpSection: "student-settings"</code></pre>
+
+      <p>
+        The choice should be based on whether sharing the instructions makes
+        the Help Centre clearer and easier to maintain.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Role visibility</h3>
+
+      <p>
+        Use the <code>data-roles</code> attribute to specify which roles can
+        see a Help section.
+      </p>
+
+      <p>Owner only:</p>
+
+      <pre><code>data-roles="owner"</code></pre>
+
+      <p>Administrators and owners:</p>
+
+      <pre><code>data-roles="admin owner"</code></pre>
+
+      <p>Teaching roles, administrators and owners:</p>
+
+      <pre><code>data-roles="subject_teacher lead_teacher admin owner"</code></pre>
+
+      <p>All normal GLIP roles:</p>
+
+      <pre><code>data-roles="student subject_teacher lead_teacher admin owner"</code></pre>
+
+      <p>
+        A section without <code>data-roles</code> is treated as general Help
+        and may be displayed to all users.
+      </p>
+
+      <p>
+        Role filtering is used to keep the Help Centre relevant and
+        uncluttered. It is not a security mechanism.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Role-specific information inside a shared section</h3>
+
+      <p>
+        A Help section can be visible to several roles while containing
+        subsections that apply only to particular roles.
+      </p>
+
+      <pre><code>&lt;div data-roles="subject_teacher"&gt;
+  &lt;h3&gt;Subject teachers&lt;/h3&gt;
+  &lt;p&gt;Instructions for subject teachers.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;div data-roles="lead_teacher"&gt;
+  &lt;h3&gt;Lead teachers&lt;/h3&gt;
+  &lt;p&gt;Instructions for lead teachers.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;div data-roles="admin owner"&gt;
+  &lt;h3&gt;Administrators and owners&lt;/h3&gt;
+  &lt;p&gt;Administrative instructions.&lt;/p&gt;
+&lt;/div&gt;</code></pre>
+
+      <p>
+        Use this approach when the overall feature is shared but each role has
+        different responsibilities or permissions.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Help section structure</h3>
+
+      <p>
+        Each major Help entry should use the existing
+        <code>help-topic</code>, <code>help-topic-body</code> and
+        <code>help-subsection</code> classes.
+      </p>
+
+      <pre><code>&lt;details class="help-topic" id="feature-key" data-roles="owner"&gt;
+  &lt;summary&gt;Section title&lt;/summary&gt;
+
+  &lt;div class="help-topic-body"&gt;
+
+    &lt;section class="help-subsection"&gt;
+      &lt;h3&gt;First subsection&lt;/h3&gt;
+      &lt;p&gt;Instructions...&lt;/p&gt;
+    &lt;/section&gt;
+
+    &lt;section class="help-subsection"&gt;
+      &lt;h3&gt;Second subsection&lt;/h3&gt;
+      &lt;p&gt;More instructions...&lt;/p&gt;
+    &lt;/section&gt;
+
+  &lt;/div&gt;
+&lt;/details&gt;</code></pre>
+
+      <p>
+        Use one top-level <code>details</code> element for each major Help
+        topic. Use one or more <code>help-subsection</code> blocks to organise
+        the detailed instructions.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Search behaviour</h3>
+
+      <p>
+        The Help Centre search looks through the section title, subsection
+        headings and instruction text.
+      </p>
+
+      <p>
+        Search results are limited to Help content available to the current
+        role. Matching sections are opened automatically and sections that do
+        not match are temporarily hidden.
+      </p>
+
+      <p>
+        Use meaningful headings and clear wording so users can find guidance
+        using ordinary search terms.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Page information comment</h3>
+
+      <p>
+        Each functional HTML page should contain a developer comment identifying
+        its logical Help section.
+      </p>
+
+      <pre><code>&lt;!--
+=========================================================
+GLIP PAGE INFORMATION
+
+Help Centre:
+    /help/help.html
+
+Help Section:
+    teacher-management
+
+=========================================================
+--&gt;</code></pre>
+
+      <p>
+        Keep the comment synchronised with the page's
+        <code>PAGE_CONFIG.helpSection</code> value.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Testing a new Help section</h3>
+
+      <ol>
+        <li>Open the relevant GLIP page.</li>
+        <li>Select <strong>Help</strong>.</li>
+        <li>Confirm that the Help Centre opens in a new tab.</li>
+        <li>Confirm that the correct section expands automatically.</li>
+        <li>Confirm that the Help Centre scrolls to the section.</li>
+        <li>Test the Help search using words from the new section.</li>
+        <li>Test each role listed in <code>data-roles</code>.</li>
+        <li>
+          Confirm that roles not listed in <code>data-roles</code> do not see
+          the section.
+        </li>
+        <li>
+          Check the Help page at normal, large and larger text sizes.
+        </li>
+        <li>
+          Check the section using the available GLIP themes and display
+          settings.
+        </li>
+      </ol>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Maintenance principles</h3>
+
+      <ul>
+        <li>
+          Keep all user guidance in the single
+          <code>/help/help.html</code> file.
+        </li>
+        <li>
+          Do not create separate Help files for individual pages.
+        </li>
+        <li>
+          Reuse existing Help sections where the guidance is genuinely shared.
+        </li>
+        <li>
+          Create a new logical key only when a feature needs distinct
+          instructions.
+        </li>
+        <li>
+          Keep Help keys independent of filenames and folder locations.
+        </li>
+        <li>
+          Use role filtering to show users only the guidance relevant to them.
+        </li>
+        <li>
+          Reuse GLIP's existing CSS classes and visual language.
+        </li>
+        <li>
+          Avoid adding page-specific Help JavaScript when the shared framework
+          can handle the behaviour.
+        </li>
+        <li>
+          Keep instructions clear enough for teachers and students who are not
+          technically experienced.
+        </li>
+      </ul>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Quick reference</h3>
+
+      <p><strong>Help Centre file:</strong></p>
+
+      <pre><code>/help/help.html</code></pre>
+
+      <p><strong>Page configuration:</strong></p>
+
+      <pre><code>helpSection: "feature-key"</code></pre>
+
+      <p><strong>Matching Help section:</strong></p>
+
+      <pre><code>&lt;details class="help-topic" id="feature-key"&gt;</code></pre>
+
+      <p><strong>Owner-only section:</strong></p>
+
+      <pre><code>data-roles="owner"</code></pre>
+
+      <p><strong>General section available to all roles:</strong></p>
+
+      <pre><code>data-roles="student subject_teacher lead_teacher admin owner"</code></pre>
+    </section>
+
+  </div>
+</details>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       <details class="help-topic" id="activity" data-roles="student subject_teacher lead_teacher admin owner">
         <summary>Learning Activities</summary>
         <div class="help-topic-body">
