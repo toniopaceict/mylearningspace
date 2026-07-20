@@ -31,6 +31,20 @@
     </header>
     <main class="wrap management-wrap help-page-wrap">
       <div id="glipHelpStatus" class="form-message help-status-message" role="status" aria-live="polite" hidden></div>
+      <div class="help-search-panel">
+        <label for="glipHelpSearch">Search Help</label>
+        <div class="help-search-row">
+          <input
+            id="glipHelpSearch"
+            class="help-search-input"
+            type="search"
+            placeholder="Type a word or phrase, for example teacher, CSV or progress"
+            autocomplete="off"
+          />
+          <button id="glipHelpSearchClear" class="secondary-button" type="button" hidden>Clear</button>
+        </div>
+        <div id="glipHelpSearchStatus" class="help-search-status" role="status" aria-live="polite"></div>
+      </div>
       <p class="help-page-intro">Select a heading to expand or collapse its instructions. Only sections relevant to your current role are shown.</p>
       <details class="help-topic" id="activity" data-roles="student subject_teacher lead_teacher admin owner">
         <summary>Learning Activities</summary>
