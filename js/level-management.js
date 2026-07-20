@@ -367,17 +367,14 @@ function updateEditButton() {
   const btn = document.getElementById("editLevelsBtn");
   if (!btn) return;
 
-  const hasPendingSaves = pendingLevelSaves > 0;
+const hasPendingSaves = pendingLevelSaves > 0;
 
-  btn.disabled = hasPendingSaves;
+btn.disabled = hasPendingSaves;
+btn.textContent = editMode ? "Save Changes" : "Edit Levels";
 
-  if (hasPendingSaves) {
-    btn.textContent = "Saving new level...";
-    btn.title = "Please wait until the new level has finished saving.";
-  } else {
-    btn.textContent = editMode ? "Save Changes" : "Edit Levels";
-    btn.title = "";
-  }
+btn.title = hasPendingSaves
+  ? "Please wait until the new level has finished saving."
+  : "";
 
   let cancelBtn = document.getElementById("cancelLevelsEditBtn");
 
