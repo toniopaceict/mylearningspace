@@ -6,6 +6,7 @@
   let classSortField = "level";
   let classSortDirection = "asc";
   let classManagementInitialised = false;
+  let pendingClassSaves = 0;
 
   function getWebAppUrl() {
     return window.getGlipWebAppUrl();
@@ -93,19 +94,27 @@ loadLevelsDropdown();
   }
 
   function normaliseLevel(value) {
-    const text = String(value || "").trim().toLowerCase();
-
-    if (!text) return "";
-
-    const match = text.match(/\d+/);
-    if (!match) return text;
-
-    return "level-" + match[0].padStart(2, "0");
+    return String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "-");
   }
 
   function formatLevel(level) {
-    const match = String(level || "").match(/\d+/);
-    return match ? "Level " + Number(match[0]) : String(level || "");
+    const value = normaliseLevel(level);
+    if (!value) return "";
+
+    return value
+      .split("-")
+      .filter(Boolean)
+      .map(function (part) {
+        if (/^\d+$/.test(part)) {
+          return String(Number(part));
+        }
+
+        return part.charAt(0).toUpperCase() + part.slice(1);
+      })
+      .join(" ");
   }
 
 function loadLevelsDropdown() {
@@ -323,35 +332,141 @@ function loadLevelsDropdown() {
   }
 
   function saveClass() {
-    const level = normaliseLevel(document.getElementById("newClassLevel").value);
+    const level = normaliseLevel(
+      document.getElementById("newClassLevel").value
+    );
     const classId = document.getElementById("newClassId").value.trim();
     const classLabel = document.getElementById("newClassLabel").value.trim();
-    const sortOrder = document.getElementById("newClassSortOrder").value.trim();
-    const active = document.getElementById("newClassActive").value === "true";
-    setAddClassMessage("", "info");
-    if (!level || !classId || !classLabel) { setAddClassMessage("Level, class code and class label are required.", "error"); return; }
+    const sortOrderRaw = document
+      .getElementById("newClassSortOrder")
+      .value.trim();
+    const sortOrder = Number(sortOrderRaw);
+    const active =
+      document.getElementById("newClassActive").value === "true";
 
-    const optimisticClass = { level: level, class_id: classId, class_label: classLabel, sort_order: Number(sortOrder || 999), active: active, level_active: getLevelActiveForClass(level) };
-    currentClasses.push(optimisticClass); renderClasses(currentClasses); clearAddClassForm();
+    setAddClassMessage("", "info");
+
+    if (!level || !classId || !classLabel || !sortOrderRaw) {
+      setAddClassMessage(
+        "Level, class code, class label and sort order are required.",
+        "error"
+      );
+      return;
+    }
+
+    if (!Number.isInteger(sortOrder) || sortOrder < 1) {
+      setAddClassMessage(
+        "Sort order must be a whole number of 1 or greater.",
+        "error"
+      );
+      return;
+    }
+
+    const duplicate = currentClasses.some(function (item) {
+      return String(item.class_id || "")
+        .trim()
+        .toLowerCase() === classId.toLowerCase();
+    });
+
+    if (duplicate) {
+      setAddClassMessage("This class code already exists.", "error");
+      return;
+    }
+
+    const temporaryId = "pending-class-" + Date.now();
+
+    const optimisticClass = {
+      temporary_id: temporaryId,
+      level: level,
+      class_id: classId,
+      class_label: classLabel,
+      sort_order: sortOrder,
+      active: active,
+      level_active: getLevelActiveForClass(level),
+      pending_save: true
+    };
+
+    currentClasses.push(optimisticClass);
+    pendingClassSaves += 1;
+
+    updateEditClassesButton();
+    renderClasses(currentClasses);
+    clearAddClassForm();
 
     GLIPOptimisticUpdate.run({
-      request: function () { return postToGlip({ action: "addClassAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), level: level, class_id: classId, class_label: classLabel, sort_order: sortOrder || 999, active: active }); },
+      request: function () {
+        return postToGlip({
+          action: "addClassAdmin",
+          admin_teacher_id: sessionStorage.getItem("glipTeacherId"),
+          level: level,
+          class_id: classId,
+          class_label: classLabel,
+          sort_order: sortOrder,
+          active: active
+        });
+      },
+
       failureMessage: "Could not save class.",
-      onSuccess: function (result) { setAddClassMessage(result.message || "Class added successfully.", "success"); },
+
+      onSuccess: function (result) {
+        const temporaryClass = currentClasses.find(function (item) {
+          return item.temporary_id === temporaryId;
+        });
+
+        if (temporaryClass) {
+          temporaryClass.pending_save = false;
+          delete temporaryClass.temporary_id;
+        }
+
+        pendingClassSaves = Math.max(0, pendingClassSaves - 1);
+        updateEditClassesButton();
+        renderClasses(currentClasses);
+
+        setAddClassMessage(
+          result.message || "Class added successfully.",
+          "success"
+        );
+      },
+
       resync: resyncClassesSilently,
-      rollback: function () { currentClasses = currentClasses.filter(function (item) { return !(normaliseLevel(item.level) === level && String(item.class_id) === classId); }); renderClasses(currentClasses); },
-      onFailure: function (error) { setAddClassMessage(error.message || "Could not save class. The temporary row was removed.", "error"); }
+
+      rollback: function () {
+        currentClasses = currentClasses.filter(function (item) {
+          return item.temporary_id !== temporaryId;
+        });
+
+        pendingClassSaves = Math.max(0, pendingClassSaves - 1);
+        updateEditClassesButton();
+        renderClasses(currentClasses);
+      },
+
+      onFailure: function (error) {
+        setAddClassMessage(
+          error.message ||
+            "Could not save class. The temporary row was removed.",
+          "error"
+        );
+      }
     });
   }
 
   function toggleClassesEditMode() {
+    if (pendingClassSaves > 0) {
+      setMessage(
+        "Please wait until the new class has finished saving.",
+        "info"
+      );
+      return;
+    }
+
     if (classesEditMode) {
       saveClassChanges();
       return;
     }
 
-    classesEditMode = true;
     setMessage("", "info");
+
+    classesEditMode = true;
     updateEditClassesButton();
     renderClasses(currentClasses);
   }
@@ -367,24 +482,32 @@ function loadLevelsDropdown() {
     const editClassesBtn = document.getElementById("editClassesBtn");
     if (!editClassesBtn) return;
 
+    const hasPendingSaves = pendingClassSaves > 0;
+
+    editClassesBtn.disabled = hasPendingSaves;
     editClassesBtn.textContent = classesEditMode
       ? "Save Changes"
       : "Edit Classes";
 
+    editClassesBtn.title = hasPendingSaves
+      ? "Please wait until the new class has finished saving."
+      : "";
+
     let cancelBtn = document.getElementById("cancelClassesEditBtn");
 
-    if (classesEditMode && !cancelBtn) {
+    if (classesEditMode && !cancelBtn && !hasPendingSaves) {
       cancelBtn = document.createElement("button");
       cancelBtn.type = "button";
       cancelBtn.id = "cancelClassesEditBtn";
-      cancelBtn.className = "glip-btn glip-btn-secondary teacher-cancel-btn";
+      cancelBtn.className =
+        "glip-btn glip-btn-secondary teacher-cancel-btn";
       cancelBtn.textContent = "Cancel";
       cancelBtn.addEventListener("click", cancelClassesEditMode);
 
       editClassesBtn.insertAdjacentElement("afterend", cancelBtn);
     }
 
-    if (!classesEditMode && cancelBtn) {
+    if ((!classesEditMode || hasPendingSaves) && cancelBtn) {
       cancelBtn.remove();
     }
   }
@@ -488,7 +611,6 @@ return `
           field.addEventListener("change", markChangedFields);
         });
 
-      markChangedFields();
     }
   }
 
@@ -549,6 +671,8 @@ return `
   }
 
   function markChangedFields() {
+    setMessage("", "info");
+
     const rows = document.querySelectorAll("[data-class-row]");
 
     rows.forEach(function (row) {
