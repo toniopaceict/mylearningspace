@@ -9,6 +9,7 @@
   let teacherSortDirection = "asc";
   let displayedTeachers = [];
   let teacherManagementInitialised = false;
+  let pendingTeacherSaves = 0;
 
 function getWebAppUrl() {
   return window.getGlipWebAppUrl();
@@ -42,6 +43,22 @@ function getWebAppUrl() {
     if (saveTeacherBtn) {
       saveTeacherBtn.addEventListener("click", saveTeacher);
     }
+
+    [
+      "newTeacherTitle",
+      "newTeacherName",
+      "newTeacherSurname",
+      "newTeacherCode",
+      "newTeacherEmail",
+      "newTeacherRole",
+      "sendTeacherCodeOnCreate"
+    ].forEach(function (fieldId) {
+      const field = document.getElementById(fieldId);
+      if (!field) return;
+
+      field.addEventListener("input", clearAddTeacherMessage);
+      field.addEventListener("change", clearAddTeacherMessage);
+    });
 
     if (editTeachersBtn) {
       editTeachersBtn.addEventListener("click", toggleTeachersEditMode);
@@ -166,26 +183,139 @@ function getWebAppUrl() {
   }
 
 function saveTeacher() {
-  const teacherTitle = document.getElementById("newTeacherTitle").value.trim();
-  const teacherName = document.getElementById("newTeacherName").value.trim();
-  const teacherSurname = document.getElementById("newTeacherSurname").value.trim();
-  const code = document.getElementById("newTeacherCode").value.trim();
-  const email = document.getElementById("newTeacherEmail").value.trim();
+  const teacherTitle = document
+    .getElementById("newTeacherTitle")
+    .value.trim();
+
+  const teacherName = document
+    .getElementById("newTeacherName")
+    .value.trim();
+
+  const teacherSurname = document
+    .getElementById("newTeacherSurname")
+    .value.trim();
+
+  const code = document
+    .getElementById("newTeacherCode")
+    .value.trim();
+
+  const email = document
+    .getElementById("newTeacherEmail")
+    .value.trim();
+
   const role = document.getElementById("newTeacherRole").value;
-  const sendCodeEmail = document.getElementById("sendTeacherCodeOnCreate")?.checked || false;
+
+  const sendCodeEmail =
+    document.getElementById("sendTeacherCodeOnCreate")?.checked || false;
+
   if (!teacherName || !teacherSurname || !code || !email || !role) {
-    setAddTeacherMessage("Teacher name, surname, login code, email and role are required.", "error"); return;
+    setAddTeacherMessage(
+      "Teacher name, surname, login code, email and role are required.",
+      "error"
+    );
+    return;
   }
+
+  const duplicateCode = currentTeachers.some(function (teacher) {
+    return String(teacher.code || "")
+      .trim()
+      .toLowerCase() === code.toLowerCase();
+  });
+
+  if (duplicateCode) {
+    setAddTeacherMessage(
+      "This teacher login code already exists.",
+      "error"
+    );
+    return;
+  }
+
+  setAddTeacherMessage("", "info");
+
   const temporaryId = "pending-teacher-" + Date.now();
-  currentTeachers.push({ teacher_id: temporaryId, teacher_title: teacherTitle, teacher_name: teacherName, teacher_surname: teacherSurname, full_name: (teacherName + " " + teacherSurname).trim(), code: code, email: email, role: role, active: true });
-  renderTeachers(currentTeachers); clearAddTeacherForm();
+
+  currentTeachers.push({
+    teacher_id: temporaryId,
+    teacher_title: teacherTitle,
+    teacher_name: teacherName,
+    teacher_surname: teacherSurname,
+    full_name: (teacherName + " " + teacherSurname).trim(),
+    code: code,
+    email: email,
+    role: role,
+    active: true,
+    pending_save: true
+  });
+
+  pendingTeacherSaves += 1;
+
+  updateEditTeachersButton();
+  renderTeachers(currentTeachers);
+  clearAddTeacherForm();
+
   GLIPOptimisticUpdate.run({
-    request: function () { return postToGlip({ action: "addTeacherAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), teacher_title: teacherTitle, teacher_name: teacherName, teacher_surname: teacherSurname, code: code, email: email, role: role, send_code_email: sendCodeEmail }); },
+    request: function () {
+      return postToGlip({
+        action: "addTeacherAdmin",
+        admin_teacher_id: sessionStorage.getItem("glipTeacherId"),
+        teacher_title: teacherTitle,
+        teacher_name: teacherName,
+        teacher_surname: teacherSurname,
+        code: code,
+        email: email,
+        role: role,
+        send_code_email: sendCodeEmail
+      });
+    },
+
     failureMessage: "Could not add teacher.",
-    onSuccess: function (result) { setAddTeacherMessage(result.message || "Teacher added successfully.", "success"); },
+
+    onSuccess: function (result) {
+      const temporaryTeacher = currentTeachers.find(function (teacher) {
+        return String(teacher.teacher_id) === temporaryId;
+      });
+
+      if (temporaryTeacher) {
+        if (result.teacher_id !== undefined && result.teacher_id !== null) {
+          temporaryTeacher.teacher_id = result.teacher_id;
+        }
+
+        temporaryTeacher.pending_save = false;
+      }
+
+      pendingTeacherSaves = Math.max(0, pendingTeacherSaves - 1);
+      updateEditTeachersButton();
+      renderTeachers(currentTeachers);
+
+      setAddTeacherMessage(
+        result.message || "Teacher added successfully.",
+        "success"
+      );
+    },
+
     resync: resyncTeachersSilently,
-    rollback: function () { currentTeachers = currentTeachers.filter(function (teacher) { return String(teacher.teacher_id) !== temporaryId; }); renderTeachers(currentTeachers); },
-    onFailure: function (error) { setAddTeacherMessage(error.message || "Could not add teacher. The temporary row was removed.", "error"); }
+
+    rollback: function () {
+      currentTeachers = currentTeachers.filter(function (teacher) {
+        return String(teacher.teacher_id) !== temporaryId;
+      });
+
+      selectedTeacherIds = selectedTeacherIds.filter(function (teacherId) {
+        return String(teacherId) !== temporaryId;
+      });
+
+      pendingTeacherSaves = Math.max(0, pendingTeacherSaves - 1);
+      updateEditTeachersButton();
+      renderTeachers(currentTeachers);
+    },
+
+    onFailure: function (error) {
+      setAddTeacherMessage(
+        error.message ||
+          "Could not add teacher. The temporary row was removed.",
+        "error"
+      );
+    }
   });
 }
 
@@ -304,13 +434,22 @@ function loadTeachers() {
   
 
   function toggleTeachersEditMode() {
+    if (pendingTeacherSaves > 0) {
+      setMessage(
+        "Please wait until the new teacher has finished saving.",
+        "info"
+      );
+      return;
+    }
+
     if (teachersEditMode) {
       saveTeacherChanges();
       return;
     }
 
-    teachersEditMode = true;
     setMessage("", "info");
+
+    teachersEditMode = true;
     updateEditTeachersButton();
     renderTeachers(currentTeachers);
   }
@@ -326,6 +465,8 @@ function loadTeachers() {
     const editTeachersBtn = document.getElementById("editTeachersBtn");
     if (!editTeachersBtn) return;
 
+    const hasPendingSaves = pendingTeacherSaves > 0;
+
     const sendSelectedTeacherCodesBtn =
       document.getElementById("sendSelectedTeacherCodesBtn");
 
@@ -333,26 +474,37 @@ function loadTeachers() {
       sendSelectedTeacherCodesBtn.style.display = teachersEditMode
         ? "none"
         : "inline-flex";
+
+      sendSelectedTeacherCodesBtn.disabled = hasPendingSaves;
+      sendSelectedTeacherCodesBtn.title = hasPendingSaves
+        ? "Please wait until the new teacher has finished saving."
+        : "";
     }
 
+    editTeachersBtn.disabled = hasPendingSaves;
     editTeachersBtn.textContent = teachersEditMode
       ? "Save Changes"
       : "Edit Teachers";
 
+    editTeachersBtn.title = hasPendingSaves
+      ? "Please wait until the new teacher has finished saving."
+      : "";
+
     let cancelBtn = document.getElementById("cancelTeachersEditBtn");
 
-    if (teachersEditMode && !cancelBtn) {
+    if (teachersEditMode && !cancelBtn && !hasPendingSaves) {
       cancelBtn = document.createElement("button");
       cancelBtn.type = "button";
       cancelBtn.id = "cancelTeachersEditBtn";
-      cancelBtn.className = "glip-btn glip-btn-secondary teacher-cancel-btn";
+      cancelBtn.className =
+        "glip-btn glip-btn-secondary teacher-cancel-btn";
       cancelBtn.textContent = "Cancel";
       cancelBtn.addEventListener("click", cancelTeachersEditMode);
 
       editTeachersBtn.insertAdjacentElement("afterend", cancelBtn);
     }
 
-    if (!teachersEditMode && cancelBtn) {
+    if ((!teachersEditMode || hasPendingSaves) && cancelBtn) {
       cancelBtn.remove();
     }
   }
@@ -495,6 +647,8 @@ function renderTeacherEditRow(teacher) {
   
 
   function markChangedFields() {
+    setMessage("", "info");
+
     const rows = document.querySelectorAll("[data-teacher-row]");
 
     rows.forEach(function (row) {
@@ -672,6 +826,14 @@ function resyncTeachersSilently() {
   }
 
 function sendSelectedTeacherCodes() {
+  if (pendingTeacherSaves > 0) {
+    setMessage(
+      "Please wait until the new teacher has finished saving.",
+      "info"
+    );
+    return;
+  }
+
   const teacherIdsToSend = getSelectedTeacherIds();
 
   if (teacherIdsToSend.length === 0) {
