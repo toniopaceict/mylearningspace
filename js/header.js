@@ -484,22 +484,11 @@ function highlightCurrentPage() {
 
 
 function getHelpSectionForCurrentPage() {
-  const path = window.location.pathname.toLowerCase();
-  const filename = path.split("/").pop() || "";
+  const configuredSection = String(
+    (window.PAGE_CONFIG && window.PAGE_CONFIG.helpSection) || ""
+  ).trim();
 
-  if (path.indexOf("/mylearningspace/help/") !== -1) {
-    return "";
-  }
-
-  if (/\/content\/[^/]+\/topic-[^/]+\/topic-[^/]+-home\.html$/i.test(path)) {
-    return "topics-home";
-  }
-
-  if (/\/content\/[^/]+\/topic-[^/]+\/[^/]+\.html$/i.test(path)) {
-    return "activity";
-  }
-
-  return filename.replace(/\.html$/i, "") || "general";
+  return configuredSection || "general";
 }
 
 function buildHelpUrl(helpSection) {
