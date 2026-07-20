@@ -3962,9 +3962,10 @@ body.glip-management-page::before {
 }
 
 .help-topic {
-  border: 1px solid var(--color-border, #c8ced4);
-  border-radius: 6px;
-  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-panel-bg);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 
@@ -3973,18 +3974,30 @@ body.glip-management-page::before {
   padding: 0.9rem 1rem;
   font-size: 1.05rem;
   font-weight: 700;
-  background: #eceff2;
-  color: var(--color-text, #222);
+  background: var(--color-surface-soft);
+  color: var(--color-primary);
   user-select: none;
+  transition: background var(--transition-normal), color var(--transition-normal);
+}
+
+/* The native disclosure marker inherits the summary colour in modern browsers. */
+.help-topic > summary::marker {
+  color: var(--color-primary);
 }
 
 .help-topic > summary:hover,
 .help-topic[open] > summary {
-  background: #e1e6ea;
+  background: var(--color-primary-soft);
+  color: var(--color-primary-hover);
+}
+
+.help-topic > summary:hover::marker,
+.help-topic[open] > summary::marker {
+  color: var(--color-primary-hover);
 }
 
 .help-topic > summary:focus-visible {
-  outline: 3px solid var(--color-primary, #245b8f);
+  outline: 3px solid var(--color-primary);
   outline-offset: -3px;
 }
 
@@ -4000,4 +4013,62 @@ body.glip-management-page::before {
 
 .help-subsection h3 {
   margin-top: 0;
+}
+
+
+/* Help Centre search */
+.help-search-panel {
+  margin: 0 0 var(--space-xl);
+  padding: var(--space-lg);
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-panel-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+.help-search-panel > label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.help-search-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.help-search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  color: var(--color-primary);
+  font: inherit;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.help-search-input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
+.help-search-status {
+  min-height: 1.4em;
+  margin-top: 8px;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 600px) {
+  .help-search-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .help-search-row .secondary-button {
+    width: 100%;
+  }
 }
