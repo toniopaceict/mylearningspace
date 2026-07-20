@@ -42,6 +42,11 @@
     document.getElementById("saveLevelBtn")?.addEventListener("click", saveLevel);
     document.getElementById("editLevelsBtn")?.addEventListener("click", toggleEditMode);
 
+    document.getElementById("newLevelCode")?.addEventListener("input", clearAddLevelMessage);
+    document.getElementById("newLevelName")?.addEventListener("input", clearAddLevelMessage);
+    document.getElementById("newLevelSortOrder")?.addEventListener("input", clearAddLevelMessage);
+    document.getElementById("newLevelActive")?.addEventListener("change", clearAddLevelMessage);
+
     setupSorting();
     updateSortIndicators();
     loadLevels();
@@ -117,6 +122,10 @@ function setLevelsLoadingState(isLoading) {
 
     message.textContent = text || "";
     message.className = "panel-message text-center " + (type || "info");
+  }
+
+  function clearAddLevelMessage() {
+    setAddMessage("", "info");
   }
 
   function loadLevels() {
@@ -267,6 +276,8 @@ function saveLevel() {
     return;
   }
 
+  setAddMessage("", "info");
+
   const temporaryId = "pending-level-" + Date.now();
 
   levels.push({
@@ -358,6 +369,8 @@ function toggleEditMode() {
     return;
   }
 
+  setMessage("", "info");
+
   editMode = true;
   updateEditButton();
   renderLevels();
@@ -402,6 +415,8 @@ btn.title = hasPendingSaves
 }
 
   function markChangedFields() {
+    setMessage("", "info");
+
     document.querySelectorAll("[data-level-row]").forEach(function (row) {
       const levelId = row.dataset.levelRow;
       const original = levels.find(function (level) {
