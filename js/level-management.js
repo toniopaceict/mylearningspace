@@ -6,6 +6,7 @@
   let sortField = "sort_order";
   let sortDirection = "asc";
   let initialised = false;
+  let pendingLevelSaves = 0;
 
   function getWebAppUrl() {
     return window.getGlipWebAppUrl();
@@ -221,77 +222,187 @@ function renderEditRow(level) {
   `;
 }
 
-  function saveLevel() {
-    const levelCode = document.getElementById("newLevelCode").value.trim();
-    const levelName = document.getElementById("newLevelName").value.trim();
-    const sortOrderRaw = document.getElementById("newLevelSortOrder").value.trim();
-    const sortOrder = Number(sortOrderRaw);
-    const active = document.getElementById("newLevelActive").value === "true";
+function saveLevel() {
+  const levelCode = document
+    .getElementById("newLevelCode")
+    .value.trim();
 
-    if (!levelCode || !levelName || !sortOrderRaw) {
-      setAddMessage("Level code, level name and sort order are required.", "error"); return;
-    }
-    if (!Number.isInteger(sortOrder) || sortOrder < 1) {
-      setAddMessage("Sort order must be a whole number of 1 or greater.", "error"); return;
-    }
+  const levelName = document
+    .getElementById("newLevelName")
+    .value.trim();
 
-    const temporaryId = "pending-level-" + Date.now();
-    levels.push({ level_id: temporaryId, level_code: levelCode, level_name: levelName, sort_order: sortOrder, active: active });
-    renderLevels();
-    document.getElementById("newLevelCode").value = "";
-    document.getElementById("newLevelName").value = "";
-    document.getElementById("newLevelSortOrder").value = "";
-    document.getElementById("newLevelActive").value = "true";
+  const sortOrderRaw = document
+    .getElementById("newLevelSortOrder")
+    .value.trim();
 
-    GLIPOptimisticUpdate.run({
-      request: function () { return postToGlip({ action: "addLevelAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), level_code: levelCode, level_name: levelName, sort_order: sortOrder, active: active }); },
-      failureMessage: "Could not save level.",
-      onSuccess: function (result) { setAddMessage(result.message || "Level added successfully.", "success"); },
-      resync: resyncLevelsSilently,
-      rollback: function () { levels = levels.filter(function (level) { return String(level.level_id) !== temporaryId; }); renderLevels(); },
-      onFailure: function (error) { setAddMessage(error.message || "Could not save level. The temporary row was removed.", "error"); }
-    });
+  const sortOrder = Number(sortOrderRaw);
+
+  const active =
+    document.getElementById("newLevelActive").value === "true";
+
+  if (!levelCode || !levelName || !sortOrderRaw) {
+    setAddMessage(
+      "Level code, level name and sort order are required.",
+      "error"
+    );
+    return;
   }
 
-  function toggleEditMode() {
-    if (editMode) {
-      saveChanges();
-      return;
-    }
-
-    editMode = true;
-    updateEditButton();
-    renderLevels();
+  if (!Number.isInteger(sortOrder) || sortOrder < 1) {
+    setAddMessage(
+      "Sort order must be a whole number of 1 or greater.",
+      "error"
+    );
+    return;
   }
 
-  function updateEditButton() {
-    const btn = document.getElementById("editLevelsBtn");
-    if (!btn) return;
+  const duplicate = levels.some(function (level) {
+    return String(level.level_code || "")
+      .trim()
+      .toLowerCase() === levelCode.toLowerCase();
+  });
 
-    btn.textContent = editMode ? "Save Changes" : "Edit Levels";
+  if (duplicate) {
+    setAddMessage("This level code already exists.", "error");
+    return;
+  }
 
-    let cancelBtn = document.getElementById("cancelLevelsEditBtn");
+  const temporaryId = "pending-level-" + Date.now();
 
-    if (editMode && !cancelBtn) {
-      cancelBtn = document.createElement("button");
-      cancelBtn.type = "button";
-      cancelBtn.id = "cancelLevelsEditBtn";
-      cancelBtn.className = "glip-btn glip-btn-secondary teacher-cancel-btn";
-      cancelBtn.textContent = "Cancel";
-      cancelBtn.addEventListener("click", function () {
-        editMode = false;
-        updateEditButton();
-        renderLevels();
-        setMessage("", "info");
+  levels.push({
+    level_id: temporaryId,
+    level_code: levelCode,
+    level_name: levelName,
+    sort_order: sortOrder,
+    active: active,
+    pending_save: true
+  });
+
+  pendingLevelSaves += 1;
+  updateEditButton();
+  renderLevels();
+
+  document.getElementById("newLevelCode").value = "";
+  document.getElementById("newLevelName").value = "";
+  document.getElementById("newLevelSortOrder").value = "";
+  document.getElementById("newLevelActive").value = "true";
+
+  GLIPOptimisticUpdate.run({
+    request: function () {
+      return postToGlip({
+        action: "addLevelAdmin",
+        admin_teacher_id:
+          sessionStorage.getItem("glipTeacherId"),
+        level_code: levelCode,
+        level_name: levelName,
+        sort_order: sortOrder,
+        active: active
+      });
+    },
+
+    failureMessage: "Could not save level.",
+
+    onSuccess: function (result) {
+      const temporaryLevel = levels.find(function (level) {
+        return String(level.level_id) === temporaryId;
       });
 
-      btn.insertAdjacentElement("afterend", cancelBtn);
-    }
+      if (temporaryLevel) {
+        temporaryLevel.level_id = result.level_id;
+        temporaryLevel.pending_save = false;
+      }
 
-    if (!editMode && cancelBtn) {
-      cancelBtn.remove();
+      pendingLevelSaves = Math.max(0, pendingLevelSaves - 1);
+      updateEditButton();
+      renderLevels();
+
+      setAddMessage(
+        result.message || "Level added successfully.",
+        "success"
+      );
+    },
+
+    resync: resyncLevelsSilently,
+
+    rollback: function () {
+      levels = levels.filter(function (level) {
+        return String(level.level_id) !== temporaryId;
+      });
+
+      pendingLevelSaves = Math.max(0, pendingLevelSaves - 1);
+      updateEditButton();
+      renderLevels();
+    },
+
+    onFailure: function (error) {
+      setAddMessage(
+        error.message ||
+          "Could not save level. The temporary row was removed.",
+        "error"
+      );
     }
+  });
+}
+
+function toggleEditMode() {
+  if (pendingLevelSaves > 0) {
+    setMessage(
+      "Please wait until the new level has finished saving.",
+      "info"
+    );
+    return;
   }
+
+  if (editMode) {
+    saveChanges();
+    return;
+  }
+
+  editMode = true;
+  updateEditButton();
+  renderLevels();
+}
+
+function updateEditButton() {
+  const btn = document.getElementById("editLevelsBtn");
+  if (!btn) return;
+
+  const hasPendingSaves = pendingLevelSaves > 0;
+
+  btn.disabled = hasPendingSaves;
+
+  if (hasPendingSaves) {
+    btn.textContent = "Saving new level...";
+    btn.title = "Please wait until the new level has finished saving.";
+  } else {
+    btn.textContent = editMode ? "Save Changes" : "Edit Levels";
+    btn.title = "";
+  }
+
+  let cancelBtn = document.getElementById("cancelLevelsEditBtn");
+
+  if (editMode && !cancelBtn && !hasPendingSaves) {
+    cancelBtn = document.createElement("button");
+    cancelBtn.type = "button";
+    cancelBtn.id = "cancelLevelsEditBtn";
+    cancelBtn.className =
+      "glip-btn glip-btn-secondary teacher-cancel-btn";
+    cancelBtn.textContent = "Cancel";
+
+    cancelBtn.addEventListener("click", function () {
+      editMode = false;
+      updateEditButton();
+      renderLevels();
+      setMessage("", "info");
+    });
+
+    btn.insertAdjacentElement("afterend", cancelBtn);
+  }
+
+  if ((!editMode || hasPendingSaves) && cancelBtn) {
+    cancelBtn.remove();
+  }
+}
 
   function markChangedFields() {
     document.querySelectorAll("[data-level-row]").forEach(function (row) {
