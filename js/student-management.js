@@ -54,6 +54,29 @@
       );
     }
 
+    [
+      "newStudentName",
+      "newStudentSurname",
+      "newStudentCode",
+      "newStudentEmail"
+    ].forEach(function (fieldId) {
+      const field = document.getElementById(fieldId);
+      if (field) {
+        field.addEventListener("input", clearAddStudentMessage);
+      }
+    });
+
+    [
+      "newStudentLevel",
+      "newStudentClassId",
+      "sendStudentCodeOnCreate"
+    ].forEach(function (fieldId) {
+      const field = document.getElementById(fieldId);
+      if (field) {
+        field.addEventListener("change", clearAddStudentMessage);
+      }
+    });
+
     setupStudentTableSorting();
     updateSortIndicators();
     loadStudents();
@@ -165,6 +188,10 @@
     message.textContent = text || "";
     message.className =
       "panel-message add-teacher-message " + (type || "info");
+  }
+
+  function clearAddStudentMessage() {
+    setAddStudentMessage("", "info");
   }
 
   function setStudentsLoadingState(isLoading) {
