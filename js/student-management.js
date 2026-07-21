@@ -10,6 +10,7 @@
   let displayedStudents = [];
   let studentManagementInitialised = false;
   let availableStudentClasses = [];
+  let pendingStudentSaves = 0;
 
   function getWebAppUrl() {
     return window.getGlipWebAppUrl();
@@ -216,28 +217,145 @@
   }
 
   function saveStudent() {
-    const studentName = document.getElementById("newStudentName").value.trim();
-    const studentSurname = document.getElementById("newStudentSurname").value.trim();
-    const code = document.getElementById("newStudentCode").value.trim();
-    const email = document.getElementById("newStudentEmail").value.trim();
-    const level = document.getElementById("newStudentLevel").value.trim();
-    const classId = document.getElementById("newStudentClassId").value.trim();
-    const sendCodeEmail = document.getElementById("sendStudentCodeOnCreate")?.checked || false;
-    if (!studentName || !studentSurname || !code || !level || !classId) {
-      setAddStudentMessage("First name, surname, login code and class are required.", "error"); return;
+    if (pendingStudentSaves > 0) {
+      setAddStudentMessage(
+        "Please wait until the current student has finished saving.",
+        "info"
+      );
+      return;
     }
+
+    const studentName = document
+      .getElementById("newStudentName")
+      .value.trim();
+    const studentSurname = document
+      .getElementById("newStudentSurname")
+      .value.trim();
+    const code = document
+      .getElementById("newStudentCode")
+      .value.trim();
+    const email = document
+      .getElementById("newStudentEmail")
+      .value.trim();
+    const level = document
+      .getElementById("newStudentLevel")
+      .value.trim();
+    const classId = document
+      .getElementById("newStudentClassId")
+      .value.trim();
+    const sendCodeEmail =
+      document.getElementById("sendStudentCodeOnCreate")?.checked || false;
+
+    setAddStudentMessage("", "info");
+
+    if (!studentName || !studentSurname || !code || !level || !classId) {
+      setAddStudentMessage(
+        "First name, surname, login code and class are required.",
+        "error"
+      );
+      return;
+    }
+
     const normalisedLevel = normaliseLevel(level);
-    const classInfo = availableStudentClasses.find(function (item) { return String(item.class_id) === classId && normaliseLevel(item.level) === normalisedLevel; }) || {};
+    const classInfo = availableStudentClasses.find(function (item) {
+      return String(item.class_id) === String(classId);
+    });
+
+    if (!classInfo) {
+      setAddStudentMessage(
+        "The selected class is no longer available. Please select it again.",
+        "error"
+      );
+      loadStudentClasses();
+      return;
+    }
+
     const temporaryId = "pending-student-" + Date.now();
-    currentStudents.push(addFullName({ student_id: temporaryId, student_name: studentName, student_surname: studentSurname, code: code, email: email, level: normalisedLevel, class_id: classId, class_label: classInfo.class_label || classId, active: true }));
-    renderStudents(currentStudents); clearAddStudentForm();
+
+    const optimisticStudent = addFullName({
+      student_id: temporaryId,
+      student_name: studentName,
+      student_surname: studentSurname,
+      code: code,
+      email: email,
+      level: normalisedLevel,
+      class_id: classId,
+      class_label: classInfo.class_label || classId,
+      level_active: classInfo.level_active !== false,
+      class_active: classInfo.active !== false,
+      active: true,
+      pending_save: true
+    });
+
+    currentStudents.push(optimisticStudent);
+    pendingStudentSaves += 1;
+
+    updateEditStudentsButton();
+    setStudentSavingState(true);
+    renderStudents(currentStudents);
+    clearAddStudentForm();
+
     GLIPOptimisticUpdate.run({
-      request: function () { return postToGlip({ action: "addStudentAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), student_name: studentName, student_surname: studentSurname, code: code, email: email, level: normalisedLevel, class_id: classId, send_code_email: sendCodeEmail }); },
+      request: function () {
+        return postToGlip({
+          action: "addStudentAdmin",
+          admin_teacher_id: sessionStorage.getItem("glipTeacherId"),
+          student_name: studentName,
+          student_surname: studentSurname,
+          code: code,
+          email: email,
+          level: normalisedLevel,
+          class_id: classId,
+          send_code_email: sendCodeEmail
+        });
+      },
+
       failureMessage: "Could not add student.",
-      onSuccess: function (result) { setAddStudentMessage(result.message || "Student added successfully.", "success"); },
+
+      onSuccess: function (result) {
+        const temporaryStudent = currentStudents.find(function (student) {
+          return String(student.student_id) === temporaryId;
+        });
+
+        if (temporaryStudent) {
+          temporaryStudent.student_id =
+            result.student_id !== undefined && result.student_id !== null
+              ? String(result.student_id)
+              : temporaryStudent.student_id;
+          temporaryStudent.pending_save = false;
+        }
+
+        pendingStudentSaves = Math.max(0, pendingStudentSaves - 1);
+        setStudentSavingState(false);
+        updateEditStudentsButton();
+        renderStudents(currentStudents);
+
+        setAddStudentMessage(
+          result.message || "Student added successfully.",
+          "success"
+        );
+      },
+
       resync: resyncStudentsSilently,
-      rollback: function () { currentStudents = currentStudents.filter(function (student) { return String(student.student_id) !== temporaryId; }); renderStudents(currentStudents); },
-      onFailure: function (error) { setAddStudentMessage(error.message || "Could not add student. The temporary row was removed.", "error"); }
+
+      rollback: function () {
+        currentStudents = currentStudents.filter(function (student) {
+          return String(student.student_id) !== temporaryId;
+        });
+
+        pendingStudentSaves = Math.max(0, pendingStudentSaves - 1);
+        setStudentSavingState(false);
+        updateEditStudentsButton();
+        renderStudents(currentStudents);
+      },
+
+      onFailure: function (error) {
+        setAddStudentMessage(
+          error.message ||
+            "Could not add student. The temporary row was removed.",
+          "error"
+        );
+      }
     });
   }
 
@@ -305,8 +423,14 @@ function populateAddStudentDropdowns() {
   }
 
   function getClassDisplayText(item) {
-    const label = item.class_label || item.class_id;
-    return label + " - " + item.class_id;
+    const code = String(item.class_id || "").trim();
+    const label = String(item.class_label || "").trim();
+
+    if (!label || label === code) {
+      return code;
+    }
+
+    return label + " (" + code + ")";
   }
 
   function isClassAvailableForAssignment(item) {
@@ -325,13 +449,13 @@ function populateAddStudentDropdowns() {
     }
 
     const classesForLevel = getAssignableStudentClasses(selectedClassId).filter(function (item) {
-      return item.level === level;
+      return normaliseLevel(item.level) === normaliseLevel(level);
     });
 
     classSelect.innerHTML =
       '<option value="">Select class</option>' +
       classesForLevel.map(function (item) {
-        const selected = item.class_id === selectedClassId ? "selected" : "";
+        const selected = String(item.class_id) === String(selectedClassId) ? "selected" : "";
 
         return '<option value="' + escapeHtml(item.class_id) + '" ' + selected + '>' +
           escapeHtml(appendPlanningWarning(getClassDisplayText(item), item.active === false || item.level_active === false)) +
@@ -404,6 +528,14 @@ getValue: getStudentStatusText
   }
 
   function toggleStudentsEditMode() {
+    if (pendingStudentSaves > 0) {
+      setMessage(
+        "Please wait until the new student has finished saving.",
+        "info"
+      );
+      return;
+    }
+
     if (studentsEditMode) {
       saveStudentChanges();
       return;
@@ -426,33 +558,43 @@ getValue: getStudentStatusText
     const editStudentsBtn = document.getElementById("editStudentsBtn");
     if (!editStudentsBtn) return;
 
+    const hasPendingSaves = pendingStudentSaves > 0;
     const sendSelectedStudentCodesBtn =
       document.getElementById("sendSelectedStudentCodesBtn");
+
+    editStudentsBtn.disabled = hasPendingSaves;
+    editStudentsBtn.textContent = studentsEditMode
+      ? "Save Changes"
+      : "Edit Students";
+    editStudentsBtn.title = hasPendingSaves
+      ? "Please wait until the new student has finished saving."
+      : "";
 
     if (sendSelectedStudentCodesBtn) {
       sendSelectedStudentCodesBtn.style.display = studentsEditMode
         ? "none"
         : "inline-flex";
+      sendSelectedStudentCodesBtn.disabled = hasPendingSaves;
+      sendSelectedStudentCodesBtn.title = hasPendingSaves
+        ? "Please wait until the new student has finished saving."
+        : "";
     }
-
-    editStudentsBtn.textContent = studentsEditMode
-      ? "Save Changes"
-      : "Edit Students";
 
     let cancelBtn = document.getElementById("cancelStudentsEditBtn");
 
-    if (studentsEditMode && !cancelBtn) {
+    if (studentsEditMode && !cancelBtn && !hasPendingSaves) {
       cancelBtn = document.createElement("button");
       cancelBtn.type = "button";
       cancelBtn.id = "cancelStudentsEditBtn";
-      cancelBtn.className = "glip-btn glip-btn-secondary teacher-cancel-btn";
+      cancelBtn.className =
+        "glip-btn glip-btn-secondary teacher-cancel-btn";
       cancelBtn.textContent = "Cancel";
       cancelBtn.addEventListener("click", cancelStudentsEditMode);
 
       editStudentsBtn.insertAdjacentElement("afterend", cancelBtn);
     }
 
-    if (!studentsEditMode && cancelBtn) {
+    if ((!studentsEditMode || hasPendingSaves) && cancelBtn) {
       cancelBtn.remove();
     }
   }
@@ -634,7 +776,7 @@ class="teacher-selectable-row ${studentNeedsAttention(student) ? "planning-row" 
 
   function renderClassOptions(level, selectedClassId) {
     const classesForLevel = getAssignableStudentClasses(selectedClassId).filter(function (item) {
-      return item.level === level;
+      return normaliseLevel(item.level) === normaliseLevel(level);
     });
 
     return classesForLevel.map(function (item) {
@@ -876,6 +1018,14 @@ class="teacher-selectable-row ${studentNeedsAttention(student) ? "planning-row" 
   }
 
   function sendSelectedStudentCodes() {
+    if (pendingStudentSaves > 0) {
+      setMessage(
+        "Please wait until the new student has finished saving.",
+        "info"
+      );
+      return;
+    }
+
     const studentIdsToSend = selectedStudentIds.slice();
 
     if (studentIdsToSend.length === 0) {
