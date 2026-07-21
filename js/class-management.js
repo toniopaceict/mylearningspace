@@ -100,6 +100,12 @@ loadLevelsDropdown();
       .replace(/\s+/g, "-");
   }
 
+  function normaliseClassCode(value) {
+    return String(value || "")
+      .trim()
+      .toLowerCase();
+  }
+
   function formatLevel(level) {
     const value = normaliseLevel(level);
     if (!value) return "";
@@ -335,7 +341,9 @@ function loadLevelsDropdown() {
     const level = normaliseLevel(
       document.getElementById("newClassLevel").value
     );
-    const classId = document.getElementById("newClassId").value.trim();
+    const classId = normaliseClassCode(
+      document.getElementById("newClassId").value
+    );
     const classLabel = document.getElementById("newClassLabel").value.trim();
     const sortOrderRaw = document
       .getElementById("newClassSortOrder")
@@ -363,9 +371,7 @@ function loadLevelsDropdown() {
     }
 
     const duplicate = currentClasses.some(function (item) {
-      return String(item.class_id || "")
-        .trim()
-        .toLowerCase() === classId.toLowerCase();
+      return normaliseClassCode(item.class_id) === classId;
     });
 
     if (duplicate) {
@@ -696,6 +702,11 @@ return `
           originalValue = normaliseLevel(originalValue);
         }
 
+        if (key === "class_id") {
+          currentValue = normaliseClassCode(currentValue);
+          originalValue = normaliseClassCode(originalValue);
+        }
+
         if (key === "active") {
           currentValue = currentValue === "true";
           originalValue = originalClass.active === true;
@@ -760,7 +771,11 @@ return `
     rows.forEach(function (row) {
       const item = { original_level: row.dataset.originalLevel, original_class_id: row.dataset.originalClassId };
       row.querySelectorAll("[data-field]").forEach(function (field) { item[field.dataset.field] = field.value; });
-      item.level = normaliseLevel(item.level); item.active = item.active === "true"; item.sort_order = Number(item.sort_order || 999); classes.push(item);
+      item.level = normaliseLevel(item.level);
+      item.class_id = normaliseClassCode(item.class_id);
+      item.active = item.active === "true";
+      item.sort_order = Number(item.sort_order || 999);
+      classes.push(item);
     });
     if (!classes.length) { setMessage("No class changes to save.", "info"); return; }
     const previousClasses = currentClasses.map(function (item) { return Object.assign({}, item); });
