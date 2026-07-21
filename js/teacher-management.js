@@ -346,6 +346,10 @@ function setAddTeacherMessage(text, type) {
   message.textContent = text || "";
   message.className = "panel-message add-teacher-message " + (type || "info");
 }
+
+function clearAddTeacherMessage() {
+  setAddTeacherMessage("", "info");
+}
   
   function setTeachersLoadingState(isLoading) {
     const loadingBox = document.getElementById("teachersLoadingProgress");
