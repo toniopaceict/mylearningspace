@@ -675,164 +675,157 @@ level-05,Level 5,3,TRUE</div>
         <div class="help-topic-body">
         <section class="help-subsection">
           <h3>Add Class</h3>
-          <div class="help-page-text">Use this form to add a new class to GLIP. A class must belong to an existing level.
+          <div class="help-page-text">Use this form to add a new class to GLIP. Every class must belong to an existing level.
 <br/><br/>
 <b>Level</b><br/>
 Select the level to which the class belongs.
 <br/><br/>
-Only levels that already exist in the Levels table are shown in this list. This field is required.
-If the required level is not shown, it must first be added to the Levels table.
+Only levels that already exist in Level Management are shown. This field is required. If the required level is not shown, add it in Level Management first.
 <br/><br/>
 <b>Class Code</b><br/>
-Enter a short, unique code for the class. This code identifies the class internally and is also used during CSV import to update existing classes. Use a stable format such as 4A-26, where 4A is the class and 26 refers to the academic year ending in 2026.
+The Class Code is the unique identifier used internally by GLIP. Every class must have a different Class Code.
 <br/><br/>
-Accepted examples:<br/>
-3A-25<br/>
-4A-26<br/>
-5A-26<br/>
-4B-26
+GLIP does not require one fixed naming format. You may use any format that suits the school's existing practice, provided that each code is unique.
+<br/><br/>
+Examples:<br/>
+4.1<br/>
+4.1-26<br/>
+Year7-A<br/>
+Y7Blue<br/>
+Foundation-1<br/>
+Evening-B<br/>
+Science-Group-2
+<br/><br/>
+<b>Recommended year suffix</b><br/>
+Although it is not required by GLIP, it is strongly recommended to include the scholastic year at the end of the Class Code, for example:
+<br/><br/>
+4.1-26<br/>
+4.1-27<br/>
+Year7-A-26
+<br/><br/>
+GLIP treats the whole Class Code as one identifier. It does not read the final digits as a year and it does not automatically know that 4.1-26 is followed by 4.1-27.
+<br/><br/>
+The year suffix is recommended because it helps administrators to:
+<br/>
+* distinguish classes from different scholastic years<br/>
+* retain historical class records without reusing the same code<br/>
+* prepare future classes before the current year ends<br/>
+* identify revision classes from previous years<br/>
+* avoid confusion when the same class name is used every year
+<br/><br/>
+For example, 4.1-26 and 4.1-27 are treated as two completely different classes.
 <br/><br/>
 This field is required and must be unique.
 <br/><br/>
-Examples that will generate an error:<br/>
-blank value<br/>
-a class code that already exists when adding a new class<br/>
-4A 26
-<br/><br/>
 <b>Class Label</b><br/>
-Enter the class name as users should see it in GLIP.
+The Class Label is the name shown to users throughout GLIP.
 <br/><br/>
-Accepted examples:<br/>
-3A (main)<br/>
-4A (main)<br/>
-4A (Boys)<br/>
+GLIP does not require one fixed label format. Use a clear name that teachers, administrators and students will understand.
+<br/><br/>
+Examples:<br/>
+4.1<br/>
+Year 7 Blue<br/>
+Foundation Group 1<br/>
+Evening Class<br/>
+Physics Revision<br/>
 4A (Girls)<br/>
-5A (main)
+STEM A
 <br/><br/>
-This field is required.
-<br/><br/>
-Examples that will generate an error:<br/>
-blank value
-<br/><br/>
-The class label does not need to be unique, but it should be clear for users.
+The Class Label does not need to be unique, but it should clearly identify the group.
 <br/><br/>
 <b>Sort Order</b><br/>
-Enter a number to control the order in which classes appear in tables and dropdown lists.
+Enter a whole number to control the order in which classes appear in tables and dropdown lists. Smaller numbers appear before larger numbers.
 <br/><br/>
-Accepted examples:<br/>
-1<br/>
-2<br/>
-3<br/>
-10
+Recommended practice: use values such as 10, 20, 30, 40 rather than 1, 2, 3, 4.
 <br/><br/>
-Examples that will generate an error:<br/>
-abc<br/>
-first<br/>
-1A<br/>
-4A-26
+Using tens leaves space to insert another class later without renumbering the existing classes. For example, a new class can be inserted between 20 and 30 by giving it Sort Order 25.
 <br/><br/>
-Use whole numbers only. Smaller numbers appear before larger numbers.
+Do not leave Sort Order blank. Do not use text, negative numbers or 0.
 <br/><br/>
 <b>Status</b><br/>
 Choose whether the class is active or inactive.
 <br/><br/>
-Accepted values:<br/>
-Active<br/>
-Inactive
-<br/><br/>
-Active classes are available for normal use. Inactive classes remain stored for reference but should not normally appear in selection lists.
+Active classes are available for normal use. Inactive classes remain stored for planning or historical reference but should not normally be used for new assignments.
 <br/><br/>
 <b>Save Class</b><br/>
-Click Save Class to add the class to the Classes table. GLIP will create the internal class ID automatically. You do not need to type class_id or level_id.</div>
+Select Save Class to add the class. GLIP creates the internal class ID automatically. You do not need to enter class_id or level_id.</div>
         </section>
         <section class="help-subsection">
           <h3>Class Management</h3>
-          <div class="help-page-text">Use this area to manage the classes available in GLIP. Classes are linked to levels and are used throughout the system when assigning students, teachers and subjects.
+          <div class="help-page-text">Use this area to view and manage the classes stored in GLIP. Classes are linked to levels and are used when assigning students, teachers and subjects.
 <br/><br/>
 <b>Viewing Classes</b><br/>
-The table displays all classes currently stored in GLIP. Each class belongs to a level and has a unique class code and a user-friendly class label.
-<br/><br/>
-<b>Level</b><br/>
-Shows the level to which the class belongs.
-<br/><br/>
-Examples:<br/>
-Level 3<br/>
-Level 4<br/>
-Level 5
+The table shows all classes currently stored in GLIP. Each class belongs to one level and has a unique Class Code and a user-friendly Class Label.
 <br/><br/>
 <b>Class Code</b><br/>
-The unique code used internally by GLIP to identify a class.
+The Class Code is the unique identifier used by GLIP.
+<br/><br/>
+GLIP does not interpret the code or determine class progression from it. For example, GLIP does not automatically know that 4.1-26 is followed by 4.1-27.
+<br/><br/>
+A year suffix is strongly recommended because it makes historical, current, future and revision classes easier to distinguish.
 <br/><br/>
 Examples:<br/>
-3A-25<br/>
-4A-26<br/>
-5A-26
+4.1-26<br/>
+4.1-27<br/>
+Year7-A-26<br/>
+Foundation-1-26
 <br/><br/>
-The first part identifies the class itself. For example, 4A refers to class 4A.
-<br/><br/>
-The last two digits identify the academic year. For example:
-<br/>
-4A-25 = academic year 2024–2025<br/>
-4A-26 = academic year 2025–2026<br/>
-4A-27 = academic year 2026–2027
-<br/><br/>
-This allows GLIP to distinguish between classes from different academic years and retain historical records for revision and reporting purposes.
-<br/><br/>
-Class codes should remain stable because they are used during CSV imports and when linking students, teachers and subjects to classes.
+Class Codes should remain stable once they are in use because they are used during CSV imports and when linking other records to classes.
 <br/><br/>
 <b>Class Label</b><br/>
-The name displayed to users throughout GLIP.
+The Class Label is the name displayed to users.
 <br/><br/>
 Examples:<br/>
-3A (main)<br/>
-4A (main)<br/>
-4A (Boys)<br/>
-4A (Girls)
+4.1<br/>
+Year 7 Blue<br/>
+Foundation Group 1<br/>
+Physics Revision<br/>
+Evening Class
 <br/><br/>
-The label can be changed without affecting existing student or teacher assignments.
+The label may be changed without changing the internal class identity.
 <br/><br/>
 <b>Sort Order</b><br/>
-Controls the order in which classes appear in tables, dropdown lists and other management pages.
+Sort Order controls the order in which classes appear in tables, dropdown lists and other management pages.
 <br/><br/>
-Classes with smaller numbers appear before classes with larger numbers.
+Recommended practice: use values such as 10, 20, 30, 40. This leaves room to insert a new class later, for example 25 between 20 and 30, without renumbering existing records.
 <br/><br/>
 <b>Status</b><br/>
-Shows whether the class is active or inactive.
+Active classes are available for normal use.
 <br/><br/>
-Active classes are available for normal use.<br/>
-Inactive classes are retained for reference but should not normally appear in selection lists.
+Inactive classes are retained for planning or historical reference but should not normally appear in selection lists for new assignments.
 <br/><br/>
 <b>Sorting</b><br/>
-Click any column heading to sort the table. Click the same heading again to reverse the sort order.
+Select any column heading to sort the table. Select the same heading again to reverse the order.
 <br/><br/>
 <b>Edit Classes</b><br/>
-Click Edit Classes to switch the table into edit mode. Editable fields will appear directly inside the table. Any fields you modify are highlighted so that you can easily see pending changes before saving. Click Save Changes to save all edited class records at once. Click Cancel to discard all unsaved changes and reload the current data from GLIP.
+Select Edit Classes to switch the table into edit mode. Modified fields are highlighted so that pending changes are easy to see.
+<br/><br/>
+Select Save Changes to save all edited records. Select Cancel to discard unsaved changes.
 <br/><br/>
 <b>Import CSV</b><br/>
-Imports classes from a CSV file.
+Use the exported CSV as the import template.
 <br/><br/>
-Before any data is changed, GLIP validates the entire file and displays a validation summary.
+Existing classes are matched using the Class Code. If the code already exists, the existing class is updated. If the code does not exist, a new class is created.
 <br/><br/>
-Examples of validation checks include:
+GLIP validates the complete file before importing it.
+<br/><br/>
+Validation checks may include:
 <br/>
-Missing level<br/>
-Invalid level<br/>
-Missing class code<br/>
-Duplicate class code<br/>
-Missing class label<br/>
-Invalid status value<br/>
-Invalid sort order
-<br/><br/>
-Existing classes are matched using the class code. If the class code already exists, the existing class is updated.<br/> If the class code does not exist, a new class is created automatically.
+* missing or invalid level<br/>
+* missing Class Code<br/>
+* duplicate Class Code<br/>
+* missing Class Label<br/>
+* invalid status<br/>
+* invalid Sort Order
 <br/><br/>
 <b>Error Report</b><br/>
-If validation errors are found, you can download a CSV report showing all problems that must be corrected before importing again.
+If validation errors are found, GLIP can provide a CSV report showing the problems that must be corrected.
 <br/><br/>
 <b>Automatic Backup</b><br/>
-Before any import or table clear operation, GLIP automatically downloads a backup copy of the current data.
+Before importing or clearing the table, GLIP downloads a backup copy of the current class data.
 <br/><br/>
 <b>Clear Table</b><br/>
-Removes all class records from the Classes table while keeping the column headings intact.</div>
+Clear Table removes all class records while keeping the column headings. Use this only when you are certain that the class list should be rebuilt.</div>
         </section>
         </div>
       </details>
