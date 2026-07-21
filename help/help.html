@@ -687,21 +687,23 @@ The Class Code is the unique identifier used internally by GLIP. Every class mus
 <br/><br/>
 GLIP does not require one fixed naming format. You may use any format that suits the school's existing practice, provided that each code is unique.
 <br/><br/>
+Class Codes are stored in lower case. If capital letters are entered, GLIP converts them to lower case automatically. For example, Year7-A-26 is stored as year7-a-26.
+<br/><br/>
 Examples:<br/>
 4.1<br/>
 4.1-26<br/>
-Year7-A<br/>
-Y7Blue<br/>
-Foundation-1<br/>
-Evening-B<br/>
-Science-Group-2
+year7-a<br/>
+y7blue<br/>
+foundation-1<br/>
+evening-b<br/>
+science-group-2
 <br/><br/>
 <b>Recommended year suffix</b><br/>
 Although it is not required by GLIP, it is strongly recommended to include the scholastic year at the end of the Class Code, for example:
 <br/><br/>
 4.1-26<br/>
 4.1-27<br/>
-Year7-A-26
+year7-a-26
 <br/><br/>
 GLIP treats the whole Class Code as one identifier. It does not read the final digits as a year and it does not automatically know that 4.1-26 is followed by 4.1-27.
 <br/><br/>
@@ -760,6 +762,8 @@ The table shows all classes currently stored in GLIP. Each class belongs to one 
 <b>Class Code</b><br/>
 The Class Code is the unique identifier used by GLIP.
 <br/><br/>
+Class Codes are stored in lower case. If capital letters are entered manually or through a CSV import, GLIP converts them to lower case automatically.
+<br/><br/>
 GLIP does not interpret the code or determine class progression from it. For example, GLIP does not automatically know that 4.1-26 is followed by 4.1-27.
 <br/><br/>
 A year suffix is strongly recommended because it makes historical, current, future and revision classes easier to distinguish.
@@ -767,8 +771,8 @@ A year suffix is strongly recommended because it makes historical, current, futu
 Examples:<br/>
 4.1-26<br/>
 4.1-27<br/>
-Year7-A-26<br/>
-Foundation-1-26
+year7-a-26<br/>
+foundation-1-26
 <br/><br/>
 Class Codes should remain stable once they are in use because they are used during CSV imports and when linking other records to classes.
 <br/><br/>
