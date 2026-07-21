@@ -1999,6 +1999,11 @@ body.glip-dyslexia-bg .scenario-table tr:nth-child(even) td {
   text-align: right;
 }
 
+
+.panel-message.text-center {
+  text-align: center;
+}
+
 .panel-message.error {
   color: var(--color-danger);
   font-weight: 500;
