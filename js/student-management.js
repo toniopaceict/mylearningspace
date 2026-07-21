@@ -256,10 +256,13 @@
       return;
     }
 
-    const normalisedLevel = normaliseLevel(level);
     const classInfo = availableStudentClasses.find(function (item) {
       return String(item.class_id) === String(classId);
     });
+
+    const normalisedLevel = classInfo
+      ? String(classInfo.level || level).trim()
+      : String(level || "").trim();
 
     if (!classInfo) {
       setAddStudentMessage(
