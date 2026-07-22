@@ -833,6 +833,77 @@ Clear Table removes all class records while keeping the column headings. Use thi
         </section>
         </div>
       </details>
+      
+
+<!-- Subject Catalogue +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+      
+<details class="help-topic" id="subject-catalogue" data-roles="owner">
+<summary>Subject Catalogue</summary>
+<div class="help-topic-body">
+<section class="help-subsection">
+<h3>Subject Catalogue</h3>
+<div class="help-page-text">
+<b>Purpose</b><br/>
+The Subject Catalogue defines which subjects are available for use by this school.
+<br/><br/>
+Only subjects that are marked <b>Active</b> can be assigned to levels through <b>Subject Management</b>.
+<br/><br/>
+This page does <b>not</b> assign subjects to levels. That is done separately in <b>Subject Management</b>.
+<br/><br/>
+<b>Subject</b><br/>
+Shows the name of each subject available in the catalogue.
+<br/><br/>
+<b>Code</b><br/>
+The internal subject code used by GLIP.
+  Examples:<br/>
+  physics<br/>
+  word<br/>
+  excel<br/>
+  chemistry
+  <br/><br/>
+Subject codes are normally created once and should remain unchanged.
+<br/><br/>
+<b>Used by curriculum</b><br/>
+This column shows how many curriculum records currently use the subject.
+<br/><br/>
+  For example:
+  <br/>
+  Not used<br/>
+  1 assignment<br/>
+  3 assignments
+  <br/><br/>
+
+If a subject is already used by the curriculum and is later made inactive, the curriculum records are preserved but the subject will no longer be available to teachers or students.
+<br/><br/>
+<b>Status</b><br/>
+<b>Active</b><br/>
+The subject is available for use throughout GLIP and may be assigned to levels in Subject Management.
+<br/><br/>
+<b>Inactive</b><br/>
+The subject remains stored in GLIP but cannot be used for new curriculum assignments.
+Existing curriculum records are preserved for historical and planning purposes.
+<br/><br/>
+<b>Where do these subjects come from?</b><br/>
+The list is read from the <b>Subjects</b> sheet in the school's Google spreadsheet.
+<br/><br/>
+If subjects are added to the Subjects sheet, they will automatically appear in this catalogue the next time the data is refreshed.
+<br/><br/>
+The Subject Catalogue therefore reflects the contents of the <b>Subjects</b> sheet while allowing the owner to control which subjects are currently available for use.
+</div>
+</section>
+</div>
+</details>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       <details class="help-topic" id="subject-management" data-roles="admin owner">
         <summary>Subject Management</summary>
         <div class="help-topic-body">
