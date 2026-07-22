@@ -41,10 +41,16 @@ Help file: /help/help.html
   <div class="panel-header">
     <p class="q panel-top-text">Select the subjects that the school may use. Subject assignments to levels are managed separately in Subject Management.</p>
     <div class="panel-right teacher-actions">
-      <button class="glip-btn" id="saveSubjectCatalogueBtn" type="button">Save Changes</button>
+      <button class="glip-btn" id="editSubjectCatalogueBtn" type="button">Edit Subjects</button>
+      <button class="glip-btn" id="saveSubjectCatalogueBtn" type="button" style="display:none">Save Changes</button>
+      <button class="glip-btn secondary" id="cancelSubjectCatalogueBtn" type="button" style="display:none">Cancel</button>
     </div>
   </div>
   <p class="panel-message teacher-message" id="subjectCatalogueMessage"></p>
+  <div class="page-loading-box text-center" id="subjectCatalogueSaving" style="display:none">
+    <div class="glip-progress show topics-progress"><div class="glip-progress-bar"></div></div>
+    <p>Saving subject catalogue...</p>
+  </div>
   <div class="page-loading-box text-center" id="subjectCatalogueLoading" style="display:none">
     <div class="glip-progress show topics-progress"><div class="glip-progress-bar"></div></div>
     <p>Loading subject catalogue...</p>

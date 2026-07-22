@@ -45,10 +45,16 @@ Help file: /help/help.html
   <div class="panel-header">
     <p class="q panel-top-text" id="topicCatalogueSummary"></p>
     <div class="panel-right teacher-actions">
-      <button class="glip-btn" id="saveTopicCatalogueBtn" type="button">Save Changes</button>
+      <button class="glip-btn" id="editTopicCatalogueBtn" type="button">Edit Topics</button>
+      <button class="glip-btn" id="saveTopicCatalogueBtn" type="button" style="display:none">Save Changes</button>
+      <button class="glip-btn secondary" id="cancelTopicCatalogueBtn" type="button" style="display:none">Cancel</button>
     </div>
   </div>
   <p class="panel-message teacher-message" id="topicCatalogueMessage"></p>
+  <div class="page-loading-box text-center" id="topicCatalogueSaving" style="display:none">
+    <div class="glip-progress show topics-progress"><div class="glip-progress-bar"></div></div>
+    <p>Saving topic catalogue...</p>
+  </div>
   <div class="page-loading-box text-center" id="topicCatalogueLoading" style="display:none">
     <div class="glip-progress show topics-progress"><div class="glip-progress-bar"></div></div>
     <p>Loading topic catalogue...</p>
