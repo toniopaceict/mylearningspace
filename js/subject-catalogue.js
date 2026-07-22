@@ -4,7 +4,6 @@
   const LIST_ACTION = "listSubjectCatalogueOwner";
   const SAVE_ACTION = "saveSubjectCatalogueOwner";
   let items = [];
-  let subjects = [];
   let editMode = false;
   let saving = false;
   let sortField = "subject";
@@ -116,7 +115,16 @@
       .filter(function (x, index) { return x && updates[index].active === false && Number(x.curriculum_count || 0) > 0; });
     if (affected.length) {
       const names = affected.map(function (x) { return x.subject_name || x.subject_code; }).join(", ");
-      if (!window.confirm(names + " is currently used by the curriculum. Existing assignments will remain, but this content will become unavailable to students. Continue?")) return;
+      const warningText = affected.length === 1
+        ? names + " is currently used by the curriculum."
+        : names + " are currently used by the curriculum.";
+      
+      if (!window.confirm(
+        warningText +
+        " Existing assignments will remain, but this content will become unavailable to students. Continue?"
+      )) {
+        return;
+      }
     }
     const previous = items.map(function (x) { return Object.assign({}, x); });
     updates.forEach(function (u) { const x = items.find(function (i) { return String(i.subject_id) === String(u.subject_id); }); if (x) x.active = u.active; });
