@@ -1,8 +1,12 @@
 (function () {
   "use strict";
 
+  const LIST_ACTION = "listSubjectCatalogueOwner";
+  const SAVE_ACTION = "saveSubjectCatalogueOwner";
+  let items = [];
   let subjects = [];
-  let originalActive = {};
+  let editMode = false;
+  let saving = false;
   let sortField = "subject";
   let sortDirection = "asc";
   let initialised = false;
@@ -11,29 +15,29 @@
     data.owner_teacher_id = sessionStorage.getItem("glipTeacherId");
     data.teacher_id = sessionStorage.getItem("glipTeacherId");
     data.role = sessionStorage.getItem("glipUserType");
-    return fetch(window.getGlipWebAppUrl(), {
-      method: "POST",
-      body: JSON.stringify(data)
-    }).then(function (response) { return response.json(); });
+    return fetch(window.getGlipWebAppUrl(), { method: "POST", body: JSON.stringify(data) })
+      .then(function (response) { return response.json(); });
   }
 
   function init() {
     if (initialised || typeof isOwner !== "function") return;
     initialised = true;
     if (!isOwner()) return;
-
-    document.getElementById("saveSubjectCatalogueBtn")?.addEventListener("click", save);
+    document.getElementById("editSubjectCatalogueBtn")?.addEventListener("click", enterEditMode);
+    document.getElementById("saveSubjectCatalogueBtn")?.addEventListener("click", saveChanges);
+    document.getElementById("cancelSubjectCatalogueBtn")?.addEventListener("click", cancelEditMode);
     document.querySelectorAll("#subjectCatalogueTable th[data-sort-field]").forEach(function (header) {
       header.style.cursor = "pointer";
       header.addEventListener("click", function () {
         const field = header.dataset.sortField;
         if (sortField === field) sortDirection = sortDirection === "asc" ? "desc" : "asc";
         else { sortField = field; sortDirection = "asc"; }
-        updateSortIndicators();
-        render();
+        updateSortIndicators(); render();
       });
     });
-
+    document.addEventListener("glipManagementDataUpdated", function (event) {
+      if (event.detail && event.detail.action === LIST_ACTION && !editMode && !saving) loadFromBrowserCache();
+    });
     load();
   }
 
@@ -41,67 +45,54 @@
   document.addEventListener("DOMContentLoaded", function () { setTimeout(init, 100); });
 
   function load() {
-    setLoading(true);
-    setMessage("", "info");
-    post({ action: "listSubjectCatalogueOwner" })
-      .then(function (result) {
-        if (!result || result.status !== "success") throw new Error((result && result.message) || "Could not load the subject catalogue.");
-        subjects = Array.isArray(result.subjects) ? result.subjects : [];
-        rememberOriginalValues();
-        updateSortIndicators();
-        render();
-        setLoading(false);
-      })
-      .catch(function (error) {
-        setLoading(false);
-        setMessage(error.message || "Could not load the subject catalogue.", "error");
-      });
+    const cached = window.GLIPManagementCache && window.GLIPManagementCache.read(LIST_ACTION, true);
+    if (cached && cached.status === "success") {
+      install(cached); setLoading(false);
+      post({ action: LIST_ACTION }).catch(function () {});
+      return;
+    }
+    setLoading(true); setMessage("", "info");
+    post({ action: LIST_ACTION }).then(function (result) {
+      if (!result || result.status !== "success") throw new Error((result && result.message) || "Could not load the subject catalogue.");
+      install(result); setLoading(false);
+    }).catch(function (error) { setLoading(false); setMessage(error.message || "Could not load the subject catalogue.", "error"); });
   }
 
-  function rememberOriginalValues() {
-    originalActive = {};
-    subjects.forEach(function (item) { originalActive[String(item.subject_id)] = item.active === true; });
+  function loadFromBrowserCache() {
+    const cached = window.GLIPManagementCache && window.GLIPManagementCache.read(LIST_ACTION, true);
+    if (cached && cached.status === "success") install(cached);
   }
+
+  function install(result) {
+    items = Array.isArray(result.subjects) ? result.subjects.map(function (x) { return Object.assign({}, x); }) : [];
+    editMode = false; updateButtons(); updateSortIndicators(); render();
+  }
+
+  function visibleItems() { return items; }
 
   function render() {
     const body = document.getElementById("subjectCatalogueTableBody");
     const table = document.getElementById("subjectCatalogueTable");
     if (!body || !table) return;
-
-    const sorted = subjects.slice().sort(compareItems);
-    if (!sorted.length) {
-      body.innerHTML = '<tr><td colspan="4">No subjects were found in the Subjects sheet.</td></tr>';
-      table.style.visibility = "visible";
-      return;
-    }
-
-    body.innerHTML = sorted.map(function (item) {
-      const usageText = formatUsage(item.curriculum_count, item.used_by_levels, "level", "levels");
-      const usageTitle = Array.isArray(item.used_by_levels) ? item.used_by_levels.join("; ") : "";
-      return '<tr data-subject-id="' + esc(item.subject_id) + '">' +
-        '<td>' + esc(item.subject_name || item.subject_code) + '</td>' +
-        '<td>' + esc(item.subject_code) + '</td>' +
-        '<td title="' + esc(usageTitle) + '">' + esc(usageText) + '</td>' +
-        '<td><label><input type="checkbox" data-subject-active="' + esc(item.subject_id) + '" ' + (item.active ? "checked" : "") + '> ' + (item.active ? "Active" : "Not active") + '</label></td>' +
-        '</tr>';
+    const rows = visibleItems().slice().sort(compareItems);
+    if (!rows.length) { body.innerHTML = '<tr><td colspan="4">No subjects were found.</td></tr>'; table.style.visibility = "visible"; return; }
+    body.innerHTML = rows.map(function (item) {
+      const usage = formatUsage(item.curriculum_count);
+      const title = esc((item.used_by_levels || []).join("; "));
+      const status = item.active ? "Active" : "Inactive";
+      const statusCell = editMode
+        ? '<select class="tracker-input" data-catalogue-id="' + esc(item.subject_id) + '" data-original="' + (item.active ? 'true' : 'false') + '"><option value="true" ' + (item.active ? 'selected' : '') + '>Active</option><option value="false" ' + (!item.active ? 'selected' : '') + '>Inactive</option></select>'
+        : esc(status);
+      return '<tr data-row-id="' + esc(item.subject_id) + '"><td>' + esc(item.subject_name || item.subject_code) + '</td><td>' + esc(item.subject_code) + '</td><td title="' + title + '">' + esc(usage) + '</td><td>' + statusCell + '</td></tr>';
     }).join("");
-
-    body.querySelectorAll("[data-subject-active]").forEach(function (checkbox) {
-      checkbox.addEventListener("change", function () {
-        const item = subjects.find(function (subject) { return String(subject.subject_id) === String(checkbox.dataset.subjectActive); });
-        if (!item) return;
-        item.active = checkbox.checked;
-        checkbox.parentElement.lastChild.textContent = checkbox.checked ? " Active" : " Not active";
-        setMessage("", "info");
-      });
+    body.querySelectorAll("[data-catalogue-id]").forEach(function (field) {
+      field.addEventListener("change", function () { field.classList.toggle("teacher-field-changed", field.value !== field.dataset.original); setMessage("", "info"); });
     });
-
     table.style.visibility = "visible";
   }
 
   function compareItems(a, b) {
-    let av;
-    let bv;
+    let av, bv;
     if (sortField === "subject") { av = String(a.subject_name || a.subject_code).toLowerCase(); bv = String(b.subject_name || b.subject_code).toLowerCase(); }
     else if (sortField === "code") { av = String(a.subject_code).toLowerCase(); bv = String(b.subject_code).toLowerCase(); }
     else if (sortField === "usage") { av = Number(a.curriculum_count || 0); bv = Number(b.curriculum_count || 0); }
@@ -111,78 +102,54 @@
     return 0;
   }
 
-  function save() {
-    const changed = subjects.filter(function (item) {
-      return originalActive[String(item.subject_id)] !== (item.active === true);
+  function enterEditMode() { if (saving) return; editMode = true; setMessage("", "info"); updateButtons(); render(); }
+  function cancelEditMode() { if (saving) return; editMode = false; setMessage("", "info"); updateButtons(); render(); }
+
+  function saveChanges() {
+    if (saving) return;
+    const updates = [];
+    document.querySelectorAll("[data-catalogue-id]").forEach(function (field) {
+      if (field.value !== field.dataset.original) updates.push({ subject_id: field.dataset.catalogueId, active: field.value === "true" });
     });
-
-    if (!changed.length) {
-      setMessage("No changes to save.", "info");
-      return;
-    }
-
-    const affected = changed.filter(function (item) { return !item.active && Number(item.curriculum_count || 0) > 0; });
+    if (!updates.length) { setMessage("No changes to save.", "info"); return; }
+    const affected = updates.map(function (u) { return items.find(function (x) { return String(x.subject_id) === String(u.subject_id); }); })
+      .filter(function (x, index) { return x && updates[index].active === false && Number(x.curriculum_count || 0) > 0; });
     if (affected.length) {
-      const names = affected.map(function (item) { return item.subject_name || item.subject_code; }).join(", ");
-      if (!window.confirm(names + " is currently used by the curriculum. Deactivating it will make it unavailable to students, although its existing assignments will remain in Google Sheets. Continue?")) {
-        return;
-      }
+      const names = affected.map(function (x) { return x.subject_name || x.subject_code; }).join(", ");
+      if (!window.confirm(names + " is currently used by the curriculum. Existing assignments will remain, but this content will become unavailable to students. Continue?")) return;
     }
-
-    setSaving(true);
-    post({
-      action: "saveSubjectCatalogueOwner",
-      subjects: changed.map(function (item) { return { subject_id: item.subject_id, active: item.active }; })
-    }).then(function (result) {
+    const previous = items.map(function (x) { return Object.assign({}, x); });
+    updates.forEach(function (u) { const x = items.find(function (i) { return String(i.subject_id) === String(u.subject_id); }); if (x) x.active = u.active; });
+    editMode = false; saving = true; updateButtons(); render(); setSaving(true); setMessage("", "info");
+    post({ action: SAVE_ACTION, subjects: updates }).then(function (result) {
       if (!result || result.status !== "success") throw new Error((result && result.message) || "Could not save subject availability.");
-      rememberOriginalValues();
-      setSaving(false);
+      saving = false; setSaving(false); updateButtons();
+      writeCurrentBrowserCache(result.management_versions);
       setMessage(result.message || "Subject availability updated.", "success");
     }).catch(function (error) {
-      setSaving(false);
-      setMessage(error.message || "Could not save subject availability.", "error");
-      load();
+      items = previous; saving = false; setSaving(false); updateButtons(); render();
+      setMessage(error.message || "Could not save subject availability. The previous values were restored.", "error");
     });
   }
 
-  function formatUsage(count, labels, singular, plural) {
-    const n = Number(count || 0);
-    if (!n) return "Not used";
-    return n + " " + (n === 1 ? singular : plural);
+  function writeCurrentBrowserCache(versions) {
+    if (!window.GLIPManagementCache) return;
+    const data = { status: "success", subjects: items.map(function (x) { return Object.assign({}, x); }), management_versions: versions || {} };
+    window.GLIPManagementCache.write(LIST_ACTION, data, versions && versions.subjectCatalogue);
   }
 
-  function updateSortIndicators() {
-    document.querySelectorAll("#subjectCatalogueTable th[data-sort-field]").forEach(function (header) {
-      const field = header.dataset.sortField;
-      const label = header.dataset.label;
-      header.textContent = field === sortField ? label + (sortDirection === "asc" ? " ▲" : " ▼") : label + " ↕";
-    });
+  function formatUsage(count) { const n = Number(count || 0); return n ? n + (n === 1 ? " assignment" : " assignments") : "Not used"; }
+  function updateButtons() {
+    const edit = document.getElementById("editSubjectCatalogueBtn");
+    const save = document.getElementById("saveSubjectCatalogueBtn");
+    const cancel = document.getElementById("cancelSubjectCatalogueBtn");
+    if (edit) { edit.style.display = editMode ? "none" : "inline-block"; edit.disabled = saving; }
+    if (save) { save.style.display = editMode ? "inline-block" : "none"; save.disabled = saving; }
+    if (cancel) { cancel.style.display = editMode ? "inline-block" : "none"; cancel.disabled = saving; }
   }
-
-  function setLoading(value) {
-    const box = document.getElementById("subjectCatalogueLoading");
-    const table = document.getElementById("subjectCatalogueTable");
-    if (box) box.style.display = value ? "block" : "none";
-    if (table) table.style.visibility = value ? "hidden" : "visible";
-  }
-
-  function setSaving(value) {
-    const button = document.getElementById("saveSubjectCatalogueBtn");
-    if (!button) return;
-    button.disabled = value;
-    button.textContent = value ? "Saving..." : "Save Changes";
-  }
-
-  function setMessage(text, type) {
-    const el = document.getElementById("subjectCatalogueMessage");
-    if (!el) return;
-    el.textContent = text || "";
-    el.className = "panel-message teacher-message " + (type || "info");
-  }
-
-  function esc(value) {
-    return String(value === null || value === undefined ? "" : value)
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-  }
+  function updateSortIndicators() { document.querySelectorAll("#subjectCatalogueTable th[data-sort-field]").forEach(function (h) { const f=h.dataset.sortField,l=h.dataset.label; h.textContent=f===sortField?l+(sortDirection==="asc"?" ▲":" ▼"):l+" ↕"; }); }
+  function setLoading(value) { const b=document.getElementById("subjectCatalogueLoading"),t=document.getElementById("subjectCatalogueTable"); if(b)b.style.display=value?"block":"none"; if(t)t.style.visibility=value?"hidden":"visible"; }
+  function setSaving(value) { const b=document.getElementById("subjectCatalogueSaving"); if(b)b.style.display=value?"block":"none"; }
+  function setMessage(text,type) { const e=document.getElementById("subjectCatalogueMessage"); if(!e)return; e.textContent=text||""; e.className="panel-message teacher-message "+(type||"info"); }
+  function esc(value) { return String(value==null?"":value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); }
 })();

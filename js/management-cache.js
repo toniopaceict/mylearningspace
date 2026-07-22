@@ -24,6 +24,8 @@
   const ACTION_DATASETS = {
     listLevelsManagementAdmin: "levels",
     listLevelsAdmin: "levels",
+    listSubjectCatalogueOwner: "subjectCatalogue",
+    listTopicCatalogueOwner: "topicCatalogue",
     listCurriculumManagementAdmin: "subjects",
     getAllSubjectsAdmin: "subjects",
     getCurriculumTopicManagement: "topics",
@@ -45,6 +47,8 @@
   const WRITE_DEPENDENCIES = {
     addLevelAdmin: ["levels", "subjects", "classes", "teachingAssignments", "students", "studentSubjects", "workFolders"],
     updateLevelsAdmin: ["levels", "subjects", "classes", "teachingAssignments", "students", "studentSubjects", "workFolders"],
+    saveSubjectCatalogueOwner: ["subjectCatalogue", "topicCatalogue", "subjects", "topics", "teachingAssignments", "studentSubjects", "workFolders"],
+    saveTopicCatalogueOwner: ["topicCatalogue", "topics"],
     addCurriculumAdmin: ["subjects", "topics", "teachingAssignments", "studentSubjects", "workFolders"],
     updateCurriculumAdmin: ["subjects", "topics", "teachingAssignments", "studentSubjects", "workFolders"],
     addCurriculumTopicManagement: ["topics"],
