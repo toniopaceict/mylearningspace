@@ -38,19 +38,45 @@ Help file: /help/help.html
 <div class="wrap management-wrap">
 <fieldset class="task-box panel-box topics-box">
   <legend>Subjects Available to the School</legend>
-  <div class="panel-header">
-    <p class="q panel-top-text">Select the subjects that the school may use. Subject assignments to levels are managed separately in Subject Management.</p>
-    <div class="panel-right teacher-actions">
-      <button class="glip-btn" id="editSubjectCatalogueBtn" type="button">Edit Subjects</button>
-      <button class="glip-btn" id="saveSubjectCatalogueBtn" type="button" style="display:none">Save Changes</button>
-      <button class="glip-btn secondary" id="cancelSubjectCatalogueBtn" type="button" style="display:none">Cancel</button>
-    </div>
+<p class="q">
+  Select the subjects that the school may use. Subject assignments to
+  levels are managed separately in Subject Management.
+</p>
+
+<div class="panel-header">
+  <p class="q panel-top-text">
+    View subjects and their current status.
+  </p>
+
+  <div class="panel-right teacher-actions">
+    <button
+      type="button"
+      class="glip-btn"
+      id="editSubjectCatalogueBtn"
+    >
+      Edit Subjects
+    </button>
+
+    <button
+      type="button"
+      class="glip-btn"
+      id="saveSubjectCatalogueBtn"
+      style="display: none"
+    >
+      Save Changes
+    </button>
+
+    <button
+      type="button"
+      class="glip-btn secondary"
+      id="cancelSubjectCatalogueBtn"
+      style="display: none"
+    >
+      Cancel
+    </button>
   </div>
+</div>
   <p class="panel-message teacher-message" id="subjectCatalogueMessage"></p>
-  <div class="page-loading-box text-center" id="subjectCatalogueSaving" style="display:none">
-    <div class="glip-progress show topics-progress"><div class="glip-progress-bar"></div></div>
-    <p>Saving subject catalogue...</p>
-  </div>
   <div class="page-loading-box text-center" id="subjectCatalogueLoading" style="display:none">
     <div class="glip-progress show topics-progress"><div class="glip-progress-bar"></div></div>
     <p>Loading subject catalogue...</p>
