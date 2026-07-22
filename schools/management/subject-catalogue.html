@@ -1,0 +1,69 @@
+<!--
+=========================================================
+GLIP PAGE INFORMATION
+Help file: /help/help.html
+=========================================================
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<link href="../../assets/GLIP-icon-transparent.png" rel="icon"/>
+<title>GLIP – Subject Catalogue</title>
+<script>
+  window.PAGE_CONFIG = {
+    helpSection: "subject-catalogue",
+    pageKind: "management",
+    pageTitle: "GLIP – Subject Catalogue"
+  };
+  window.PAGE_MENU_CONTEXT = { type: "management" };
+</script>
+<script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
+</head>
+<body>
+<div id="header-placeholder"></div>
+<div class="page-shell">
+<header class="page-hero">
+  <div class="page-hero-panel">
+    <div class="page-hero-divider-top"></div>
+    <img alt="GLIP logo" class="page-hero-brand-icon" src="../../assets/GLIP-icon-transparent-cropped.png"/>
+    <div class="page-hero-logo">GLIP</div>
+    <p class="page-hero-topline">Guided Learning for Independent Progress</p>
+    <h1>Subject Catalogue</h1>
+    <h2>Owner Area</h2>
+    <div class="page-hero-divider-bottom"></div>
+  </div>
+</header>
+<div class="wrap management-wrap">
+<fieldset class="task-box panel-box topics-box">
+  <legend>Subjects Available to the School</legend>
+  <div class="panel-header">
+    <p class="q panel-top-text">Select the subjects that the school may use. Subject assignments to levels are managed separately in Subject Management.</p>
+    <div class="panel-right teacher-actions">
+      <button class="glip-btn" id="saveSubjectCatalogueBtn" type="button">Save Changes</button>
+    </div>
+  </div>
+  <p class="panel-message teacher-message" id="subjectCatalogueMessage"></p>
+  <div class="page-loading-box text-center" id="subjectCatalogueLoading" style="display:none">
+    <div class="glip-progress show topics-progress"><div class="glip-progress-bar"></div></div>
+    <p>Loading subject catalogue...</p>
+  </div>
+  <div class="topics-table-wrap">
+    <table class="topics-table management-table" id="subjectCatalogueTable" style="visibility:hidden">
+      <thead><tr>
+        <th data-label="Subject" data-sort-field="subject">Subject ↕</th>
+        <th data-label="Code" data-sort-field="code">Code ↕</th>
+        <th data-label="Used by curriculum" data-sort-field="usage">Used by curriculum ↕</th>
+        <th data-label="Status" data-sort-field="active">Status ↕</th>
+      </tr></thead>
+      <tbody id="subjectCatalogueTableBody"></tbody>
+    </table>
+  </div>
+</fieldset>
+</div>
+<div class="site-footer" id="siteFooter"></div>
+</div>
+<script>document.addEventListener("glipReady", function () { requireRole("owner"); });</script>
+</body>
+</html>
