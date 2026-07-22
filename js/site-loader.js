@@ -74,6 +74,8 @@ function getManagementScripts() {
   const page = path.split("/").pop();
 
 const managementScriptsByPage = {
+  "subject-catalogue.html": ["/js/subject-catalogue.js"],
+  "topic-catalogue.html": ["/js/topic-catalogue.js"],
   "performance-monitor.html": ["/js/performance-monitor.js"],
   "content-validator.html": ["/js/content-validator.js"],
   "teacher-management.html": [

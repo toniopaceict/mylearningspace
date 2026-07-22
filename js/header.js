@@ -159,6 +159,8 @@ function buildRoleFooterLinks(existingSettingsItems) {
 
     if (typeof isOwner === "function" && isOwner()) {
       links.push(
+        { text: "▤ Subject Catalogue", url: "/mylearningspace/schools/management/subject-catalogue.html" },
+        { text: "▤ Topic Catalogue", url: "/mylearningspace/schools/management/topic-catalogue.html" },
         { text: "✦ Activity Management", url: "/mylearningspace/schools/management/activity-management.html" },
         { text: "✓ Content Validator", url: "/mylearningspace/schools/management/content-validator.html" },
         { text: "◴ Performance Monitor", url: "/mylearningspace/schools/management/performance-monitor.html" },

@@ -122,7 +122,7 @@
     if (!select) return;
 
     select.innerHTML = '<option value="">Select subject</option>' +
-      subjects.map(function (subject) {
+      subjects.filter(function (subject) { return subject.active !== false; }).map(function (subject) {
         const selected = String(subject.subject_code) === String(selectedValue) ? "selected" : "";
         return '<option value="' + escapeHtml(subject.subject_code) + '" ' + selected + '>' +
           escapeHtml(subject.subject_name || subject.subject_code) +
