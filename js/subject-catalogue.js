@@ -120,17 +120,49 @@
     }
     const previous = items.map(function (x) { return Object.assign({}, x); });
     updates.forEach(function (u) { const x = items.find(function (i) { return String(i.subject_id) === String(u.subject_id); }); if (x) x.active = u.active; });
-    editMode = false; saving = true; updateButtons(); render(); setSaving(true); setMessage("", "info");
-    post({ action: SAVE_ACTION, subjects: updates }).then(function (result) {
-      if (!result || result.status !== "success") throw new Error((result && result.message) || "Could not save subject availability.");
-      saving = false; setSaving(false); updateButtons();
-      writeCurrentBrowserCache(result.management_versions);
-      setMessage(result.message || "Subject availability updated.", "success");
-    }).catch(function (error) {
-      items = previous; saving = false; setSaving(false); updateButtons(); render();
-      setMessage(error.message || "Could not save subject availability. The previous values were restored.", "error");
-    });
+editMode = false;
+saving = true;
+updateButtons();
+render();
+
+setMessage(
+  "Subject availability updated. Saving in the background...",
+  "success"
+);
+
+post({
+  action: SAVE_ACTION,
+  subjects: updates
+}).then(function (result) {
+  if (!result || result.status !== "success") {
+    throw new Error(
+      (result && result.message) ||
+      "Could not save subject availability."
+    );
   }
+
+  saving = false;
+  updateButtons();
+
+  writeCurrentBrowserCache(result.management_versions);
+
+  setMessage(
+    result.message || "Subject availability updated.",
+    "success"
+  );
+}).catch(function (error) {
+  items = previous;
+  saving = false;
+  updateButtons();
+  render();
+
+  setMessage(
+    error.message ||
+    "Could not save subject availability. The previous values were restored.",
+    "error"
+  );
+        });
+      }
 
   function writeCurrentBrowserCache(versions) {
     if (!window.GLIPManagementCache) return;
@@ -149,7 +181,6 @@
   }
   function updateSortIndicators() { document.querySelectorAll("#subjectCatalogueTable th[data-sort-field]").forEach(function (h) { const f=h.dataset.sortField,l=h.dataset.label; h.textContent=f===sortField?l+(sortDirection==="asc"?" ▲":" ▼"):l+" ↕"; }); }
   function setLoading(value) { const b=document.getElementById("subjectCatalogueLoading"),t=document.getElementById("subjectCatalogueTable"); if(b)b.style.display=value?"block":"none"; if(t)t.style.visibility=value?"hidden":"visible"; }
-  function setSaving(value) { const b=document.getElementById("subjectCatalogueSaving"); if(b)b.style.display=value?"block":"none"; }
   function setMessage(text,type) { const e=document.getElementById("subjectCatalogueMessage"); if(!e)return; e.textContent=text||""; e.className="panel-message teacher-message "+(type||"info"); }
   function esc(value) { return String(value==null?"":value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); }
 })();
