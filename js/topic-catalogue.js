@@ -338,10 +338,10 @@
           '<div class="glip-confirm-box" role="dialog" aria-modal="true" aria-labelledby="topicCatalogueConfirmTitle">' +
             '<h2 id="topicCatalogueConfirmTitle"></h2>' +
             '<div id="topicCatalogueConfirmBody" class="glip-confirm-body"></div>' +
-            '<div class="glip-confirm-actions">' +
-              '<button type="button" id="topicCatalogueConfirmCancel" class="glip-btn glip-btn-secondary teacher-cancel-btn">Cancel</button>' +
-              '<button type="button" id="topicCatalogueConfirmOk" class="glip-btn">Continue</button>' +
-            '</div>' +
+        '<div class="glip-confirm-actions">' +
+          '<button type="button" id="topicCatalogueConfirmCancel" class="glip-btn glip-btn-secondary">Cancel</button>' +
+          '<button type="button" id="topicCatalogueConfirmOk" class="glip-btn">Continue</button>' +
+        '</div>' +
           '</div>';
         document.body.appendChild(modal);
       }
