@@ -7,6 +7,7 @@
   let classSortDirection = "asc";
   let classManagementInitialised = false;
   let pendingClassSaves = 0;
+  let levelNamesByCode = {};
 
   function getWebAppUrl() {
     return window.getGlipWebAppUrl();
@@ -51,7 +52,7 @@ clearAddClassMessageOnEdit();
         filterId: "classes",
         tableId: "classesTable",
         fields: [
-          { value: "level", label: "Level", getValue: function (item) { return formatLevel(item.level); } },
+          { value: "level", label: "Level", getValue: function (item) { return getLevelDisplayName(item.level); } },
           { value: "class_id", label: "Class Code" },
           { value: "class_label", label: "Class Label" },
           { value: "sort_order", label: "Sort Order" },
@@ -123,6 +124,13 @@ loadLevelsDropdown();
       .join(" ");
   }
 
+  function getLevelDisplayName(levelCode) {
+    const normalisedCode = normaliseLevel(levelCode);
+
+    return levelNamesByCode[normalisedCode] ||
+      formatLevel(levelCode);
+  }
+
 function loadLevelsDropdown() {
   const levelSelect = document.getElementById("newClassLevel");
   if (!levelSelect) return;
@@ -139,7 +147,13 @@ function loadLevelsDropdown() {
       levelSelect.innerHTML =
         '<option value="">Select level</option>';
 
+      levelNamesByCode = {};
+
       (result.levels || []).forEach(function (level) {
+        const normalisedCode = normaliseLevel(level.level_code);
+        levelNamesByCode[normalisedCode] =
+          level.level_name || formatLevel(level.level_code);
+
         const option = document.createElement("option");
 
         option.value = level.level_code;
@@ -285,7 +299,10 @@ function loadLevelsDropdown() {
       let valueA = a[classSortField];
       let valueB = b[classSortField];
 
-      if (classSortField === "active") {
+      if (classSortField === "level") {
+        valueA = getLevelDisplayName(a.level);
+        valueB = getLevelDisplayName(b.level);
+      } else if (classSortField === "active") {
         valueA = a.active ? 1 : 0;
         valueB = b.active ? 1 : 0;
       } else if (classSortField === "sort_order") {
@@ -545,7 +562,7 @@ function formatClassStatus(item) {
 function formatClassLevelCell(item) {
   return escapeHtml(
     appendPlanningWarning(
-      formatLevel(item.level),
+      getLevelDisplayName(item.level),
       classHasInactiveLevel(item)
     )
   );
