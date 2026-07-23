@@ -548,9 +548,7 @@ function renderSubjectCards(subjects, fallbackLevel) {
         <a href="${isAvailable ? link : "#"}"
            class="topic-card ${isAvailable ? "" : "unavailable"}"
            data-subject-id="${subjectId}"
-           data-level="${subjectLevel}"
-           data-level-id="${String(subject.level_id || "").trim()}"
-           data-curriculum-id="${String(subject.curriculum_id || "").trim()}">
+           data-level="${subjectLevel}">
 
           <div class="topic-card-img-wrap">
             ${isAvailable ? getSubjectBadgeHtml(subjectStatus) : ""}
@@ -915,7 +913,7 @@ const res = await fetch(getWebAppUrl(), {
         );
       }
 
-      async function preloadTopicsForSubject(subjectId, level, levelId, curriculumId) {
+      async function preloadTopicsForSubject(subjectId, level) {
         if (!subjectId) return;
 
         const subjectLevel = normaliseLevel(level || LEVEL);
@@ -924,9 +922,7 @@ const res = await fetch(getWebAppUrl(), {
         try {
           const result = await postToGlip({
             action: "getTopics",
-            curriculum_id: String(curriculumId || "").trim(),
             subject_id: subjectId,
-            level_id: String(levelId || "").trim(),
             level: subjectLevel,
             userType: sessionStorage.getItem("glipUserType") || "student",
             teacher_id: sessionStorage.getItem("glipTeacherId") || "",
@@ -1022,8 +1018,6 @@ const res = await fetch(getWebAppUrl(), {
             return preloadTopicsForSubject(
               subjectId,
               item.subject.level || LEVEL,
-              item.subject.level_id || "",
-              item.subject.curriculum_id || "",
             );
           }),
         );
@@ -1285,14 +1279,10 @@ document.addEventListener("click", function (event) {
 
   const subjectId = card.dataset.subjectId || "";
   const level = card.dataset.level || "";
-  const levelId = card.dataset.levelId || "";
-  const curriculumId = card.dataset.curriculumId || "";
 
   if (!subjectId || !level) return;
 
   sessionStorage.setItem("glipLevel", normaliseLevel(level));
-  sessionStorage.setItem("glipLevelId", levelId);
-  sessionStorage.setItem("glipCurriculumId", curriculumId);
   sessionStorage.setItem("glipSubjectId", subjectId);
 
   const subjectName =
