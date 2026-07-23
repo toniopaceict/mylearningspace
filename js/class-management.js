@@ -3,7 +3,7 @@
 
   let currentClasses = [];
   let classesEditMode = false;
-  let classSortField = "level";
+  let classSortField = "level_name";
   let classSortDirection = "asc";
   let classManagementInitialised = false;
   let pendingClassSaves = 0;
@@ -52,7 +52,8 @@ clearAddClassMessageOnEdit();
         filterId: "classes",
         tableId: "classesTable",
         fields: [
-          { value: "level", label: "Level", getValue: function (item) { return getLevelDisplayName(item.level); } },
+          { value: "level_name", label: "Level Name", getValue: function (item) { return getLevelDisplayName(item.level); } },
+          { value: "level", label: "Level Code" },
           { value: "class_id", label: "Class Code" },
           { value: "class_label", label: "Class Label" },
           { value: "sort_order", label: "Sort Order" },
@@ -299,7 +300,7 @@ function loadLevelsDropdown() {
       let valueA = a[classSortField];
       let valueB = b[classSortField];
 
-      if (classSortField === "level") {
+      if (classSortField === "level_name") {
         valueA = getLevelDisplayName(a.level);
         valueB = getLevelDisplayName(b.level);
       } else if (classSortField === "active") {
@@ -348,7 +349,7 @@ function loadLevelsDropdown() {
 
         tbody.innerHTML = `
           <tr>
-            <td colspan="5">Could not load classes.</td>
+            <td colspan="6">Could not load classes.</td>
           </tr>
         `;
       });
@@ -525,6 +526,7 @@ function loadLevelsDropdown() {
       cancelBtn.className =
         "glip-btn glip-btn-secondary teacher-cancel-btn";
       cancelBtn.textContent = "Cancel";
+      cancelBtn.style.marginLeft = "8px";
       cancelBtn.addEventListener("click", cancelClassesEditMode);
 
       editClassesBtn.insertAdjacentElement("afterend", cancelBtn);
@@ -559,10 +561,19 @@ function formatClassStatus(item) {
   return item.active ? "Active" : "Inactive";
 }
 
-function formatClassLevelCell(item) {
+function formatClassLevelNameCell(item) {
   return escapeHtml(
     appendPlanningWarning(
       getLevelDisplayName(item.level),
+      classHasInactiveLevel(item)
+    )
+  );
+}
+
+function formatClassLevelCodeCell(item) {
+  return escapeHtml(
+    appendPlanningWarning(
+      item.level,
       classHasInactiveLevel(item)
     )
   );
@@ -599,7 +610,7 @@ function renderClasses(classes) {
     if (!filteredClasses.length) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="5">No classes found.</td>
+          <td colspan="6">No classes found.</td>
         </tr>
       `;
       return;
@@ -615,7 +626,8 @@ function renderClasses(classes) {
 
 return `
   <tr class="${classNeedsAttention(item) ? "planning-row" : ""}">
-    <td>${formatClassLevelCell(item)}</td>
+    <td>${formatClassLevelNameCell(item)}</td>
+    <td>${formatClassLevelCodeCell(item)}</td>
     <td>${formatClassCodeCell(item)}</td>
     <td>${formatClassLabelCell(item)}</td>
     <td>${escapeHtml(item.sort_order)}</td>
@@ -646,12 +658,11 @@ return `
         data-original-class-id="${escapeHtml(item.class_id)}"
       >
         <td>
-          <input
-            type="text"
-            class="tracker-input"
-            data-field="level"
-            value="${escapeHtml(item.level)}"
-          />
+          ${formatClassLevelNameCell(item)}
+        </td>
+
+        <td>
+          ${formatClassLevelCodeCell(item)}
         </td>
 
         <td>
@@ -788,7 +799,7 @@ return `
     rows.forEach(function (row) {
       const item = { original_level: row.dataset.originalLevel, original_class_id: row.dataset.originalClassId };
       row.querySelectorAll("[data-field]").forEach(function (field) { item[field.dataset.field] = field.value; });
-      item.level = normaliseLevel(item.level);
+      item.level = normaliseLevel(item.original_level);
       item.class_id = normaliseClassCode(item.class_id);
       item.active = item.active === "true";
       item.sort_order = Number(item.sort_order || 999);
