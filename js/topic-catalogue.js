@@ -465,14 +465,9 @@ function init() {
       ? selectedSubject.subject_name || selectedSubject.subject_code
       : "the selected subject";
 
-    const topicNames = affected.map(function (item) {
-      return item.topic_name || item.topic_code;
-    });
-
-
-    const topicNames = affected.map(function (item) {
-      return item.topic_name || item.topic_code;
-    });
+const topicNames = affected.map(function (item) {
+  return item.topic_name || item.topic_code;
+});
 
 const bodyHtml = affected.length === 1
   ? "<p><strong>" + esc(topicNames[0]) + "</strong> will remain assigned to the subject <strong>" +
