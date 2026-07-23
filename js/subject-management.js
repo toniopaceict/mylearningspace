@@ -234,8 +234,13 @@ function saveCurriculumItem() {
 
     if (curriculumEditMode) {
       document.querySelectorAll("[data-curriculum-field]").forEach(function (field) {
-        field.addEventListener("input", markChangedFields);
-        field.addEventListener("change", markChangedFields);
+    field.addEventListener("input", function () {
+      markChangedField(field);
+    });
+    
+    field.addEventListener("change", function () {
+      markChangedField(field);
+    });
       });
     }
 
@@ -463,27 +468,36 @@ function renderEditRow(item) {
     });
   }
 
-  function markChangedFields() {
-    document.querySelectorAll("[data-curriculum-row]").forEach(function (row) {
-      const id = row.dataset.curriculumRow;
-      const original = currentCurriculum.find(function (item) {
-        return String(item.curriculum_id) === String(id);
-      });
-      if (!original) return;
+function markChangedField(field) {
+  const row = field.closest("[data-curriculum-row]");
+  if (!row) return;
 
-      row.querySelectorAll("[data-curriculum-field]").forEach(function (field) {
-        const name = field.dataset.curriculumField;
-        let currentValue = field.value;
-        let originalValue = original[name];
+  const id = row.dataset.curriculumRow;
 
-        if (name === "level") originalValue = normaliseLevel(original.level);
-        if (name === "visible" || name === "active") originalValue = isTrue(originalValue) ? "true" : "false";
-        if (name === "subject_id") originalValue = original.subject_code || original.subject_id;
+  const original = currentCurriculum.find(function (item) {
+    return String(item.curriculum_id) === String(id);
+  });
 
-        field.classList.toggle("teacher-field-changed", String(currentValue).trim() !== String(originalValue || "").trim());
-      });
-    });
+  if (!original) return;
+
+  const name = field.dataset.curriculumField;
+
+  let currentValue = String(field.value).trim();
+  let originalValue = original[name];
+
+  if (name === "level") {
+    originalValue = normaliseLevel(original.level);
+  } else if (name === "subject_id") {
+    originalValue = original.subject_code || original.subject_id;
+  } else if (name === "visible" || name === "active") {
+    originalValue = isTrue(originalValue) ? "true" : "false";
   }
+
+  field.classList.toggle(
+    "teacher-field-changed",
+    currentValue !== String(originalValue || "").trim()
+  );
+}
 
   function clearAddForm() {
     document.getElementById("newCurriculumLevel").value = "";
