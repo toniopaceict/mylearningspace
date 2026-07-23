@@ -1,0 +1,559 @@
+<!--
+=========================================================
+GLIP PAGE INFORMATION
+
+Help file:
+    /help/help.html
+
+=========================================================
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="../../assets/GLIP-icon-transparent.png" />
+
+    <title>GLIP – Guided Learning for Independent Progress</title>
+
+    <script>
+      function getSchoolFromUrl() {
+        const match = window.location.pathname.match(/\/schools\/([^/]+)\//i);
+        return match ? match[1] : "";
+      }
+
+      function getLevelNumber(level) {
+        const match = String(level || "").match(/\d+/);
+        return match ? match[0].padStart(2, "0") : "";
+      }
+
+      function normaliseLevel(level) {
+        const match = String(level || "").match(/\d+/);
+        return match ? "level-" + match[0].padStart(2, "0") : "";
+      }
+
+      function getStoredSubjectId() {
+        return String(sessionStorage.getItem("glipSubjectId") || "").trim();
+      }
+
+      function getStoredLevel() {
+        return String(sessionStorage.getItem("glipLevel") || "").trim();
+      }
+
+      function getStoredLevelId() {
+        return String(sessionStorage.getItem("glipLevelId") || "").trim();
+      }
+
+      function getStoredCurriculumId() {
+        return String(sessionStorage.getItem("glipCurriculumId") || "").trim();
+      }
+
+      window.PAGE_MENU_CONTEXT = {
+        type: "subject-landing",
+        school: getSchoolFromUrl(),
+        level: getLevelNumber(getStoredLevel()),
+        subject: getStoredSubjectId()
+      };
+    </script>
+    <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
+  </head>
+
+  <body>
+    <div id="header-placeholder"></div>
+
+    <div class="page-shell">
+      <header class="page-hero">
+        <div class="page-hero-panel">
+          <div class="page-hero-divider-top"></div>
+
+          <img
+            class="page-hero-brand-icon"
+            src="../../assets/GLIP-icon-transparent-cropped.png"
+            alt="GLIP logo"
+          />
+
+          <div class="page-hero-logo">GLIP</div>
+
+          <p class="page-hero-topline">
+            Guided Learning for Independent Progress
+          </p>
+
+          <h1>Topics</h1>
+          <h2 id="pageSubtitle">Topics</h2>
+
+          <div class="page-hero-divider-bottom"></div>
+        </div>
+      </header>
+
+      <div class="wrap">
+        <fieldset class="task-box topics-box">
+          <legend>Topics</legend>
+
+          <p class="q">
+            Available topics are shown in full colour. Other topics will become
+            available later.
+          </p>
+
+          
+
+          <div id="topics-loading" class="page-loading-box">
+            <div class="glip-progress show topics-progress">
+              <div class="glip-progress-bar"></div>
+            </div>
+            <p>Loading topics...</p>
+          </div>
+
+          <div id="topic-grid" class="topic-grid" style="display: none"></div>
+        </fieldset>
+      </div>
+    </div>
+<script>
+      const SCHOOL = getSchoolFromUrl();
+      const SUBJECT = getStoredSubjectId();
+      const LEVEL = getStoredLevel();
+      const LEVEL_ID = getStoredLevelId();
+      const CURRICULUM_ID = getStoredCurriculumId();
+
+      
+      const TOPICS_CACHE_DURATION = 2 * 60 * 60 * 1000;
+      const PROGRESS_CACHE_DURATION = 30 * 60 * 1000;
+
+      let progressItems = [];
+
+      function getWebAppUrl() {
+        return window.getGlipWebAppUrl();
+      }
+
+      function getSubjectDisplayName(subject) {
+        const storedName = String(
+          sessionStorage.getItem("glipSubjectName") || ""
+        ).trim();
+
+        if (storedName) return storedName;
+
+        return String(subject || "")
+          .replace(/[-_]+/g, " ")
+          .replace(/\b\w/g, function (letter) {
+            return letter.toUpperCase();
+          });
+      }
+
+      function setPageSubtitle() {
+        const subtitle = document.getElementById("pageSubtitle");
+        if (!subtitle) return;
+
+        subtitle.textContent =
+          getSubjectDisplayName(SUBJECT) +
+          (getLevelNumber(LEVEL)
+            ? " - Level " + Number(getLevelNumber(LEVEL))
+            : "");
+      }
+
+function glipCacheKey(parts) {
+  return window.GLIP_CACHE.makeKey(parts);
+}
+
+      function getStudentId() {
+        return sessionStorage.getItem("glipStudentId") || "";
+      }
+
+      function readTimedLocalCache(key, maxAge) {
+        const parsed = window.GLIP_CACHE.readLocal(key, maxAge);
+        return Array.isArray(parsed) ? parsed : null;
+      }
+
+      function writeTimedLocalCache(key, data) {
+        if (!Array.isArray(data)) return;
+        window.GLIP_CACHE.writeLocal(key, data);
+      }
+
+      function readTimedSessionCache(key, maxAge) {
+        const parsed = window.GLIP_CACHE.readSession(key, maxAge);
+        return Array.isArray(parsed) ? parsed : null;
+      }
+
+      function writeTimedSessionCache(key, data) {
+        if (!Array.isArray(data)) return;
+        window.GLIP_CACHE.writeSession(key, data);
+      }
+
+      function getTopicsCache() {
+        const key = glipCacheKey([
+          SCHOOL,
+          CURRICULUM_ID || LEVEL_ID || LEVEL,
+          SUBJECT,
+          "topics"
+        ]);
+        return readTimedLocalCache(key, TOPICS_CACHE_DURATION);
+      }
+
+      function setTopicsCache(topics) {
+        const key = glipCacheKey([
+          SCHOOL,
+          CURRICULUM_ID || LEVEL_ID || LEVEL,
+          SUBJECT,
+          "topics"
+        ]);
+        writeTimedLocalCache(key, topics);
+      }
+
+      function getProgressCache() {
+        const studentId = getStudentId();
+
+        if (!studentId) return null;
+
+        const key = glipCacheKey([
+          SCHOOL,
+          LEVEL,
+          studentId,
+          SUBJECT,
+          "progress"
+        ]);
+
+        return readTimedSessionCache(key, PROGRESS_CACHE_DURATION);
+      }
+
+      function setProgressCache(progress) {
+        const studentId = getStudentId();
+
+        if (!studentId) return;
+
+        const key = glipCacheKey([
+          SCHOOL,
+          LEVEL,
+          studentId,
+          SUBJECT,
+          "progress"
+        ]);
+
+        writeTimedSessionCache(key, progress);
+      }
+
+      function normaliseStatus(status) {
+        if (status === "completed") return "completed";
+        if (status === "in_progress" || status === "partly_completed") {
+          return "in_progress";
+        }
+        return "not_started";
+      }
+
+      function escapeHtml(value) {
+        return String(value || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function getTopicFolder(topic) {
+        return String(topic.topic_code || topic.topic_id || "").trim();
+      }
+
+      function getTopicNumber(topic) {
+        const folder = getTopicFolder(topic);
+        const match = folder.match(/(?:topic-|_t)(\d+)/i);
+        return match ? String(Number(match[1])) : "";
+      }
+
+function normaliseTopic(topic) {
+  const topicFolder = getTopicFolder(topic);
+  const topicId = String(topic.topic_id || "").trim();
+  const isAvailable = topic.available === true;
+
+  return {
+    id: topicId || topicFolder,
+    topicId: topicId,
+    title: String(topic.topic_name || "").trim(),
+    folder: topicFolder,
+    image: topicFolder
+      ? "../../content/" + SUBJECT + "/" + topicFolder + "/assets/" + topicFolder + ".jpg"
+      : "../../assets/studentslearning.jpg",
+    link: topicFolder
+      ? "../../content/" + SUBJECT + "/" + topicFolder + "/" + topicFolder + "-home.html"
+      : "",
+    status: isAvailable ? "available" : "unavailable",
+    sort: Number(topic.sort_order) || 0,
+    unavailableReason: String(topic.not_available_reason || "Not available").trim()
+  };
+}
+
+
+  
+
+      function showTopicsLoading(message) {
+        const loadingBox = document.getElementById("topics-loading");
+        const topicGrid = document.getElementById("topic-grid");
+
+        if (loadingBox) {
+          loadingBox.style.display = "block";
+          const messageText = loadingBox.querySelector("p");
+          if (messageText) {
+            messageText.textContent = message || "Loading topics...";
+          }
+        }
+
+        if (topicGrid) {
+          topicGrid.style.display = "none";
+        }
+      }
+
+      function hideTopicsLoading() {
+        const loadingBox = document.getElementById("topics-loading");
+        const topicGrid = document.getElementById("topic-grid");
+
+        if (loadingBox) {
+          loadingBox.style.display = "none";
+        }
+
+        if (topicGrid) {
+          topicGrid.style.display = "grid";
+        }
+      }
+
+      function renderTopics(topics) {
+        hideTopicsLoading();
+
+        const container = document.getElementById("topic-grid");
+
+        if (!Array.isArray(topics) || topics.length === 0) {
+          container.innerHTML = "No topics available";
+          return;
+        }
+
+        const displayTopics = topics
+          .map(normaliseTopic)
+          .filter(function (topic) {
+            return topic.title !== "" && topic.id !== "";
+          })
+          .sort(function (a, b) {
+            return a.sort - b.sort;
+          });
+
+        if (displayTopics.length === 0) {
+          container.innerHTML = "No topics available";
+          return;
+        }
+
+        container.innerHTML = displayTopics
+          .map(function (topic) {
+            const safeTitle = escapeHtml(topic.title || "Untitled Topic");
+            const safeReason = escapeHtml(topic.unavailableReason || "Not available");
+            const isAvailable = topic.status === "available" && topic.link !== "";
+            const cardTitle = isAvailable ? safeTitle : safeTitle + " - " + safeReason;
+            const tabIndex = isAvailable ? "0" : "-1";
+            const ariaDisabled = isAvailable ? "false" : "true";
+
+            return `
+              <a href="${isAvailable ? topic.link : "#"}"
+                 class="topic-card ${isAvailable ? "" : "unavailable"}"
+                 title="${cardTitle}"
+                 tabindex="${tabIndex}"
+                 aria-disabled="${ariaDisabled}">
+                <div class="topic-card-img-wrap">
+                  <span
+                    class="topic-badge"
+                    id="topic-badge-${escapeHtml(topic.id)}"
+                    title="Checking progress"
+                  ></span>
+
+                  <img
+                    src="${topic.image}"
+                    alt="${safeTitle}"
+                    loading="lazy"
+                    decoding="async"
+                    onerror="this.src='../../assets/studentslearning.jpg'"
+                  >
+                </div>
+
+                <div class="topic-card-caption">
+                  ${safeTitle}
+                </div>
+              </a>
+            `;
+          })
+          .join("");
+
+        applyTopicBadges(displayTopics);
+      }
+
+      function applyTopicBadges(displayTopics) {
+        if (!Array.isArray(displayTopics)) return;
+
+        displayTopics.forEach(function (topic) {
+          const badge = document.getElementById("topic-badge-" + topic.id);
+          if (!badge) return;
+
+          const status = getTopicStatus(topic);
+
+          badge.classList.remove("completed", "in-progress", "not-started");
+
+          if (status === "completed") {
+            badge.textContent = "✓";
+            badge.classList.add("completed");
+            badge.title = "Completed";
+          } else if (status === "in_progress") {
+            badge.textContent = "✎";
+            badge.classList.add("in-progress");
+            badge.title = "Partly completed";
+          } else {
+            badge.textContent = "";
+            badge.classList.add("not-started");
+            badge.title = "Not started";
+          }
+        });
+      }
+
+function getTopicStatus(topic) {
+  const topicId = String(topic.topicId || topic.id || "").trim();
+
+  if (!topicId) {
+    return "not_started";
+  }
+
+  const topicActivities = progressItems.filter(function (item) {
+    return String(item.topic_id || "").trim() === topicId;
+  });
+
+  if (topicActivities.length === 0) {
+    return "not_started";
+  }
+
+  const allCompleted = topicActivities.every(function (item) {
+    return normaliseStatus(item.status) === "completed";
+  });
+
+  if (allCompleted) {
+    return "completed";
+  }
+
+  const anyStarted = topicActivities.some(function (item) {
+    const status = normaliseStatus(item.status);
+    return status === "completed" || status === "in_progress";
+  });
+
+  return anyStarted ? "in_progress" : "not_started";
+}
+
+
+
+  
+
+      async function fetchProgress() {
+        const studentId = getStudentId();
+
+        if (!studentId) {
+          progressItems = [];
+          return [];
+        }
+
+        try {
+          const res = await fetch(getWebAppUrl(), {
+            method: "POST",
+            body: JSON.stringify({
+              action: "getMyProgress",
+              student_id: studentId,
+              subject_id: SUBJECT,
+              level: LEVEL
+            })
+          });
+
+          const data = await res.json();
+
+          if (data.status === "success" && Array.isArray(data.progress)) {
+            progressItems = data.progress;
+            setProgressCache(progressItems);
+            return progressItems;
+          }
+        } catch (err) {
+          console.error(err);
+        }
+
+        return progressItems;
+      }
+
+      async function fetchTopics() {
+        try {
+          const res = await fetch(getWebAppUrl(), {
+            method: "POST",
+            body: JSON.stringify({
+              action: "getTopics",
+              curriculum_id: CURRICULUM_ID,
+              subject_id: SUBJECT,
+              level_id: LEVEL_ID,
+              level: LEVEL,
+              userType:
+                sessionStorage.getItem("glipRole") ||
+                sessionStorage.getItem("glipUserType") ||
+                "student",
+              teacher_id: sessionStorage.getItem("glipTeacherId") || ""
+            })
+          });
+
+          const data = await res.json();
+
+          if (data.status === "error") {
+            throw new Error(data.message || "API error");
+          }
+
+          const topics = Array.isArray(data.topics) ? data.topics : [];
+          setTopicsCache(topics);
+          return topics;
+        } catch (err) {
+          console.error(err);
+          return null;
+        }
+      }
+
+      function loadTopics() {
+        if (!SUBJECT || (!CURRICULUM_ID && !LEVEL_ID && !LEVEL)) {
+          hideTopicsLoading();
+          document.getElementById("topic-grid").innerHTML =
+            "Subject or level not found. Please return to the Subjects page and choose a subject again.";
+          return;
+        }
+
+        showTopicsLoading("Loading topics...");
+
+        const cachedProgress = getProgressCache();
+        const cachedTopics = getTopicsCache();
+
+        if (cachedProgress) {
+          progressItems = cachedProgress;
+        }
+
+        const progressPromise = cachedProgress
+          ? Promise.resolve(cachedProgress)
+          : fetchProgress();
+
+        if (cachedTopics) {
+          renderTopics(cachedTopics);
+          progressPromise.then(function () {
+            applyTopicBadges(cachedTopics.map(normaliseTopic));
+          });
+          return;
+        }
+
+        const topicsPromise = fetchTopics();
+
+        Promise.all([progressPromise, topicsPromise]).then(function (results) {
+          const topics = results[1];
+
+          if (Array.isArray(topics)) {
+            renderTopics(topics);
+          } else {
+            hideTopicsLoading();
+            document.getElementById("topic-grid").style.display = "grid";
+            document.getElementById("topic-grid").innerHTML =
+              "Unable to load topics";
+          }
+        });
+      }
+
+      document.addEventListener("glipReady", function () {
+        setPageSubtitle();
+        loadTopics();
+      });
+    </script>
+  </body>
+</html>
