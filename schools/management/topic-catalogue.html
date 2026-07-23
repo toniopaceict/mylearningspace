@@ -42,18 +42,14 @@ Help file: /help/help.html
   <div class="tracker-row">
     <select class="tracker-input" id="topicCatalogueSubject"><option value="">Loading subjects...</option></select>
   </div>
-  <div class="panel-header">
-    <div class="panel-right teacher-actions">
+  <div class="panel-header" style="justify-content:flex-end;">
+    <div class="panel-right teacher-actions" style="margin-left:auto;">
       <button class="glip-btn" id="editTopicCatalogueBtn" type="button">Edit Topics</button>
       <button class="glip-btn" id="saveTopicCatalogueBtn" type="button" style="display:none">Save Changes</button>
       <button type="button" class="glip-btn glip-btn-secondary teacher-cancel-btn" id="cancelTopicCatalogueBtn" style="display: none"> Cancel </button>
     </div>
   </div>
   <p class="panel-message teacher-message" id="topicCatalogueMessage"></p>
-  <div class="page-loading-box text-center" id="topicCatalogueSaving" style="display:none">
-    <div class="glip-progress show topics-progress"><div class="glip-progress-bar"></div></div>
-    <p>Saving topic catalogue...</p>
-  </div>
   <div class="page-loading-box text-center" id="topicCatalogueLoading" style="display:none">
     <div class="glip-progress show topics-progress"><div class="glip-progress-bar"></div></div>
     <p>Loading topic catalogue...</p>
@@ -69,10 +65,10 @@ Help file: /help/help.html
       <tbody id="topicCatalogueTableBody"></tbody>
     </table>
     <p
-    id="topicCatalogueSummary"
-    class="panel-message text-center"
-    style="margin-top:12px;">
-</p>
+      id="topicCatalogueSummary"
+      class="panel-message"
+      style="margin-top:12px; text-align:right;">
+    </p>
   </div>
 </fieldset>
 </div>
