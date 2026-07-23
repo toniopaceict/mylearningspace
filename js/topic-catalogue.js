@@ -321,6 +321,68 @@
     render();
   }
 
+
+  function showTopicCatalogueConfirm(options) {
+    if (typeof window.showGlipConfirmModal === "function") {
+      return window.showGlipConfirmModal(options);
+    }
+
+    return new Promise(function (resolve) {
+      let modal = document.getElementById("topicCatalogueConfirmModal");
+
+      if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "topicCatalogueConfirmModal";
+        modal.className = "glip-confirm-modal";
+        modal.innerHTML =
+          '<div class="glip-confirm-box" role="dialog" aria-modal="true" aria-labelledby="topicCatalogueConfirmTitle">' +
+            '<h2 id="topicCatalogueConfirmTitle"></h2>' +
+            '<div id="topicCatalogueConfirmBody" class="glip-confirm-body"></div>' +
+            '<div class="glip-confirm-actions">' +
+              '<button type="button" id="topicCatalogueConfirmCancel" class="glip-btn glip-btn-secondary teacher-cancel-btn">Cancel</button>' +
+              '<button type="button" id="topicCatalogueConfirmOk" class="glip-btn">Continue</button>' +
+            '</div>' +
+          '</div>';
+        document.body.appendChild(modal);
+      }
+
+      const title = modal.querySelector("#topicCatalogueConfirmTitle");
+      const body = modal.querySelector("#topicCatalogueConfirmBody");
+      const cancelBtn = modal.querySelector("#topicCatalogueConfirmCancel");
+      const okBtn = modal.querySelector("#topicCatalogueConfirmOk");
+      const box = modal.querySelector(".glip-confirm-box");
+      let settled = false;
+
+      title.textContent = options.title || "Confirm change";
+      body.innerHTML = options.bodyHtml || "";
+      okBtn.textContent = options.confirmButtonText || "Continue";
+      cancelBtn.textContent = options.cancelButtonText || "Cancel";
+
+      function close(value) {
+        if (settled) return;
+        settled = true;
+        modal.classList.remove("is-visible");
+        document.removeEventListener("keydown", onKeyDown);
+        resolve(value);
+      }
+
+      function onKeyDown(event) {
+        if (event.key === "Escape") close(false);
+      }
+
+      cancelBtn.onclick = function () { close(false); };
+      okBtn.onclick = function () { close(true); };
+      modal.onclick = function (event) {
+        if (event.target === modal) close(false);
+      };
+      box.onclick = function (event) { event.stopPropagation(); };
+
+      document.addEventListener("keydown", onKeyDown);
+      modal.classList.add("is-visible");
+      setTimeout(function () { okBtn.focus(); }, 0);
+    });
+  }
+
   function saveChanges() {
     if (saving) return;
 
@@ -387,27 +449,16 @@
       ? "<p><strong>" + esc(topicNames[0]) + "</strong> will remain assigned to the subject <strong>" + esc(subjectName) + "</strong>, but if its status is changed to <strong>Inactive</strong>, it will become unavailable to students.</p><p>Do you want to continue?</p>"
       : "<p>The following topics will remain assigned to the subject <strong>" + esc(subjectName) + "</strong>, but if their status is changed to <strong>Inactive</strong>, they will become unavailable to students:</p><p><strong>" + esc(topicNames.join(", ")) + "</strong></p><p>Do you want to continue?</p>";
 
-    if (typeof window.showGlipConfirmModal === "function") {
-      window.showGlipConfirmModal({
-        title: "Make topic inactive?",
-        bodyHtml: bodyHtml,
-        noConfirmationInput: true,
-        extraButtonText: "Continue"
-      }).then(function (confirmed) {
-        if (confirmed) {
-          applyAndSaveUpdates(updates);
-        }
-      });
-      return;
-    }
-
-    const fallbackText = affected.length === 1
-      ? topicNames[0] + " will remain assigned to the subject " + subjectName + ", but if its status is changed to 'Inactive', it will become unavailable to students. Do you want to continue?"
-      : topicNames.join(", ") + " will remain assigned to the subject " + subjectName + ", but if their status is changed to 'Inactive', they will become unavailable to students. Do you want to continue?";
-
-    if (window.confirm(fallbackText)) {
-      applyAndSaveUpdates(updates);
-    }
+    showTopicCatalogueConfirm({
+      title: "Change topic status?",
+      bodyHtml: bodyHtml,
+      confirmButtonText: "Continue",
+      cancelButtonText: "Cancel"
+    }).then(function (confirmed) {
+      if (confirmed) {
+        applyAndSaveUpdates(updates);
+      }
+    });
   }
 
   function applyAndSaveUpdates(updates) {
