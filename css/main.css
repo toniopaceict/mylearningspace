@@ -2085,14 +2085,8 @@ body.glip-dyslexia-bg .scenario-table tr:nth-child(even) td {
   line-height: 1.3;
 }
 
-
-
 #saveTeachersProgress {
   margin: 8px 0 10px;
-}
-
-.teacher-cancel-btn {
-  margin-left: 12px;
 }
 
 .teacher-field-changed {
