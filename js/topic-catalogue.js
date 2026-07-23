@@ -450,7 +450,7 @@
           esc(subjectName) +
           "</strong>.</p>" +
         "<p style='margin-top:12px;'>If its status is changed to <strong>Inactive</strong>, it will become unavailable to students.</p>" +
-        "<p style='margin-top:18px;'>Do you want to continue?</p>"
+        <p style='margin-top:18px;'><strong>Do you want to continue?</strong></p>
       : "<p>The following topics will remain assigned to the subject <strong>" +
           esc(subjectName) +
           "</strong>:</p>" +
@@ -458,7 +458,7 @@
           esc(topicNames.join(", ")) +
           "</strong></p>" +
         "<p style='margin-top:12px;'>If their status is changed to <strong>Inactive</strong>, they will become unavailable to students.</p>" +
-        "<p style='margin-top:18px;'>Do you want to continue?</p>";
+        <p style='margin-top:18px;'><strong>Do you want to continue?</strong></p>
     
     
     showTopicCatalogueConfirm({
