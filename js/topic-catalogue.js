@@ -162,18 +162,12 @@
 
     select.innerHTML = subjects.length
       ? subjects.map(function (subject) {
-          const topicCount = Number(subject.topic_count || 0);
-          const topicText =
-            topicCount === 1 ? "1 topic" : topicCount + " topics";
-
           return (
             '<option value="' +
             esc(subject.subject_id) +
             '">' +
             esc(subject.subject_name || subject.subject_code) +
-            " (" +
-            esc(topicText) +
-            ")</option>"
+            "</option>"
           );
         }).join("")
       : '<option value="">No active subjects</option>';
@@ -242,7 +236,9 @@
         : esc(status);
 
       return (
-        '<tr data-row-id="' +
+        '<tr class="' +
+        (!item.active ? "planning-row" : "") +
+        '" data-row-id="' +
         esc(item.topic_id) +
         '">' +
         '<td>' +
@@ -367,21 +363,54 @@
         return entry.item;
       });
 
-    if (affected.length) {
-      const names = affected.map(function (item) {
-        return item.topic_name || item.topic_code;
-      }).join(", ");
-
-      const warningText =
-        affected.length === 1
-          ? names +
-            " is currently used by the curriculum. Existing assignments will remain, but this content will become unavailable to students. Continue?"
-          : names +
-            " are currently used by the curriculum. Existing assignments will remain, but this content will become unavailable to students. Continue?";
-
-      if (!window.confirm(warningText)) return;
+    if (!affected.length) {
+      applyAndSaveUpdates(updates);
+      return;
     }
 
+    const selectedSubjectId =
+      document.getElementById("topicCatalogueSubject")?.value || "";
+
+    const selectedSubject = subjects.find(function (subject) {
+      return String(subject.subject_id) === String(selectedSubjectId);
+    });
+
+    const subjectName = selectedSubject
+      ? selectedSubject.subject_name || selectedSubject.subject_code
+      : "the selected subject";
+
+    const topicNames = affected.map(function (item) {
+      return item.topic_name || item.topic_code;
+    });
+
+    const bodyHtml = affected.length === 1
+      ? "<p><strong>" + esc(topicNames[0]) + "</strong> will remain assigned to the subject <strong>" + esc(subjectName) + "</strong>, but if its status is changed to <strong>Inactive</strong>, it will become unavailable to students.</p><p>Do you want to continue?</p>"
+      : "<p>The following topics will remain assigned to the subject <strong>" + esc(subjectName) + "</strong>, but if their status is changed to <strong>Inactive</strong>, they will become unavailable to students:</p><p><strong>" + esc(topicNames.join(", ")) + "</strong></p><p>Do you want to continue?</p>";
+
+    if (typeof window.showGlipConfirmModal === "function") {
+      window.showGlipConfirmModal({
+        title: "Make topic inactive?",
+        bodyHtml: bodyHtml,
+        noConfirmationInput: true,
+        extraButtonText: "Continue"
+      }).then(function (confirmed) {
+        if (confirmed) {
+          applyAndSaveUpdates(updates);
+        }
+      });
+      return;
+    }
+
+    const fallbackText = affected.length === 1
+      ? topicNames[0] + " will remain assigned to the subject " + subjectName + ", but if its status is changed to 'Inactive', it will become unavailable to students. Do you want to continue?"
+      : topicNames.join(", ") + " will remain assigned to the subject " + subjectName + ", but if their status is changed to 'Inactive', they will become unavailable to students. Do you want to continue?";
+
+    if (window.confirm(fallbackText)) {
+      applyAndSaveUpdates(updates);
+    }
+  }
+
+  function applyAndSaveUpdates(updates) {
     const previousItems = items.map(function (item) {
       return Object.assign({}, item);
     });
@@ -469,8 +498,8 @@
     const number = Number(count || 0);
 
     return number
-      ? number + (number === 1 ? " assignment" : " assignments")
-      : "Not used";
+      ? "Assigned to " + number + (number === 1 ? " subject" : " subjects")
+      : "Not assigned";
   }
 
   function updateButtons() {
