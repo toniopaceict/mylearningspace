@@ -151,7 +151,7 @@
         const selected = String(subject.subject_id) === String(selectedSubject) ? "selected" : "";
         const label = appendPlanningWarning(
           subject.subject_name || subject.subject_id,
-          subject.curriculum_active === false || subject.active === false || subject.level_active === false
+          subject.curriculum_active === false || subject.active === false
         );
         return '<option value="' + escapeHtml(subject.subject_id) + '" ' + selected + '>' +
           escapeHtml(label) +
@@ -686,7 +686,7 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
 
       <div class="student-subject-edit-option">
         <span class="student-subject-edit-label">
-          ${escapeHtml(appendPlanningWarning(subject.subject_name || subject.subject_id, subject.curriculum_active === false || subject.level_active === false))}
+          ${escapeHtml(appendPlanningWarning(subject.subject_name || subject.subject_id, subject.curriculum_active === false || subject.active === false))}
         </span>
 
         <select

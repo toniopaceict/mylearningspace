@@ -84,8 +84,8 @@
 
   const PAGE_PREDICTIONS = {
     "level-management.html": ["listCurriculumManagementAdmin", "listClassesAdmin"],
-    "subject-management.html": ["getCurriculumTopicManagement"],
-    "topic-management.html": ["listCurriculumManagementAdmin"],
+    "subject-management.html": ["listCurriculumManagementAdmin"],
+    "topic-management.html": ["getCurriculumTopicManagement"],
     "teacher-management.html": ["listClassTeachersAdmin", "listMyWorkFolders"],
     "class-management.html": ["listClassTeachersAdmin", "listStudentsAdmin"],
     "teaching-assignments.html": ["listTeachersAdmin", "listClassesAdmin", "getAllSubjectsAdmin", "listMyWorkFolders"],

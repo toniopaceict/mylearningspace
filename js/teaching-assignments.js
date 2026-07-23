@@ -361,7 +361,7 @@ function populateSubjectDropdownForLevel(level, select, selectedSubjectId) {
 
       return `
         <option value="${escapeHtml(subject.subject_id)}" ${selected}>
-          ${escapeHtml(appendPlanningWarning(subject.subject_name || subject.subject_id, subject.active === false || subject.level_active === false || subject.curriculum_active === false))}
+          ${escapeHtml(appendPlanningWarning(subject.subject_name || subject.subject_id, subject.active === false || subject.curriculum_active === false))}
         </option>
       `;
     }).join("");
@@ -390,7 +390,7 @@ function populateSubjectDropdownForLevel(level, select, selectedSubjectId) {
 
         return `
           <option value="${escapeHtml(item.class_id)}" ${selected}>
-            ${escapeHtml(appendPlanningWarning(item.class_id, item.active === false || item.level_active === false))}
+            ${escapeHtml(appendPlanningWarning(item.class_id, item.active === false))}
           </option>
         `;
       }).join("");
@@ -904,7 +904,7 @@ function renderSubjectOptionsForLevel(level, selectedSubjectId) {
 
       return `
         <option value="${escapeHtml(subject.subject_id)}" ${selected}>
-          ${escapeHtml(appendPlanningWarning(subject.subject_name || subject.subject_id, subject.active === false || subject.level_active === false || subject.curriculum_active === false))}
+          ${escapeHtml(appendPlanningWarning(subject.subject_name || subject.subject_id, subject.active === false || subject.curriculum_active === false))}
         </option>
       `;
     }).join("");
@@ -921,7 +921,7 @@ function renderSubjectOptionsForLevel(level, selectedSubjectId) {
 
         return `
           <option value="${escapeHtml(item.class_id)}" ${selected}>
-            ${escapeHtml(appendPlanningWarning(item.class_id, item.active === false || item.level_active === false))}
+            ${escapeHtml(appendPlanningWarning(item.class_id, item.active === false))}
           </option>
         `;
       }).join("");

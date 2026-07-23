@@ -691,7 +691,7 @@ function formatStudentClassCell(student) {
   return escapeHtml(
     appendPlanningWarning(
       getStudentClassDisplayText(student.class_id),
-      studentHasInactiveClass(student) || studentHasInactiveLevel(student)
+      studentHasInactiveClass(student)
     )
   );
 }

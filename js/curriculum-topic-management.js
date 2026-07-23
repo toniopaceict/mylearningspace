@@ -143,15 +143,14 @@
     const temporaryId = "pending-topic-assignment-" + Date.now();
     assignments.push({ curriculum_topic_id: temporaryId, curriculum_id: curriculumId, topic_id: topicId, level: curriculumInfo.level, level_active: curriculumInfo.level_active !== false, subject_id: curriculumInfo.subject_id, subject_code: curriculumInfo.subject_code, subject_name: curriculumInfo.subject_name, curriculum_active: curriculumInfo.active !== false, topic_code: topicInfo.topic_code, topic_name: topicInfo.topic_name, visible: visible, sort_order: sortOrder, active: active });
     renderAssignments(); clearAddForm();
-    postToGlip({ action: "addCurriculumTopicManagement", teacher_id: sessionStorage.getItem("glipTeacherId"), role: getRole(), curriculum_id: curriculumId, topic_id: topicId, visible: visible, sort_order: sortOrder, active: active })
-      .then(function (result) {
-        if (!result || result.status !== "success") throw new Error((result && result.message) || "Could not save topic assignment.");
-        setAddMessage(result.message || "Topic assignment saved.", "success"); resyncSilently();
-      })
-      .catch(function (error) {
-        assignments = assignments.filter(function (item) { return String(item.curriculum_topic_id) !== temporaryId; }); renderAssignments();
-        setAddMessage(error.message || "Could not save topic assignment. The temporary row was removed.", "error");
-      });
+    GLIPOptimisticUpdate.run({
+      request: function () { return postToGlip({ action: "addCurriculumTopicManagement", teacher_id: sessionStorage.getItem("glipTeacherId"), role: getRole(), curriculum_id: curriculumId, topic_id: topicId, visible: visible, sort_order: sortOrder, active: active }); },
+      failureMessage: "Could not save topic assignment.",
+      onSuccess: function (result) { setAddMessage(result.message || "Topic assignment saved.", "success"); },
+      resync: resyncSilently,
+      rollback: function () { assignments = assignments.filter(function (item) { return String(item.curriculum_topic_id) !== temporaryId; }); renderAssignments(); },
+      onFailure: function (error) { setAddMessage(error.message || "Could not save topic assignment. The temporary row was removed.", "error"); }
+    });
   }
 
   function toggleEditMode() {
@@ -226,26 +225,27 @@
   }
 
 function renderViewRow(item) {
-  const warning = hasInactiveParentWarning(item);
-  const planningClass = warning ? "planning-row" : "";
+  const warnings = getPlanningWarnings(item);
+  const planningClass = warnings.any ? "planning-row" : "";
 
   return '<tr class="' + planningClass + '">' +
-    '<td>' + escapeHtml(appendPlanningWarning(formatLevel(item.level), warning)) + '</td>' +
-    '<td>' + escapeHtml(item.subject_name || item.subject_code) + '</td>' +
-    '<td>' + escapeHtml(item.topic_name || item.topic_code) + '</td>' +
+    '<td>' + escapeHtml(appendPlanningWarning(formatLevel(item.level), warnings.level)) + '</td>' +
+    '<td>' + escapeHtml(appendPlanningWarning(item.subject_name || item.subject_code, warnings.subject)) + '</td>' +
+    '<td>' + escapeHtml(appendPlanningWarning(item.topic_name || item.topic_code, warnings.topic)) + '</td>' +
     '<td>' + escapeHtml(getCurriculumTopicVisibleText(item)) + '</td>' +
     '<td>' + escapeHtml(item.sort_order) + '</td>' +
     '<td>' + escapeHtml(getCurriculumTopicStatusText(item)) + '</td>' +
     '</tr>';
 }
+
   function renderEditRow(item) {
-    const warning = hasInactiveParentWarning(item);
-    const planningClass = warning ? "planning-row" : "";
+    const warnings = getPlanningWarnings(item);
+    const planningClass = warnings.any ? "planning-row" : "";
 
     return '<tr class="' + planningClass + '" data-curriculum-topic-row="' + escapeHtml(item.curriculum_topic_id) + '">' +
-      '<td>' + escapeHtml(appendWarning(formatLevel(item.level), warning)) + '</td>' +
-      '<td>' + escapeHtml(item.subject_name || item.subject_code) + '</td>' +
-      '<td>' + escapeHtml(item.topic_name || item.topic_code) + '</td>' +
+      '<td>' + escapeHtml(appendPlanningWarning(formatLevel(item.level), warnings.level)) + '</td>' +
+      '<td>' + escapeHtml(appendPlanningWarning(item.subject_name || item.subject_code, warnings.subject)) + '</td>' +
+      '<td>' + escapeHtml(appendPlanningWarning(item.topic_name || item.topic_code, warnings.topic)) + '</td>' +
       '<td><select class="tracker-input" data-curriculum-topic-field="visible">' + renderBooleanOptions(item.visible, "Visible", "Hidden") + '</select></td>' +
       '<td><input class="tracker-input" type="number" min="1" step="1" data-curriculum-topic-field="sort_order" value="' + escapeHtml(item.sort_order) + '" /></td>' +
       '<td><select class="tracker-input" data-curriculum-topic-field="active">' + renderBooleanOptions(item.active, "Active", "Inactive") + '</select></td>' +
@@ -261,15 +261,14 @@ function renderViewRow(item) {
     });
     const previousAssignments = assignments.map(function (item) { return Object.assign({}, item); });
     applyUpdatesLocally(itemsToSave); editMode = false; updateEditButton(); renderAssignments();
-    postToGlip({ action: "updateCurriculumTopicManagement", teacher_id: sessionStorage.getItem("glipTeacherId"), role: getRole(), assignments: itemsToSave })
-      .then(function (result) {
-        if (!result || result.status !== "success") throw new Error((result && result.message) || "Could not save topic assignments.");
-        setMessage(result.message || "Topic assignments saved.", "success"); resyncSilently();
-      })
-      .catch(function (error) {
-        assignments = previousAssignments; renderAssignments();
-        setMessage(error.message || "Could not save topic assignments. The previous values were restored.", "error");
-      });
+    GLIPOptimisticUpdate.run({
+      request: function () { return postToGlip({ action: "updateCurriculumTopicManagement", teacher_id: sessionStorage.getItem("glipTeacherId"), role: getRole(), assignments: itemsToSave }); },
+      failureMessage: "Could not save topic assignments.",
+      onSuccess: function (result) { setMessage(result.message || "Topic assignments saved.", "success"); },
+      resync: resyncSilently,
+      rollback: function () { assignments = previousAssignments; renderAssignments(); },
+      onFailure: function (error) { setMessage(error.message || "Could not save topic assignments. The previous values were restored.", "error"); }
+    });
   }
 
   function applyUpdatesLocally(itemsToSave) {
@@ -300,7 +299,7 @@ function renderViewRow(item) {
 
       renderAssignments();
     }).catch(function (error) {
-      console.warn("Silent curriculum topic resync failed.", error);
+      console.warn("Silent topic assignment resync failed.", error);
     });
   }
 
@@ -532,8 +531,43 @@ function cancelAddAssignment() {
       .replace(/'/g, "&#039;");
   }
 
+function getPlanningWarnings(item) {
+  const matchingCurriculum = curriculum.find(function (candidate) {
+    return String(candidate.curriculum_id) === String(item && item.curriculum_id);
+  });
+
+  const matchingTopic = topics.find(function (candidate) {
+    return String(candidate.topic_id) === String(item && item.topic_id);
+  });
+
+  const levelInactive =
+    item && item.level_active === false ||
+    matchingCurriculum && matchingCurriculum.level_active === false;
+
+  const subjectInactive =
+    item && item.subject_active === false ||
+    item && item.curriculum_active === false ||
+    matchingCurriculum && matchingCurriculum.subject_active === false ||
+    matchingCurriculum && matchingCurriculum.active === false;
+
+  const topicInactive =
+    item && item.topic_active === false ||
+    matchingTopic && matchingTopic.active === false;
+
+  const anySpecificWarning =
+    Boolean(levelInactive || subjectInactive || topicInactive);
+
+  return {
+    level: Boolean(levelInactive),
+    subject: Boolean(subjectInactive),
+    topic: Boolean(topicInactive),
+    any: anySpecificWarning ||
+      Boolean(item && item.has_inactive_dependency === true)
+  };
+}
+
 function hasInactiveParentWarning(item) {
-  return item && item.has_inactive_dependency === true;
+  return getPlanningWarnings(item).any;
 }
 
 function appendPlanningWarning(text, showWarning) {
@@ -566,4 +600,8 @@ function getCurriculumTopicVisibleText(item) {
 
 
   
+
+  document.addEventListener("glipManagementDataUpdated", function (event) {
+    if (event.detail && event.detail.action === "getCurriculumTopicManagement" && !editMode) loadData();
+  });
 })();

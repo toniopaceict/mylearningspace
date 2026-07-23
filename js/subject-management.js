@@ -155,7 +155,7 @@ function saveCurriculumItem() {
   const temporaryId = "pending-curriculum-" + Date.now();
   const levelInfo = levels.find(function (item) { return normaliseLevel(item.level_code) === normaliseLevel(level); }) || {};
   const subjectInfo = subjects.find(function (item) { return String(item.subject_code) === String(subject) || String(item.subject_id) === String(subject); }) || {};
-  currentCurriculum.push({ curriculum_id: temporaryId, level: level, level_active: levelInfo.active !== false, subject_id: subjectInfo.subject_id || subject, subject_code: subjectInfo.subject_code || subject, subject_name: subjectInfo.subject_name || subject, visible: visible, sort_order: sortOrder, active: active });
+  currentCurriculum.push({ curriculum_id: temporaryId, level: level, level_active: levelInfo.active !== false, subject_id: subjectInfo.subject_id || subject, subject_code: subjectInfo.subject_code || subject, subject_name: subjectInfo.subject_name || subject, subject_active: subjectInfo.active !== false, visible: visible, sort_order: sortOrder, active: active });
   renderCurriculum(currentCurriculum); clearAddForm();
 
   GLIPOptimisticUpdate.run({
@@ -247,8 +247,32 @@ function saveCurriculumItem() {
     table.style.visibility = "visible";
   }
 
-    function hasInactiveParentWarning(item) {
-    return item && item.level_active === false;
+  function getSubjectRecord(item) {
+    if (!item) return null;
+
+    return subjects.find(function (subject) {
+      return String(subject.subject_id) === String(item.subject_id) ||
+        String(subject.subject_code) === String(item.subject_code || item.subject_id);
+    }) || null;
+  }
+
+  function getPlanningWarnings(item) {
+    const subject = getSubjectRecord(item);
+    const levelInactive = !!(item && item.level_active === false);
+    const subjectInactive = !!(
+      item && item.subject_active === false ||
+      subject && subject.active === false
+    );
+
+    return {
+      level: levelInactive,
+      subject: subjectInactive,
+      any: levelInactive || subjectInactive
+    };
+  }
+
+  function hasInactiveParentWarning(item) {
+    return getPlanningWarnings(item).any;
   }
 
   function appendPlanningWarning(text, showWarning) {
@@ -283,11 +307,12 @@ function getCurriculumVisibleText(item) {
   
 
 function renderViewRow(item) {
-  const planningClass = hasInactiveParentWarning(item) ? "planning-row" : "";
+  const warnings = getPlanningWarnings(item);
+  const planningClass = warnings.any ? "planning-row" : "";
 
   return '<tr class="' + planningClass + '">' +
-    '<td>' + escapeHtml(appendPlanningWarning(formatLevel(item.level), hasInactiveParentWarning(item))) + '</td>' +
-    '<td>' + escapeHtml(item.subject_name || item.subject_code || item.subject_id) + '</td>' +
+    '<td>' + escapeHtml(appendPlanningWarning(formatLevel(item.level), warnings.level)) + '</td>' +
+    '<td>' + escapeHtml(appendPlanningWarning(item.subject_name || item.subject_code || item.subject_id, warnings.subject)) + '</td>' +
     '<td>' + escapeHtml(getCurriculumVisibleText(item)) + '</td>' +
     '<td>' + escapeHtml(item.sort_order) + '</td>' +
     '<td>' + escapeHtml(getCurriculumStatusText(item)) + '</td>' +
@@ -295,7 +320,8 @@ function renderViewRow(item) {
 }
 
 function renderEditRow(item) {
-  const planningClass = hasInactiveParentWarning(item) ? "planning-row" : "";
+  const warnings = getPlanningWarnings(item);
+  const planningClass = warnings.any ? "planning-row" : "";
 
   return '<tr class="' + planningClass + '" data-curriculum-row="' + escapeHtml(item.curriculum_id) + '">' +
     '<td><select class="tracker-input" data-curriculum-field="level">' + renderLevelOptions(item.level) + '</select></td>' +
@@ -320,7 +346,11 @@ function renderEditRow(item) {
   function renderSubjectOptions(selectedSubject) {
     return subjects.map(function (subject) {
       const selected = String(subject.subject_code) === String(selectedSubject) ? "selected" : "";
-      return '<option value="' + escapeHtml(subject.subject_code) + '" ' + selected + '>' + escapeHtml(subject.subject_name || subject.subject_code) + '</option>';
+      const label = appendPlanningWarning(
+        subject.subject_name || subject.subject_code,
+        subject.active === false
+      );
+      return '<option value="' + escapeHtml(subject.subject_code) + '" ' + selected + '>' + escapeHtml(label) + '</option>';
     }).join("");
   }
 
@@ -383,6 +413,7 @@ function renderEditRow(item) {
       existing.subject_id = update.subject_id;
       existing.subject_code = subjectInfo ? subjectInfo.subject_code : update.subject_id;
       existing.subject_name = subjectInfo ? subjectInfo.subject_name : existing.subject_name;
+      existing.subject_active = subjectInfo ? subjectInfo.active !== false : existing.subject_active;
       existing.visible = update.visible;
       existing.sort_order = update.sort_order;
       existing.active = update.active;
