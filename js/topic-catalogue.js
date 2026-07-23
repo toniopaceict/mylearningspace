@@ -25,64 +25,88 @@
     });
   }
 
-  function init() {
-    if (initialised || typeof isOwner !== "function") return;
 
-    initialised = true;
-    if (!isOwner()) return;
+function init() {
+  if (initialised) return;
 
-    document.getElementById("editTopicCatalogueBtn")
-      ?.addEventListener("click", enterEditMode);
-
-    document.getElementById("saveTopicCatalogueBtn")
-      ?.addEventListener("click", saveChanges);
-
-    document.getElementById("cancelTopicCatalogueBtn")
-      ?.addEventListener("click", cancelEditMode);
-
-    document.getElementById("topicCatalogueSubject")
-      ?.addEventListener("change", function () {
-        setMessage("", "info");
-        render();
-      });
-
-    document.querySelectorAll("#topicCatalogueTable th[data-sort-field]")
-      .forEach(function (header) {
-        header.style.cursor = "pointer";
-
-        header.addEventListener("click", function () {
-          const field = header.dataset.sortField;
-
-          if (sortField === field) {
-            sortDirection = sortDirection === "asc" ? "desc" : "asc";
-          } else {
-            sortField = field;
-            sortDirection = "asc";
-          }
-
-          updateSortIndicators();
-          render();
-        });
-      });
-
-    document.addEventListener("glipManagementDataUpdated", function (event) {
-      if (
-        event.detail &&
-        event.detail.action === LIST_ACTION &&
-        !editMode &&
-        !saving
-      ) {
-        loadFromBrowserCache();
-      }
-    });
-
-    load();
+  if (
+    typeof isOwner !== "function" ||
+    typeof window.getGlipWebAppUrl !== "function"
+  ) {
+    return;
   }
 
-  document.addEventListener("glipReady", init);
-  document.addEventListener("DOMContentLoaded", function () {
-    setTimeout(init, 100);
+  if (!isOwner()) return;
+
+  initialised = true;
+
+  document.getElementById("editTopicCatalogueBtn")
+    ?.addEventListener("click", enterEditMode);
+
+  document.getElementById("saveTopicCatalogueBtn")
+    ?.addEventListener("click", saveChanges);
+
+  document.getElementById("cancelTopicCatalogueBtn")
+    ?.addEventListener("click", cancelEditMode);
+
+  document.getElementById("topicCatalogueSubject")
+    ?.addEventListener("change", function () {
+      setMessage("", "info");
+      render();
+    });
+
+  document.querySelectorAll("#topicCatalogueTable th[data-sort-field]")
+    .forEach(function (header) {
+      header.style.cursor = "pointer";
+
+      header.addEventListener("click", function () {
+        const field = header.dataset.sortField;
+
+        if (sortField === field) {
+          sortDirection = sortDirection === "asc" ? "desc" : "asc";
+        } else {
+          sortField = field;
+          sortDirection = "asc";
+        }
+
+        updateSortIndicators();
+        render();
+      });
+    });
+
+  document.addEventListener("glipManagementDataUpdated", function (event) {
+    if (
+      event.detail &&
+      event.detail.action === LIST_ACTION &&
+      !editMode &&
+      !saving
+    ) {
+      loadFromBrowserCache();
+    }
   });
+
+  load();
+}
+
+
+  
+
+    document.addEventListener("glipReady", init);
+    
+    document.addEventListener("DOMContentLoaded", function () {
+      let attempts = 0;
+    
+      function tryInit() {
+        attempts += 1;
+        init();
+    
+        if (!initialised && attempts < 40) {
+          setTimeout(tryInit, 100);
+        }
+      }
+    
+      tryInit();
+    });
 
   function load() {
     const cached =
