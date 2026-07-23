@@ -514,17 +514,18 @@ function getTopicStatus(topic) {
 
         const topicsPromise = fetchTopics();
 
-        Promise.all([progressPromise, topicsPromise]).then(function (results) {
-          const topics = results[1];
+Promise.all([progressPromise, topicsPromise]).then(function (results) {
+  const topics = results[1];
 
-          if (topics && topics.length > 0) {
-            renderTopics(topics);
-          } else {
-            hideTopicsLoading();
-            document.getElementById("topic-grid").innerHTML =
-              "Unable to load topics";
-          }
-        });
+  if (Array.isArray(topics)) {
+    renderTopics(topics);
+  } else {
+    hideTopicsLoading();
+
+    document.getElementById("topic-grid").innerHTML =
+      "Unable to load topics";
+  }
+});
       }
 
       document.addEventListener("glipReady", function () {
