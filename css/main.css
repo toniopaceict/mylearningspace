@@ -395,6 +395,14 @@ body.glip-dyslexia-bg {
   margin-bottom: 16px;
 }
 
+.glip-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 18px;
+  margin-top: 18px;
+}
+
 .glip-confirm-label {
   display: block;
   margin-bottom: 8px;
