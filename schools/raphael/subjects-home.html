@@ -337,11 +337,23 @@ function getAssignedClassIds(level, subjectId) {
   return Array.from(new Set(classIds));
 }
 
-function storeTeacherSubjectContext(level, subjectId) {
+function storeTeacherSubjectContext(level, subjectId, levelId, curriculumId) {
   const classIds = getAssignedClassIds(level, subjectId);
 
-  sessionStorage.setItem("glipLevel", normaliseLevel(level));
+  sessionStorage.setItem("glipLevel", level || "");
   sessionStorage.setItem("glipSubjectId", subjectId);
+
+  if (levelId) {
+    sessionStorage.setItem("glipLevelId", String(levelId));
+  } else {
+    sessionStorage.removeItem("glipLevelId");
+  }
+
+  if (curriculumId) {
+    sessionStorage.setItem("glipCurriculumId", String(curriculumId));
+  } else {
+    sessionStorage.removeItem("glipCurriculumId");
+  }
   sessionStorage.setItem("glipClassIds", JSON.stringify(classIds));
 
   if (classIds.length > 0) {
@@ -533,7 +545,9 @@ function renderSubjectCards(subjects, fallbackLevel) {
 
       const subjectId = String(subject.subject_id || "").trim();
       const subjectName = String(subject.subject_name || "").trim();
-      const subjectLevel = normaliseLevel(subject.level || fallbackLevel || LEVEL);
+      const subjectLevel = String(subject.level || fallbackLevel || LEVEL || "").trim();
+      const levelId = String(subject.level_id || "").trim();
+      const curriculumId = String(subject.curriculum_id || "").trim();
 
       const link = getSubjectHomeLink(subjectLevel, subjectId);
 
@@ -548,7 +562,9 @@ function renderSubjectCards(subjects, fallbackLevel) {
         <a href="${isAvailable ? link : "#"}"
            class="topic-card ${isAvailable ? "" : "unavailable"}"
            data-subject-id="${subjectId}"
-           data-level="${subjectLevel}">
+           data-level="${subjectLevel}"
+           data-level-id="${levelId}"
+           data-curriculum-id="${curriculumId}">
 
           <div class="topic-card-img-wrap">
             ${isAvailable ? getSubjectBadgeHtml(subjectStatus) : ""}
@@ -913,16 +929,29 @@ const res = await fetch(getWebAppUrl(), {
         );
       }
 
-      async function preloadTopicsForSubject(subjectId, level) {
+      async function preloadTopicsForSubject(subject) {
+        subject = subject || {};
+
+        const subjectId = String(subject.subject_id || "").trim();
+        const subjectLevel = String(subject.level || LEVEL || "").trim();
+        const levelId = String(subject.level_id || "").trim();
+        const curriculumId = String(subject.curriculum_id || "").trim();
+
         if (!subjectId) return;
 
-        const subjectLevel = normaliseLevel(level || LEVEL);
-        const topicsKey = glipCacheKey([SCHOOL, subjectLevel, subjectId, "topics"]);
+        const topicsKey = glipCacheKey([
+          SCHOOL,
+          curriculumId || levelId || subjectLevel,
+          subjectId,
+          "topics"
+        ]);
 
         try {
           const result = await postToGlip({
             action: "getTopics",
+            curriculum_id: curriculumId,
             subject_id: subjectId,
+            level_id: levelId,
             level: subjectLevel,
             userType: sessionStorage.getItem("glipUserType") || "student",
             teacher_id: sessionStorage.getItem("glipTeacherId") || "",
@@ -1015,10 +1044,7 @@ const res = await fetch(getWebAppUrl(), {
             const subjectId = String(item.subject.subject_id || "").trim();
             if (!subjectId) return Promise.resolve();
 
-            return preloadTopicsForSubject(
-              subjectId,
-              item.subject.level || LEVEL,
-            );
+            return preloadTopicsForSubject(item.subject);
           }),
         );
 
@@ -1279,11 +1305,25 @@ document.addEventListener("click", function (event) {
 
   const subjectId = card.dataset.subjectId || "";
   const level = card.dataset.level || "";
+  const levelId = card.dataset.levelId || "";
+  const curriculumId = card.dataset.curriculumId || "";
 
-  if (!subjectId || !level) return;
+  if (!subjectId || (!level && !levelId && !curriculumId)) return;
 
-  sessionStorage.setItem("glipLevel", normaliseLevel(level));
+  sessionStorage.setItem("glipLevel", level);
   sessionStorage.setItem("glipSubjectId", subjectId);
+
+  if (levelId) {
+    sessionStorage.setItem("glipLevelId", levelId);
+  } else {
+    sessionStorage.removeItem("glipLevelId");
+  }
+
+  if (curriculumId) {
+    sessionStorage.setItem("glipCurriculumId", curriculumId);
+  } else {
+    sessionStorage.removeItem("glipCurriculumId");
+  }
 
   const subjectName =
     card.querySelector(".topic-card-caption")?.textContent?.trim() || "";
@@ -1295,7 +1335,7 @@ document.addEventListener("click", function (event) {
   }
 
   if (isTeacherUser()) {
-    storeTeacherSubjectContext(level, subjectId);
+    storeTeacherSubjectContext(level, subjectId, levelId, curriculumId);
   }
 });
 
