@@ -64,9 +64,14 @@
         throw new Error(result.message || "Could not load topic assignments.");
       }
 
+      const role = getRole();
       curriculum = result.curriculum || [];
-      topics = result.topics || [];
-      assignments = result.assignments || [];
+      topics = (result.topics || []).filter(function (item) {
+        return role === "owner" || item.active !== false;
+      });
+      assignments = (result.assignments || []).filter(function (item) {
+        return role === "owner" || item.topic_active !== false;
+      });
       editMode = false;
 
       populateAddDropdowns();
@@ -293,9 +298,14 @@ function renderViewRow(item) {
     }).then(function (result) {
       if (!result || result.status !== "success") return;
 
+      const role = getRole();
       curriculum = result.curriculum || [];
-      topics = result.topics || [];
-      assignments = result.assignments || [];
+      topics = (result.topics || []).filter(function (item) {
+        return role === "owner" || item.active !== false;
+      });
+      assignments = (result.assignments || []).filter(function (item) {
+        return role === "owner" || item.topic_active !== false;
+      });
 
       renderAssignments();
     }).catch(function (error) {

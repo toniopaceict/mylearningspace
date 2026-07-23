@@ -67,7 +67,9 @@
 
     postToGlip({
       action: "listCurriculumManagementAdmin",
-      admin_teacher_id: sessionStorage.getItem("glipTeacherId")
+      admin_teacher_id: sessionStorage.getItem("glipTeacherId"),
+      teacher_id: sessionStorage.getItem("glipTeacherId"),
+      role: sessionStorage.getItem("glipUserType")
     }).then(function (result) {
       if (!result || result.status !== "success") {
         throw new Error(result.message || "Could not load curriculum data.");
@@ -434,7 +436,9 @@ function renderEditRow(item) {
   function resyncCurriculumSilently() {
     postToGlip({
       action: "listCurriculumManagementAdmin",
-      admin_teacher_id: sessionStorage.getItem("glipTeacherId")
+      admin_teacher_id: sessionStorage.getItem("glipTeacherId"),
+      teacher_id: sessionStorage.getItem("glipTeacherId"),
+      role: sessionStorage.getItem("glipUserType")
     }).then(function (result) {
       if (!result || result.status !== "success") return;
       levels = result.levels || [];
