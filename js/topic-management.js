@@ -225,26 +225,27 @@
   }
 
 function renderViewRow(item) {
-  const warning = hasInactiveParentWarning(item);
-  const planningClass = warning ? "planning-row" : "";
+  const warnings = getPlanningWarnings(item);
+  const planningClass = warnings.any ? "planning-row" : "";
 
   return '<tr class="' + planningClass + '">' +
-    '<td>' + escapeHtml(appendPlanningWarning(formatLevel(item.level), warning)) + '</td>' +
-    '<td>' + escapeHtml(item.subject_name || item.subject_code) + '</td>' +
-    '<td>' + escapeHtml(item.topic_name || item.topic_code) + '</td>' +
+    '<td>' + escapeHtml(appendPlanningWarning(formatLevel(item.level), warnings.level)) + '</td>' +
+    '<td>' + escapeHtml(appendPlanningWarning(item.subject_name || item.subject_code, warnings.subject)) + '</td>' +
+    '<td>' + escapeHtml(appendPlanningWarning(item.topic_name || item.topic_code, warnings.topic)) + '</td>' +
     '<td>' + escapeHtml(getCurriculumTopicVisibleText(item)) + '</td>' +
     '<td>' + escapeHtml(item.sort_order) + '</td>' +
     '<td>' + escapeHtml(getCurriculumTopicStatusText(item)) + '</td>' +
     '</tr>';
 }
+
   function renderEditRow(item) {
-    const warning = hasInactiveParentWarning(item);
-    const planningClass = warning ? "planning-row" : "";
+    const warnings = getPlanningWarnings(item);
+    const planningClass = warnings.any ? "planning-row" : "";
 
     return '<tr class="' + planningClass + '" data-curriculum-topic-row="' + escapeHtml(item.curriculum_topic_id) + '">' +
-      '<td>' + escapeHtml(appendWarning(formatLevel(item.level), warning)) + '</td>' +
-      '<td>' + escapeHtml(item.subject_name || item.subject_code) + '</td>' +
-      '<td>' + escapeHtml(item.topic_name || item.topic_code) + '</td>' +
+      '<td>' + escapeHtml(appendPlanningWarning(formatLevel(item.level), warnings.level)) + '</td>' +
+      '<td>' + escapeHtml(appendPlanningWarning(item.subject_name || item.subject_code, warnings.subject)) + '</td>' +
+      '<td>' + escapeHtml(appendPlanningWarning(item.topic_name || item.topic_code, warnings.topic)) + '</td>' +
       '<td><select class="tracker-input" data-curriculum-topic-field="visible">' + renderBooleanOptions(item.visible, "Visible", "Hidden") + '</select></td>' +
       '<td><input class="tracker-input" type="number" min="1" step="1" data-curriculum-topic-field="sort_order" value="' + escapeHtml(item.sort_order) + '" /></td>' +
       '<td><select class="tracker-input" data-curriculum-topic-field="active">' + renderBooleanOptions(item.active, "Active", "Inactive") + '</select></td>' +
@@ -530,8 +531,43 @@ function cancelAddAssignment() {
       .replace(/'/g, "&#039;");
   }
 
+function getPlanningWarnings(item) {
+  const matchingCurriculum = curriculum.find(function (candidate) {
+    return String(candidate.curriculum_id) === String(item && item.curriculum_id);
+  });
+
+  const matchingTopic = topics.find(function (candidate) {
+    return String(candidate.topic_id) === String(item && item.topic_id);
+  });
+
+  const levelInactive =
+    item && item.level_active === false ||
+    matchingCurriculum && matchingCurriculum.level_active === false;
+
+  const subjectInactive =
+    item && item.subject_active === false ||
+    item && item.curriculum_active === false ||
+    matchingCurriculum && matchingCurriculum.subject_active === false ||
+    matchingCurriculum && matchingCurriculum.active === false;
+
+  const topicInactive =
+    item && item.topic_active === false ||
+    matchingTopic && matchingTopic.active === false;
+
+  const anySpecificWarning =
+    Boolean(levelInactive || subjectInactive || topicInactive);
+
+  return {
+    level: Boolean(levelInactive),
+    subject: Boolean(subjectInactive),
+    topic: Boolean(topicInactive),
+    any: anySpecificWarning ||
+      Boolean(item && item.has_inactive_dependency === true)
+  };
+}
+
 function hasInactiveParentWarning(item) {
-  return item && item.has_inactive_dependency === true;
+  return getPlanningWarnings(item).any;
 }
 
 function appendPlanningWarning(text, showWarning) {
