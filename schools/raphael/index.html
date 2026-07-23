@@ -535,6 +535,7 @@ const subjectsResult = await postToGlip({
           sessionStorage.setItem("glipStudentSurname", student.student_surname || "");
           sessionStorage.setItem("glipStudentFullName", student.full_name || student.student_name);
           sessionStorage.setItem("glipLevel", studentLevel);
+          sessionStorage.setItem("glipLevelId", String(student.level_id || ""));
           sessionStorage.setItem("glipClassId", student.class_id);
           sessionStorage.setItem("glipClassLabel", student.class_label || student.class_id);
           sessionStorage.setItem("glipRole", "student");

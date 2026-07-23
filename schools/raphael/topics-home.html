@@ -37,7 +37,15 @@ Help file:
       }
 
       function getStoredLevel() {
-        return normaliseLevel(sessionStorage.getItem("glipLevel") || "");
+        return String(sessionStorage.getItem("glipLevel") || "").trim();
+      }
+
+      function getStoredLevelId() {
+        return String(sessionStorage.getItem("glipLevelId") || "").trim();
+      }
+
+      function getStoredCurriculumId() {
+        return String(sessionStorage.getItem("glipCurriculumId") || "").trim();
       }
 
       window.PAGE_MENU_CONTEXT = {
@@ -103,6 +111,8 @@ Help file:
       const SCHOOL = getSchoolFromUrl();
       const SUBJECT = getStoredSubjectId();
       const LEVEL = getStoredLevel();
+      const LEVEL_ID = getStoredLevelId();
+      const CURRICULUM_ID = getStoredCurriculumId();
 
       
       const TOPICS_CACHE_DURATION = 2 * 60 * 60 * 1000;
@@ -458,7 +468,9 @@ function getTopicStatus(topic) {
             method: "POST",
             body: JSON.stringify({
               action: "getTopics",
+              curriculum_id: CURRICULUM_ID,
               subject_id: SUBJECT,
+              level_id: LEVEL_ID,
               level: LEVEL,
               userType:
                 sessionStorage.getItem("glipRole") ||
@@ -514,18 +526,17 @@ function getTopicStatus(topic) {
 
         const topicsPromise = fetchTopics();
 
-Promise.all([progressPromise, topicsPromise]).then(function (results) {
-  const topics = results[1];
+        Promise.all([progressPromise, topicsPromise]).then(function (results) {
+          const topics = results[1];
 
-  if (Array.isArray(topics)) {
-    renderTopics(topics);
-  } else {
-    hideTopicsLoading();
-
-    document.getElementById("topic-grid").innerHTML =
-      "Unable to load topics";
-  }
-});
+          if (Array.isArray(topics)) {
+            renderTopics(topics);
+          } else {
+            hideTopicsLoading();
+            document.getElementById("topic-grid").innerHTML =
+              "Unable to load topics";
+          }
+        });
       }
 
       document.addEventListener("glipReady", function () {
