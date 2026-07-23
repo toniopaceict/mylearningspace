@@ -352,7 +352,7 @@
             result.student_id !== undefined && result.student_id !== null
               ? String(result.student_id)
               : temporaryStudent.student_id;
-          temporaryStudent.pending_save = false;
+          GLIPOptimisticUpdate.markSaved(temporaryStudent);
         }
 
         pendingStudentSaves = Math.max(0, pendingStudentSaves - 1);
@@ -539,7 +539,7 @@ getValue: getStudentStatusText
         }
 
         setStudentsLoadingState(false);
-        currentStudents = (result.students || []).map(addFullName);
+        currentStudents = GLIPOptimisticUpdate.mergePendingRows((result.students || []).map(addFullName), currentStudents, "student_id");
         studentsEditMode = false;
         updateEditStudentsButton();
         renderStudents(currentStudents);
@@ -942,7 +942,7 @@ class="teacher-selectable-row ${studentNeedsAttention(student) ? "planning-row" 
       admin_teacher_id: sessionStorage.getItem("glipTeacherId")
     }).then(function (result) {
       if (!result || result.status !== "success") return;
-      currentStudents = (result.students || []).map(addFullName);
+      currentStudents = GLIPOptimisticUpdate.mergePendingRows((result.students || []).map(addFullName), currentStudents, "student_id");
       renderStudents(currentStudents);
     }).catch(function (error) {
       console.warn("Silent student resync failed.", error);
@@ -961,7 +961,7 @@ class="teacher-selectable-row ${studentNeedsAttention(student) ? "planning-row" 
       studentsToSave.push(student);
     });
     const previousStudents = currentStudents.map(function (item) { return Object.assign({}, item); });
-    applyStudentUpdatesLocally(studentsToSave); studentsEditMode = false; updateEditStudentsButton(); renderStudents(currentStudents);
+    applyStudentUpdatesLocally(studentsToSave); GLIPOptimisticUpdate.markUpdatesPending(currentStudents, studentsToSave, "student_id"); studentsEditMode = false; updateEditStudentsButton(); renderStudents(currentStudents);
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "updateStudentsAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), students: studentsToSave }); },
       failureMessage: "Could not save student changes.",

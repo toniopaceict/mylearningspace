@@ -332,7 +332,7 @@
 
       students = result.students || [];
       subjects = result.subjects || [];
-      assignments = result.assignments || [];
+      assignments = GLIPOptimisticUpdate.mergePendingRows(result.assignments || [], assignments, "student_subject_id");
       populateAddStudentAssignmentForm();
 
       selectedStudentId = "";
@@ -773,7 +773,7 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
       if (!result || result.status !== "success") return;
       students = result.students || [];
       subjects = result.subjects || [];
-      assignments = result.assignments || [];
+      assignments = GLIPOptimisticUpdate.mergePendingRows(result.assignments || [], assignments, "student_subject_id");
       populateAddStudentAssignmentForm();
       renderStudentSubjectTable();
     }).catch(function (error) {

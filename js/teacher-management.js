@@ -280,7 +280,7 @@ function saveTeacher() {
           temporaryTeacher.teacher_id = result.teacher_id;
         }
 
-        temporaryTeacher.pending_save = false;
+        GLIPOptimisticUpdate.markSaved(temporaryTeacher);
       }
 
       pendingTeacherSaves = Math.max(0, pendingTeacherSaves - 1);
@@ -407,14 +407,14 @@ function loadTeachers() {
 
       setTeachersLoadingState(false);
 
-      currentTeachers = excludeOwnerTeachers(result.teachers).map(function (teacher) {
+      currentTeachers = GLIPOptimisticUpdate.mergePendingRows(excludeOwnerTeachers(result.teachers).map(function (teacher) {
         teacher.full_name = [
           teacher.teacher_name || "",
           teacher.teacher_surname || ""
         ].join(" ").trim();
 
         return teacher;
-      });
+      }), currentTeachers, "teacher_id");
 
       teachersEditMode = false;
       updateEditTeachersButton();
@@ -709,14 +709,14 @@ function resyncTeachersSilently() {
     .then(function (result) {
       if (!result || result.status !== "success") return;
 
-      currentTeachers = excludeOwnerTeachers(result.teachers).map(function (teacher) {
+      currentTeachers = GLIPOptimisticUpdate.mergePendingRows(excludeOwnerTeachers(result.teachers).map(function (teacher) {
         teacher.full_name = [
           teacher.teacher_name || "",
           teacher.teacher_surname || ""
         ].join(" ").trim();
 
         return teacher;
-      });
+      }), currentTeachers, "teacher_id");
 
       renderTeachers(currentTeachers);
     })
@@ -747,7 +747,7 @@ function resyncTeachersSilently() {
       teachersToSave.push(teacher);
     });
     const previousTeachers = currentTeachers.map(function (item) { return Object.assign({}, item); });
-    applyTeacherUpdatesLocally(teachersToSave); teachersEditMode = false; updateEditTeachersButton(); renderTeachers(currentTeachers);
+    applyTeacherUpdatesLocally(teachersToSave); GLIPOptimisticUpdate.markUpdatesPending(currentTeachers, teachersToSave, "teacher_id"); teachersEditMode = false; updateEditTeachersButton(); renderTeachers(currentTeachers);
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "updateTeachersAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), teachers: teachersToSave }); },
       failureMessage: "Could not save teacher changes.",

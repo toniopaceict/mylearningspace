@@ -255,7 +255,7 @@ fields: [
       }
 
       setLoadingState(false);
-      currentAssignments = result.assignments || [];
+      currentAssignments = GLIPOptimisticUpdate.mergePendingRows(result.assignments || [], currentAssignments, "assignment_id");
       classTeachersEditMode = false;
       updateEditButton();
       renderAssignments(currentAssignments);
@@ -412,12 +412,12 @@ function populateSubjectDropdownForLevel(level, select, selectedSubjectId) {
     const classInfo = getClassInfoById(classId) || {};
     const subjectInfo = getSubjectInfoByLevel(subjectId, normalisedLevel) || {};
     const temporaryId = "pending-assignment-" + Date.now();
-    currentAssignments.push({ assignment_id: temporaryId, teacher_id: teacherId, teacher_name: teacherInfo.teacher_name, teacher_surname: teacherInfo.teacher_surname, full_name: teacherInfo.full_name || [teacherInfo.teacher_name, teacherInfo.teacher_surname].filter(Boolean).join(" "), teacher_active: teacherInfo.active !== false, level: normalisedLevel, level_active: classInfo.level_active !== false, subject_id: subjectId, subject_name: subjectInfo.subject_name || subjectId, subject_code: subjectInfo.subject_code, curriculum_active: subjectInfo.curriculum_active !== false && subjectInfo.active !== false, class_id: classId, class_active: classInfo.active !== false, folder_id: folderId, class_resources_url: classResourcesUrl, active: active });
+    currentAssignments.push({ assignment_id: temporaryId, teacher_id: teacherId, teacher_name: teacherInfo.teacher_name, teacher_surname: teacherInfo.teacher_surname, full_name: teacherInfo.full_name || [teacherInfo.teacher_name, teacherInfo.teacher_surname].filter(Boolean).join(" "), teacher_active: teacherInfo.active !== false, level: normalisedLevel, level_active: classInfo.level_active !== false, subject_id: subjectId, subject_name: subjectInfo.subject_name || subjectId, subject_code: subjectInfo.subject_code, curriculum_active: subjectInfo.curriculum_active !== false && subjectInfo.active !== false, class_id: classId, class_active: classInfo.active !== false, folder_id: folderId, class_resources_url: classResourcesUrl, active: active, pending_save: true, pending_state: "saving" });
     renderAssignments(currentAssignments); clearAddForm();
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "addClassTeacherAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), role: getCurrentRole(), teacher_id: teacherId, level: normalisedLevel, subject_id: subjectId, class_id: classId, folder_id: folderId, class_resources_url: classResourcesUrl, active: active }); },
       failureMessage: "Could not save assignment.",
-      onSuccess: function (result) { setAddMessage(result.message || "Assignment saved.", "success"); },
+      onSuccess: function (result) { const row = currentAssignments.find(function (item) { return String(item.assignment_id) === temporaryId; }); if (row) { row.assignment_id = result.class_teacher_id || row.assignment_id; GLIPOptimisticUpdate.markSaved(row); } setAddMessage(result.message || "Assignment saved.", "success"); },
       resync: resyncAssignmentsSilently,
       rollback: function () { currentAssignments = currentAssignments.filter(function (item) { return String(item.assignment_id) !== temporaryId; }); renderAssignments(currentAssignments); },
       onFailure: function (error) { setAddMessage(error.message || "Could not save assignment. The temporary row was removed.", "error"); }
@@ -721,7 +721,7 @@ function renderAssignmentEditRow(assignment) {
       role: getCurrentRole()
     }).then(function (result) {
       if (!result || result.status !== "success") return;
-      currentAssignments = result.assignments || [];
+      currentAssignments = GLIPOptimisticUpdate.mergePendingRows(result.assignments || [], currentAssignments, "assignment_id");
       renderAssignments(currentAssignments);
     }).catch(function (error) {
       console.warn("Silent class teacher resync failed.", error);
@@ -740,7 +740,7 @@ function renderAssignmentEditRow(assignment) {
       }); assignmentsToSave.push(assignment);
     });
     const previousAssignments = currentAssignments.map(function (item) { return Object.assign({}, item); });
-    applyAssignmentUpdatesLocally(assignmentsToSave); classTeachersEditMode = false; updateEditButton(); renderAssignments(currentAssignments);
+    applyAssignmentUpdatesLocally(assignmentsToSave); GLIPOptimisticUpdate.markUpdatesPending(currentAssignments, assignmentsToSave, "assignment_id"); classTeachersEditMode = false; updateEditButton(); renderAssignments(currentAssignments);
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "updateClassTeachersAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), role: getCurrentRole(), assignments: assignmentsToSave }); },
       failureMessage: "Could not save assignment changes.",

@@ -69,9 +69,9 @@
       topics = (result.topics || []).filter(function (item) {
         return role === "owner" || item.active !== false;
       });
-      assignments = (result.assignments || []).filter(function (item) {
+      assignments = GLIPOptimisticUpdate.mergePendingRows((result.assignments || []).filter(function (item) {
         return role === "owner" || item.topic_active !== false;
-      });
+      }), assignments, "curriculum_topic_id");
       editMode = false;
 
       populateAddDropdowns();
@@ -146,12 +146,12 @@
     const curriculumInfo = curriculum.find(function (item) { return String(item.curriculum_id) === String(curriculumId); }) || {};
     const topicInfo = topics.find(function (item) { return String(item.topic_id) === String(topicId); }) || {};
     const temporaryId = "pending-topic-assignment-" + Date.now();
-    assignments.push({ curriculum_topic_id: temporaryId, curriculum_id: curriculumId, topic_id: topicId, level: curriculumInfo.level, level_active: curriculumInfo.level_active !== false, subject_id: curriculumInfo.subject_id, subject_code: curriculumInfo.subject_code, subject_name: curriculumInfo.subject_name, curriculum_active: curriculumInfo.active !== false, topic_code: topicInfo.topic_code, topic_name: topicInfo.topic_name, visible: visible, sort_order: sortOrder, active: active });
+    assignments.push({ curriculum_topic_id: temporaryId, curriculum_id: curriculumId, topic_id: topicId, level: curriculumInfo.level, level_active: curriculumInfo.level_active !== false, subject_id: curriculumInfo.subject_id, subject_code: curriculumInfo.subject_code, subject_name: curriculumInfo.subject_name, curriculum_active: curriculumInfo.active !== false, topic_code: topicInfo.topic_code, topic_name: topicInfo.topic_name, visible: visible, sort_order: sortOrder, active: active, pending_save: true, pending_state: "saving" });
     renderAssignments(); clearAddForm();
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "addCurriculumTopicManagement", teacher_id: sessionStorage.getItem("glipTeacherId"), role: getRole(), curriculum_id: curriculumId, topic_id: topicId, visible: visible, sort_order: sortOrder, active: active }); },
       failureMessage: "Could not save topic assignment.",
-      onSuccess: function (result) { setAddMessage(result.message || "Topic assignment saved.", "success"); },
+      onSuccess: function (result) { const row = assignments.find(function (item) { return String(item.curriculum_topic_id) === temporaryId; }); if (row) { row.curriculum_topic_id = result.curriculum_topic_id || row.curriculum_topic_id; GLIPOptimisticUpdate.markSaved(row); } setAddMessage(result.message || "Topic assignment saved.", "success"); },
       resync: resyncSilently,
       rollback: function () { assignments = assignments.filter(function (item) { return String(item.curriculum_topic_id) !== temporaryId; }); renderAssignments(); },
       onFailure: function (error) { setAddMessage(error.message || "Could not save topic assignment. The temporary row was removed.", "error"); }
@@ -265,7 +265,7 @@ function renderViewRow(item) {
       itemsToSave.push(item);
     });
     const previousAssignments = assignments.map(function (item) { return Object.assign({}, item); });
-    applyUpdatesLocally(itemsToSave); editMode = false; updateEditButton(); renderAssignments();
+    applyUpdatesLocally(itemsToSave); GLIPOptimisticUpdate.markUpdatesPending(assignments, itemsToSave, "curriculum_topic_id"); editMode = false; updateEditButton(); renderAssignments();
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "updateCurriculumTopicManagement", teacher_id: sessionStorage.getItem("glipTeacherId"), role: getRole(), assignments: itemsToSave }); },
       failureMessage: "Could not save topic assignments.",
@@ -303,9 +303,9 @@ function renderViewRow(item) {
       topics = (result.topics || []).filter(function (item) {
         return role === "owner" || item.active !== false;
       });
-      assignments = (result.assignments || []).filter(function (item) {
+      assignments = GLIPOptimisticUpdate.mergePendingRows((result.assignments || []).filter(function (item) {
         return role === "owner" || item.topic_active !== false;
-      });
+      }), assignments, "curriculum_topic_id");
 
       renderAssignments();
     }).catch(function (error) {

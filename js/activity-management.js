@@ -102,7 +102,7 @@
           throw new Error((result && result.message) || "Could not load activities.");
         }
 
-        activities = Array.isArray(result.activities) ? result.activities : [];
+        activities = Array.isArray(result.activities) ? GLIPOptimisticUpdate.mergePendingRows(result.activities, activities, "activity_id") : activities;
         topics = Array.isArray(result.topics) ? result.topics : [];
         activityTypes = Array.isArray(result.activity_types) ? result.activity_types : [];
 
@@ -300,7 +300,9 @@
       subject_name: assignment ? assignment.subject_name : "",
       subject_code: assignment ? assignment.subject_code : "",
       activity_type_name: activityType ? activityType.activity_type_name : "",
-      activity_type_code: activityType ? activityType.activity_type_code : ""
+      activity_type_code: activityType ? activityType.activity_type_code : "",
+      pending_save: true,
+      pending_state: "saving"
     };
 
     activities.push(optimisticActivity);
@@ -311,6 +313,8 @@
       request: function () { return post(payload); },
       failureMessage: "Could not save activity.",
       onSuccess: function (result) {
+        const row = activities.find(function (item) { return String(item.activity_id) === String(payload.activity_id); });
+        if (row) GLIPOptimisticUpdate.markSaved(row);
         setMessage(result.message || "Activity saved.", "success");
       },
       resync: resyncActivitiesSilently,
@@ -417,7 +421,7 @@
       return Object.assign({}, activity);
     });
 
-    applyActivityUpdatesLocally(updates);
+    applyActivityUpdatesLocally(updates); GLIPOptimisticUpdate.markUpdatesPending(activities, updates, "activity_id");
     editMode = false;
     updateEditControls();
     render();
@@ -477,7 +481,7 @@
       .then(function (result) {
         if (!result || result.status !== "success") return;
 
-        activities = Array.isArray(result.activities) ? result.activities : activities;
+        activities = Array.isArray(result.activities) ? GLIPOptimisticUpdate.mergePendingRows(result.activities, activities, "activity_id") : activities;
         topics = Array.isArray(result.topics) ? result.topics : topics;
         activityTypes = Array.isArray(result.activity_types) ? result.activity_types : activityTypes;
         populateSelectors();

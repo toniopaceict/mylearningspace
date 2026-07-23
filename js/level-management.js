@@ -138,7 +138,7 @@ function setLevelsLoadingState(isLoading) {
         throw new Error(result.message || "Could not load levels.");
       }
       setLevelsLoadingState(false);
-      levels = result.levels || [];
+      levels = GLIPOptimisticUpdate.mergePendingRows(result.levels || [], levels, "level_id");
       editMode = false;
       updateEditButton();
       renderLevels();
@@ -320,7 +320,7 @@ function saveLevel() {
 
       if (temporaryLevel) {
         temporaryLevel.level_id = result.level_id;
-        temporaryLevel.pending_save = false;
+        GLIPOptimisticUpdate.markSaved(temporaryLevel);
       }
 
       pendingLevelSaves = Math.max(0, pendingLevelSaves - 1);
@@ -453,7 +453,7 @@ btn.title = hasPendingSaves
     });
 
     const previousLevels = levels.map(function (level) { return Object.assign({}, level); });
-    applyLevelUpdatesLocally(updates);
+    applyLevelUpdatesLocally(updates); GLIPOptimisticUpdate.markUpdatesPending(levels, updates, "level_id");
     editMode = false; updateEditButton(); renderLevels();
 
     GLIPOptimisticUpdate.run({
@@ -487,7 +487,7 @@ btn.title = hasPendingSaves
       admin_teacher_id: sessionStorage.getItem("glipTeacherId")
     }).then(function (result) {
       if (!result || result.status !== "success") return;
-      levels = result.levels || [];
+      levels = GLIPOptimisticUpdate.mergePendingRows(result.levels || [], levels, "level_id");
       renderLevels();
     }).catch(function (error) {
       console.warn("Silent level resync failed.", error);
