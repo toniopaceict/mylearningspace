@@ -12,8 +12,8 @@
       webAppUrl: "https://script.google.com/macros/s/AKfycbyBqXP62z6NBh5QulyefkF-iXXCccBv4w-LvJDWMbIGzAvIBO0cNrobJYtmvmSwQCq5TQ/exec"
     },
 
-    ibmc: {
-      label: "IBMC",
+    mylearningspace: {
+      label: "My Learning Space",
       webAppUrl: "https://script.google.com/macros/s/AKfycbzX6Z89fAg0JwKG5aBcWjOKuk3f1z2vHKaK6eagaExawFfARn-Z96RQj77p3rb5GsVH/exec"
     },
     
