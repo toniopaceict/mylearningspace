@@ -1144,6 +1144,9 @@ async function loadTeacherDashboard() {
   const normalGrid = document.getElementById("topic-grid");
 
   if (!levels.length) {
+    const loadingProgress = document.getElementById("subjectsLoadingProgress");
+    if (loadingProgress) loadingProgress.style.display = "none";
+
     if (normalGrid) normalGrid.style.display = "none";
 
     if (dashboard) {
@@ -1235,6 +1238,9 @@ async function loadAdminDashboard() {
   const normalGrid = document.getElementById("topic-grid");
 
   if (!subjects.length) {
+    const loadingProgress = document.getElementById("subjectsLoadingProgress");
+    if (loadingProgress) loadingProgress.style.display = "none";
+
     if (normalGrid) {
       normalGrid.style.display = "none";
     }
@@ -1292,6 +1298,9 @@ function loadSubjects() {
               startBackgroundTopicPreloadSoon(subjects);
             });
           } else {
+            const loadingProgress = document.getElementById("subjectsLoadingProgress");
+            if (loadingProgress) loadingProgress.style.display = "none";
+
             document.getElementById("topic-grid").innerHTML =
               "Unable to load subjects";
           }
