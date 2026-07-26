@@ -553,6 +553,146 @@ Help Section:
 </details>
       
       
+<!-- Icon naming conventions +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+
+<details>
+  <summary>Naming subject and topic icons</summary>
+
+  <div class="help-content">
+    <p>
+      GLIP uses the subject code and topic code stored in Google Sheets to locate
+      the correct icons. The file names must therefore follow the naming rules
+      below exactly.
+    </p>
+
+    <h3>Subject icons</h3>
+
+    <p>
+      A subject icon must be placed inside the subject's
+      <code>assets</code> folder.
+    </p>
+
+    <p><strong>Required file name:</strong></p>
+
+    <pre><code>icon-{subject_code}.jpg</code></pre>
+
+    <p>
+      Replace <code>{subject_code}</code> with the exact value stored in the
+      <strong>subject_code</strong> column of the <strong>Subjects</strong>
+      sheet.
+    </p>
+
+    <p><strong>Example</strong></p>
+
+    <p>If the subject code is:</p>
+
+    <pre><code>bcmrk_406-2015</code></pre>
+
+    <p>the icon must be named:</p>
+
+    <pre><code>icon-bcmrk_406-2015.jpg</code></pre>
+
+    <p>and saved in:</p>
+
+    <pre><code>content/bcmrk_406-2015/assets/icon-bcmrk_406-2015.jpg</code></pre>
+
+    <p>Other examples include:</p>
+
+    <pre><code>icon-word.jpg
+icon-excel.jpg
+icon-powerpoint.jpg
+icon-physics.jpg</code></pre>
+
+    <h3>Topic icons</h3>
+
+    <p>
+      A topic icon must be placed inside the <code>assets</code> folder of the
+      relevant topic.
+    </p>
+
+    <p><strong>Required file name:</strong></p>
+
+    <pre><code>{topic_code}.jpg</code></pre>
+
+    <p>
+      Replace <code>{topic_code}</code> with the exact value stored in the
+      <strong>topic_code</strong> column of the <strong>Topics</strong> sheet.
+    </p>
+
+    <p><strong>Example</strong></p>
+
+    <p>If the topic code is:</p>
+
+    <pre><code>text_to_table</code></pre>
+
+    <p>the icon must be named:</p>
+
+    <pre><code>text_to_table.jpg</code></pre>
+
+    <p>and saved in:</p>
+
+    <pre><code>content/bcmrk_406-2015/text_to_table/assets/text_to_table.jpg</code></pre>
+
+    <p>Other examples include:</p>
+
+    <pre><code>mail_merge.jpg
+styles.jpg
+lesson_01.jpg
+practice_02.jpg</code></pre>
+
+    <h3>Important points</h3>
+
+    <ul>
+      <li>
+        Use the subject code and topic code exactly as they appear in Google
+        Sheets.
+      </li>
+      <li>
+        Do not replace underscores with spaces or hyphens.
+      </li>
+      <li>
+        Do not add words such as <code>icon</code> to a topic icon filename.
+      </li>
+      <li>
+        Subject icons must begin with <code>icon-</code>.
+      </li>
+      <li>
+        Topic icons must contain only the topic code followed by
+        <code>.jpg</code>.
+      </li>
+      <li>
+        File names are case-sensitive. Lower-case filenames are recommended.
+      </li>
+    </ul>
+
+    <h3>Example folder structure</h3>
+
+    <pre><code>content/
+└── bcmrk_406-2015/
+    ├── assets/
+    │   └── icon-bcmrk_406-2015.jpg
+    │
+    └── text_to_table/
+        ├── text_to_table-home.html
+        └── assets/
+            └── text_to_table.jpg</code></pre>
+
+    <p>
+      If GLIP cannot find an icon using the expected filename and location, it
+      will display the generic icon instead.
+    </p>
+  </div>
+</details>
+      
+
+
+
+
+
+
+
+
+
       
       
       
