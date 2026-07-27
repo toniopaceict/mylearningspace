@@ -163,6 +163,18 @@
     }
   }
 
+  function showContextError(message) {
+    const shell = document.querySelector(".page-shell");
+    const wrap = shell && shell.querySelector(".wrap");
+    if (!wrap || document.getElementById("topicContextMessage")) return;
+
+    const box = document.createElement("div");
+    box.id = "topicContextMessage";
+    box.className = "panel-message error text-center";
+    box.setAttribute("role", "alert");
+    box.textContent = message || "Topic information could not be loaded.";
+    wrap.insertBefore(box, wrap.firstChild);
+  }
 
   function applyPageConfig(topicData) {
     const config = window.PAGE_CONFIG || (window.PAGE_CONFIG = {});
@@ -174,8 +186,8 @@
   }
 
   function postTopicData(initial) {
-    if (!window.getGlipWebAppUrl || !initial.school || !initial.topic_code) {
-      return Promise.resolve(null);
+    if (!window.getGlipWebAppUrl || (!initial.topic_id && !initial.topic_code)) {
+      return Promise.reject(new Error("The topic could not be identified from this page."));
     }
 
     const controller = typeof AbortController === "function" ? new AbortController() : null;
@@ -242,6 +254,7 @@
         console.error("GLIP topic context:", error);
         const fallback = cached || initial;
         applyPageConfig(fallback);
+        showContextError(error && error.message ? error.message : "Topic information could not be loaded.");
         return fallback;
       });
   }
