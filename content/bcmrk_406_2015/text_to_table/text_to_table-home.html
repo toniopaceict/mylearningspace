@@ -1,0 +1,113 @@
+<!--
+=========================================================
+GLIP PAGE INFORMATION
+
+Help file:
+    /help/help.html
+
+=========================================================
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="../../../assets/GLIP-icon-transparent.png" />
+    
+    <title>GLIP – Guided Learning for Independent Progress</title>
+
+    <script>
+      window.PAGE_CONFIG = {
+        helpSection: "topics-home",
+        pageTitle: "GLIP – Guided Learning for Independent Progress",
+        heroTopline: "Welcome",
+        heroMainTitle: "GLIP",
+        heroSubTitle: "Text to Table",
+        aboutText:
+          "This learning space is designed to guide you step by step through each topic. You will work through guided lessons and structured practice activities designed to help you build your skills step by step.",
+        imageSrc: "assets/topic-02.jpg",
+        imageAlt: "Text to Table",
+        howToUseTitle: "By the end of this topic, you will be able to:",
+        //howToUseIntro: `<p class="q">Each topic follows the same structure:</p>`,
+        howToUseSteps: `
+        <p class="q">
+          • Create and format tables in Word<br>
+          • Sort data alphabetically<br>
+          • Apply table styles<br>
+          • Convert text into a table<br>
+        </p>
+      `,
+        //howToUseOutro: `<p class="q">Make sure you complete each section before moving on.</p>`,
+        tipsText:
+          "Complete the activities in the menu one by one in the order shown. Each activity is designed to help you progress step by step.",
+
+      };
+
+      window.PAGE_MENU_CONTEXT = {
+        type: "topic",
+        level: "04",
+        subject: "word",
+        topic: "02",
+      };
+    </script>
+    <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
+  </head>
+
+  <body>
+    <div id="header-placeholder"></div>
+
+    <div class="page-shell">
+      <header class="page-hero">
+        <div class="page-hero-panel">
+          <div class="page-hero-divider-top"></div>
+
+          <img
+            class="page-hero-brand-icon"
+            src="../../../assets/GLIP-icon-transparent-cropped.png"
+            alt="GLIP logo"
+          />
+
+          <div class="page-hero-logo">GLIP</div>
+
+          <p class="page-hero-topline">
+            Guided Learning for Independent Progress
+          </p>
+
+          <h1>Text to Table</h1>
+          <h2>MS Word</h2>
+
+          <div class="page-hero-divider-bottom"></div>
+        </div>
+      </header>
+
+      <div class="wrap">
+        <!--    <fieldset class="task-box">
+          <legend>About this space</legend>
+          <p class="q" id="aboutText"></p>
+        </fieldset>-->
+
+        <fieldset class="task-box">
+          <legend>What will you learn?</legend>
+
+          <div class="landing-grid">
+            <img id="landingImg" src="" alt="" class="landing-img" />
+
+            <div class="landing-text">
+              <h3 id="howToUseTitle"></h3>
+              <div id="howToUseIntro"></div>
+              <div id="howToUseSteps"></div>
+              <div id="howToUseOutro"></div>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="task-box">
+          <legend>Getting Started</legend>
+          <p class="q" id="tipsText"></p>
+        </fieldset>
+      </div>
+
+      <div class="site-footer" id="siteFooter"></div>
+    </div>
+</body>
+</html>
