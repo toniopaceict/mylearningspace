@@ -250,7 +250,12 @@ function normaliseTopic(topic) {
       ? "../../content/" + SUBJECT + "/" + topicFolder + "/assets/" + topicFolder + ".jpg"
       : "../../assets/studentslearning.jpg",
     link: topicFolder
-      ? "../../content/" + SUBJECT + "/" + topicFolder + "/" + topicFolder + "-home.html"
+      ? "../../content/" + SUBJECT + "/" + topicFolder + "/" + topicFolder + "-home.html?" +
+        new URLSearchParams({
+          school: SCHOOL,
+          curriculum_id: CURRICULUM_ID,
+          topic_id: topicId
+        }).toString()
       : "",
     status: isAvailable ? "available" : "unavailable",
     sort: Number(topic.sort_order) || 0,
@@ -327,6 +332,9 @@ function normaliseTopic(topic) {
             return `
               <a href="${isAvailable ? topic.link : "#"}"
                  class="topic-card ${isAvailable ? "" : "unavailable"}"
+                 data-topic-id="${escapeHtml(topic.topicId)}"
+                 data-topic-code="${escapeHtml(topic.folder)}"
+                 data-topic-name="${safeTitle}"
                  title="${cardTitle}"
                  tabindex="${tabIndex}"
                  aria-disabled="${ariaDisabled}">
@@ -353,6 +361,29 @@ function normaliseTopic(topic) {
             `;
           })
           .join("");
+
+        container.querySelectorAll(".topic-card:not(.unavailable)").forEach(function (card) {
+          card.addEventListener("click", function () {
+            const selectedContext = {
+              school: SCHOOL,
+              curriculum_id: CURRICULUM_ID,
+              level_id: LEVEL_ID,
+              level_code: LEVEL,
+              subject_id: SUBJECT,
+              subject_code: SUBJECT,
+              subject_name: getSubjectDisplayName(SUBJECT),
+              topic_id: card.dataset.topicId || "",
+              topic_code: card.dataset.topicCode || "",
+              topic_name: card.dataset.topicName || ""
+            };
+
+            try {
+              sessionStorage.setItem("glipTopicPageContext", JSON.stringify(selectedContext));
+            } catch (error) {
+              // Navigation still works if session storage is unavailable.
+            }
+          });
+        });
 
         applyTopicBadges(displayTopics);
       }
