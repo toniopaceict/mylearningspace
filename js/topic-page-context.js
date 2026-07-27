@@ -15,7 +15,7 @@
 
   function getPathContext() {
     const match = window.location.pathname.match(
-      /\/content\/([^/]+)\/(topic-[^/]+)\/([^/]+\.html)$/i
+      /\/content\/([^/]+)\/([^/]+)\/([^/]+\.html)$/i
     );
 
     if (!match) return {};
@@ -53,6 +53,7 @@
       school: text(query.get("school") || stored.school || sessionStorage.getItem("glipSchool")),
       curriculum_id: text(query.get("curriculum_id") || stored.curriculum_id || sessionStorage.getItem("glipCurriculumId")),
       topic_id: text(query.get("topic_id") || stored.topic_id),
+      activity_id: text(query.get("activity_id") || stored.activity_id),
       level_id: text(stored.level_id || sessionStorage.getItem("glipLevelId")),
       level_code: text(stored.level_code || sessionStorage.getItem("glipLevel")),
       subject_id: text(stored.subject_id || sessionStorage.getItem("glipSubjectId")),
@@ -101,6 +102,7 @@
 
     return {
       activity_id: text(activity.activity_id),
+      activity_code: text(activity.activity_code || activity.code),
       activity_title: text(activity.activity_title || activity.title),
       activity_type_code: typeCode,
       sort_order: Number(activity.sort_order) || 0,
@@ -131,6 +133,7 @@
       level_id: text(level.level_id || source.level_id || initial.level_id),
       level_code: text(level.level_code || source.level_code || initial.level_code),
       activities: activities,
+      activity_id: text(initial.activity_id),
       page_file: initial.page_file
     };
   }
@@ -158,6 +161,16 @@
     if (topicData.topic_name && topicData.subject_name) {
       document.title = topicData.topic_name + " – " + topicData.subject_name + " – GLIP";
     }
+  }
+
+
+  function applyPageConfig(topicData) {
+    const config = window.PAGE_CONFIG || (window.PAGE_CONFIG = {});
+    config.subjectId = topicData.subject_id || config.subjectId || "";
+    config.level = topicData.level_code || config.level || "";
+    config.topicId = topicData.topic_id || config.topicId || "";
+    config.topicName = topicData.topic_name || config.topicName || "";
+    if (topicData.activity_id) config.activityId = topicData.activity_id;
   }
 
   function postTopicData(initial) {
@@ -209,6 +222,7 @@
       window.GLIP_TOPIC_PAGE_DATA = cached;
       window.PAGE_MENU_CONTEXT = buildPageContext(cached);
       applyTopicHeadings(cached);
+      applyPageConfig(cached);
     } else {
       window.PAGE_MENU_CONTEXT = buildPageContext(initial);
     }
@@ -221,11 +235,14 @@
         window.GLIP_TOPIC_PAGE_DATA = fresh;
         window.PAGE_MENU_CONTEXT = buildPageContext(fresh);
         applyTopicHeadings(fresh);
+        applyPageConfig(fresh);
         return fresh;
       })
       .catch(function (error) {
         console.error("GLIP topic context:", error);
-        return cached || initial;
+        const fallback = cached || initial;
+        applyPageConfig(fallback);
+        return fallback;
       });
   }
 

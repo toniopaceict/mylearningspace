@@ -236,6 +236,17 @@
     return aliases[code] || normaliseCodeToken(code);
   }
 
+  function normaliseActivityCode(value) {
+    return String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "_")
+      .replace(/-+/g, "_")
+      .replace(/[^a-z0-9_]/g, "")
+      .replace(/_+/g, "_")
+      .replace(/^_+|_+$/g, "");
+  }
+
   function addActivity() {
     const activityId = document.getElementById("activityId").value.trim();
     const topicSelect = document.getElementById("activityTopic");
@@ -244,6 +255,7 @@
     const payload = {
       action: "addActivityOwner",
       activity_id: activityId,
+      activity_code: normaliseActivityCode(document.getElementById("activityCode").value),
       topic_id: topicSelect.value,
       activity_type_id: typeSelect.value,
       activity_title: document.getElementById("activityTitle").value.trim(),
@@ -267,6 +279,16 @@
       return;
     }
 
+    if (!payload.activity_code) {
+      setMessage("Enter an activity code using lowercase letters, numbers and underscores.", "error");
+      return;
+    }
+
+    if (!/^[a-z0-9][a-z0-9_]*$/.test(payload.activity_code)) {
+      setMessage("Activity code may contain lowercase letters, numbers and underscores only.", "error");
+      return;
+    }
+
     if (!payload.activity_title) {
       setMessage("Enter an activity title.", "error");
       return;
@@ -287,6 +309,7 @@
 
     const optimisticActivity = {
       activity_id: payload.activity_id,
+      activity_code: payload.activity_code,
       topic_id: payload.topic_id,
       activity_type_id: payload.activity_type_id,
       activity_title: payload.activity_title,
@@ -333,6 +356,7 @@
   function resetAddActivityForm(clearMessage) {
     const topic = document.getElementById("activityTopic");
     const type = document.getElementById("activityType");
+    const code = document.getElementById("activityCode");
     const title = document.getElementById("activityTitle");
     const sortOrder = document.getElementById("activitySortOrder");
     const visible = document.getElementById("activityVisible");
@@ -340,6 +364,7 @@
 
     if (topic) topic.value = "";
     if (type) type.value = "";
+    if (code) code.value = "";
     if (title) title.value = "";
     if (sortOrder) sortOrder.value = "";
     if (visible) visible.value = "true";
@@ -408,6 +433,7 @@
       return {
         original_activity_id: row.dataset.activityRow,
         activity_id: value("activity_id"),
+        activity_code: value("activity_code"),
         topic_id: value("topic_id"),
         activity_type_id: value("activity_type_id"),
         activity_title: value("activity_title"),
@@ -593,6 +619,7 @@
           getDisplayValue(activity, "topic"),
           getDisplayValue(activity, "activity_type"),
           getDisplayValue(activity, "activity_id"),
+          getDisplayValue(activity, "activity_code"),
           getDisplayValue(activity, "activity_title"),
           getDisplayValue(activity, "visible"),
           getDisplayValue(activity, "sort_order"),
@@ -638,6 +665,8 @@
         return String(activity.activity_type_name || activity.activity_type_code || "");
       case "activity_id":
         return String(activity.activity_id || "");
+      case "activity_code":
+        return String(activity.activity_code || "");
       case "activity_title":
         return String(activity.activity_title || "");
       case "visible":
@@ -667,7 +696,7 @@
 
     body.innerHTML = rows.length
       ? rows.map(editMode ? renderEdit : renderView).join("")
-      : '<tr><td colspan="9">No activities found.</td></tr>';
+      : '<tr><td colspan="10">No activities found.</td></tr>';
 
     if (editMode) bindEditChangeTracking();
   }
@@ -714,6 +743,7 @@
       "<td>" + esc(activity.topic_name) + "</td>" +
       "<td>" + esc(activity.activity_type_name || activity.activity_type_code) + "</td>" +
       "<td>" + esc(activity.activity_id) + "</td>" +
+      "<td>" + esc(activity.activity_code) + "</td>" +
       "<td>" + esc(activity.activity_title) + "</td>" +
       "<td>" + (activity.visible ? "Visible" : "Hidden") + "</td>" +
       "<td>" + esc(activity.sort_order) + "</td>" +
@@ -758,6 +788,9 @@
       "</select></td>" +
       '<td><input class="tracker-input" data-field="activity_id" readonly value="' +
       esc(activity.activity_id) +
+      '"></td>' +
+      '<td><input class="tracker-input" data-field="activity_code" readonly value="' +
+      esc(activity.activity_code) +
       '"></td>' +
       '<td><input class="tracker-input" data-field="activity_title" value="' +
       esc(activity.activity_title) +

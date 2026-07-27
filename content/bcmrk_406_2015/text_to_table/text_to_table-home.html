@@ -18,14 +18,15 @@ Help file:
 
     <script>
       window.PAGE_CONFIG = {
+        pageKind: "topic-home",
         helpSection: "topics-home",
         pageTitle: "GLIP – Guided Learning for Independent Progress",
         heroTopline: "Welcome",
         heroMainTitle: "GLIP",
-        heroSubTitle: "Text to Table",
+        heroSubTitle: "",
         aboutText:
           "This learning space is designed to guide you step by step through each topic. You will work through guided lessons and structured practice activities designed to help you build your skills step by step.",
-        imageSrc: "assets/topic-02.jpg",
+        imageSrc: "assets/text_to_table.jpg",
         imageAlt: "Text to Table",
         howToUseTitle: "By the end of this topic, you will be able to:",
         //howToUseIntro: `<p class="q">Each topic follows the same structure:</p>`,
@@ -41,13 +42,6 @@ Help file:
         tipsText:
           "Complete the activities in the menu one by one in the order shown. Each activity is designed to help you progress step by step.",
 
-      };
-
-      window.PAGE_MENU_CONTEXT = {
-        type: "topic",
-        level: "04",
-        subject: "word",
-        topic: "02",
       };
     </script>
     <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
@@ -73,8 +67,8 @@ Help file:
             Guided Learning for Independent Progress
           </p>
 
-          <h1>Text to Table</h1>
-          <h2>MS Word</h2>
+          <h1 id="heroMainTitle">Topic</h1>
+          <h2 id="heroSubTitle">Subject</h2>
 
           <div class="page-hero-divider-bottom"></div>
         </div>

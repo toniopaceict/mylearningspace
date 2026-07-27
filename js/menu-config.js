@@ -57,6 +57,11 @@
   function activityFileName(activity) {
     if (activity.file_name) return activity.file_name;
 
+    const code = String(activity.activity_code || "").trim().toLowerCase();
+    if (/^[a-z0-9][a-z0-9_-]*$/.test(code)) return code + ".html";
+
+    // Backwards-compatible fallback for older records that do not yet have
+    // activity_code. New records must use activity_code as the filename stem.
     const id = String(activity.activity_id || "");
     const type = String(activity.activity_type_code || "").toLowerCase().replace(/_/g, "-");
     const numberMatch = id.match(/(\d+)$/);
@@ -104,7 +109,13 @@
           activity_id: activity.activity_id || ""
         }).toString();
       } else {
-        url = activityFileName(activity) + (query ? "?" + query : "");
+        const activityQuery = new URLSearchParams({
+          school: school,
+          curriculum_id: curriculumId,
+          topic_id: topicId,
+          activity_id: activity.activity_id || ""
+        }).toString();
+        url = activityFileName(activity) + (activityQuery ? "?" + activityQuery : "");
       }
 
       return {
