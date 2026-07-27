@@ -272,13 +272,14 @@ const subjectsResult = await postToGlip({
 
           const imagePromises = visibleSubjects.map(function (subject) {
             const subjectId = String(subject.subject_id || "").trim();
-            if (!subjectId) return Promise.resolve(false);
+            const subjectCode = String(subject.subject_code || subjectId).trim();
+            if (!subjectCode) return Promise.resolve(false);
 
             return preloadImage(
               "../../content/" +
-                subjectId +
-                "/assets/icon-" +
-                subjectId +
+                subjectCode +
+                "/assets/" +
+                subjectCode +
                 ".jpg"
             );
           });
