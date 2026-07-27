@@ -768,7 +768,6 @@ body.glip-dyslexia-bg {
 .teacher-level-group + .teacher-level-group {
   margin-top: 1.5rem;
 }
-
 .topic-card {
   position: relative;
   display: block;
@@ -777,7 +776,10 @@ body.glip-dyslexia-bg {
   background: var(--color-white);
   border: 1px solid rgba(11, 60, 111, 0.14);
   border-radius: 18px;
-  overflow: hidden;
+
+  /* Allow the badge to extend beyond the card. */
+  overflow: visible;
+
   box-shadow: var(--shadow-md);
   transition:
     transform var(--transition-normal),
@@ -792,8 +794,12 @@ body.glip-dyslexia-bg {
 .topic-card-img-wrap {
   position: relative;
   aspect-ratio: 5 / 3;
-  overflow: hidden;
+
+  /* Allow the badge to extend beyond the image area. */
+  overflow: visible;
+
   background: var(--color-white);
+  border-radius: 17px 17px 0 0;
 }
 
 .topic-card img {
@@ -802,6 +808,9 @@ body.glip-dyslexia-bg {
   object-fit: contain;
   display: block;
   background: var(--color-white);
+
+  /* Preserve the rounded upper corners of the card. */
+  border-radius: 17px 17px 0 0;
 }
 
 .topic-card-caption {
