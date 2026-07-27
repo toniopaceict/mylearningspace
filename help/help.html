@@ -564,14 +564,19 @@ Help Section:
       <h3>Why must the file names follow a specific format?</h3>
 
       <p>
-        GLIP uses the subject code and topic code stored in Google Sheets to
-        locate the correct icons. The file names and folder locations must
-        therefore match the codes exactly.
+        GLIP automatically locates subject and topic icons using the
+        <strong>subject code</strong> and <strong>topic code</strong> stored in
+        Google Sheets. No filenames are hardcoded in the system.
       </p>
 
       <p>
-        If GLIP cannot find an icon using the expected name and location, it
-        will display the generic icon instead.
+        To ensure that the correct icon is displayed, the image filename must
+        match the corresponding code exactly.
+      </p>
+
+      <p>
+        If GLIP cannot find the expected image, the generic icon will be shown
+        instead.
       </p>
     </section>
 
@@ -579,13 +584,13 @@ Help Section:
       <h3>Naming a subject icon</h3>
 
       <p>
-        A subject icon must be placed inside the subject's
+        Each subject icon is stored in the subject's
         <code>assets</code> folder.
       </p>
 
       <p><strong>Required file name:</strong></p>
 
-      <pre><code>icon-{subject_code}.jpg</code></pre>
+      <pre><code>{subject_code}.jpg</code></pre>
 
       <p>
         Replace <code>{subject_code}</code> with the exact value stored in the
@@ -593,38 +598,27 @@ Help Section:
         <strong>Subjects</strong> sheet.
       </p>
 
-      <p>
-        For example, if the subject code is:
-      </p>
+      <p><strong>Example</strong></p>
 
-      <pre><code>bcmrk_406-2015</code></pre>
+      <p>If the subject code is:</p>
 
-      <p>
-        the icon must be named:
-      </p>
+      <pre><code>bcmrk_406_2015</code></pre>
 
-      <pre><code>icon-bcmrk_406-2015.jpg</code></pre>
+      <p>the icon must be named:</p>
 
-      <p>
-        and saved in:
-      </p>
+      <pre><code>bcmrk_406_2015.jpg</code></pre>
 
-      <pre><code>content/bcmrk_406-2015/assets/icon-bcmrk_406-2015.jpg</code></pre>
+      <p>and saved in:</p>
 
-      <p>Other examples include:</p>
-
-      <pre><code>icon-word.jpg
-icon-excel.jpg
-icon-powerpoint.jpg
-icon-physics.jpg</code></pre>
+      <pre><code>content/bcmrk_406_2015/assets/bcmrk_406_2015.jpg</code></pre>
     </section>
 
     <section class="help-subsection">
       <h3>Naming a topic icon</h3>
 
       <p>
-        A topic icon must be placed inside the <code>assets</code> folder of
-        the relevant topic.
+        Each topic icon is stored in the topic's
+        <code>assets</code> folder.
       </p>
 
       <p><strong>Required file name:</strong></p>
@@ -637,56 +631,31 @@ icon-physics.jpg</code></pre>
         <strong>Topics</strong> sheet.
       </p>
 
-      <p>
-        For example, if the topic code is:
-      </p>
+      <p><strong>Example</strong></p>
+
+      <p>If the topic code is:</p>
 
       <pre><code>text_to_table</code></pre>
 
-      <p>
-        the icon must be named:
-      </p>
+      <p>the icon must be named:</p>
 
       <pre><code>text_to_table.jpg</code></pre>
 
-      <p>
-        and saved in:
-      </p>
+      <p>and saved in:</p>
 
-      <pre><code>content/bcmrk_406-2015/text_to_table/assets/text_to_table.jpg</code></pre>
-
-      <p>Other examples include:</p>
-
-      <pre><code>mail_merge.jpg
-styles.jpg
-lesson_01.jpg
-practice_02.jpg</code></pre>
+      <pre><code>content/bcmrk_406_2015/text_to_table/assets/text_to_table.jpg</code></pre>
     </section>
 
     <section class="help-subsection">
       <h3>Important naming rules</h3>
 
       <ul>
-        <li>
-          Use the subject code and topic code exactly as they appear in Google
-          Sheets.
-        </li>
-        <li>
-          Do not replace underscores with spaces or hyphens.
-        </li>
-        <li>
-          Subject icon filenames must begin with <code>icon-</code>.
-        </li>
-        <li>
-          Do not add the word <code>icon</code> to a topic icon filename.
-        </li>
-        <li>
-          Topic icon filenames must contain the topic code followed by
-          <code>.jpg</code>.
-        </li>
-        <li>
-          File names are case-sensitive. Lower-case filenames are recommended.
-        </li>
+        <li>Use the subject code and topic code exactly as they appear in Google Sheets.</li>
+        <li>Use the same name for the folder and its icon.</li>
+        <li>Do not add prefixes such as <code>icon-</code>.</li>
+        <li>Do not add suffixes such as <code>_icon</code>.</li>
+        <li>Do not replace underscores with spaces or hyphens.</li>
+        <li>File names are case-sensitive. Lower-case filenames are recommended.</li>
       </ul>
     </section>
 
@@ -694,14 +663,20 @@ practice_02.jpg</code></pre>
       <h3>Example folder structure</h3>
 
       <pre><code>content/
-└── bcmrk_406-2015/
+└── bcmrk_406_2015/
     ├── assets/
-    │   └── icon-bcmrk_406-2015.jpg
+    │   └── bcmrk_406_2015.jpg
     │
     └── text_to_table/
         ├── text_to_table-home.html
         └── assets/
             └── text_to_table.jpg</code></pre>
+
+      <p>
+        Following this convention makes the content structure easy to understand.
+        Every folder simply contains an image with the same name as the folder
+        itself.
+      </p>
     </section>
 
   </div>
