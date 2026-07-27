@@ -258,7 +258,7 @@ function glipCacheKey(parts) {
 
 function normaliseTopic(topic) {
   const topicFolder = getTopicFolder(topic);
-  const topicId = String(topic.topic_id || "").trim();
+  const topicId = String(topic.topic_pk || topic.topic_id || "").trim();
   const isAvailable = topic.available === true;
 
   return {

@@ -191,7 +191,7 @@
     }
 
     const controller = typeof AbortController === "function" ? new AbortController() : null;
-    const timeoutId = controller ? setTimeout(function () { controller.abort(); }, 8000) : null;
+    const timeoutId = controller ? setTimeout(function () { controller.abort(); }, 20000) : null;
 
     return fetch(window.getGlipWebAppUrl(), {
       method: "POST",
@@ -254,7 +254,12 @@
         console.error("GLIP topic context:", error);
         const fallback = cached || initial;
         applyPageConfig(fallback);
-        showContextError(error && error.message ? error.message : "Topic information could not be loaded.");
+
+        const message = error && error.name === "AbortError"
+          ? "Topic information took too long to load. Please refresh the page."
+          : (error && error.message ? error.message : "Topic information could not be loaded.");
+
+        showContextError(message);
         return fallback;
       });
   }
