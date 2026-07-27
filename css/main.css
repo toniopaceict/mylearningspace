@@ -793,7 +793,7 @@ body.glip-dyslexia-bg {
   position: relative;
   aspect-ratio: 5 / 3;
   overflow: hidden;
-  background: var(--color-surface-soft);
+  background: var(--color-white);
 }
 
 .topic-card img {
@@ -801,6 +801,7 @@ body.glip-dyslexia-bg {
   height: 100%;
   object-fit: contain;
   display: block;
+  background: var(--color-white);
 }
 
 .topic-card-caption {
