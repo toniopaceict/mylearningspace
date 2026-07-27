@@ -389,9 +389,9 @@ function normaliseTopic(topic) {
               curriculum_id: CURRICULUM_ID,
               level_id: LEVEL_ID,
               level_code: LEVEL,
-              subject_id: SUBJECT,
+              subject_id: "",
               subject_code: SUBJECT,
-              subject_name: getSubjectDisplayName(SUBJECT),
+              subject_name: String(sessionStorage.getItem("glipSubjectName") || "").trim(),
               topic_id: card.dataset.topicId || "",
               topic_code: card.dataset.topicCode || "",
               topic_name: card.dataset.topicName || ""
