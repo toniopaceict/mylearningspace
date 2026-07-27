@@ -74,3 +74,5 @@ Implementation notes
 5. Validate that file_name is a plain file name, not an external URL or path.
 6. Do not use the owner-only listActivitiesOwner action for learner pages.
 7. Reuse the relational snapshot/cache rather than reading each sheet separately.
+
+Activities must include activity_code. GLIP uses activity_code + ".html" as the local published filename. activity_id remains the relational key and progress-column identifier.
