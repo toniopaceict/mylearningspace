@@ -48,7 +48,17 @@
     setText("siteFooter", config.footerText);
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
+  function start() {
     initPage(window.PAGE_CONFIG);
-  });
+
+    if (window.GLIP_TOPIC_PAGE_DATA && window.GLIPTopicContext) {
+      window.GLIPTopicContext.applyTopicHeadings(window.GLIP_TOPIC_PAGE_DATA);
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start, { once: true });
+  } else {
+    start();
+  }
 })();

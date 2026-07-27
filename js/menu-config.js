@@ -1,148 +1,116 @@
 (function () {
   "use strict";
 
- const DEFAULT_TOPIC_ACTIVITIES = [
-  { type: "lesson", number: 1 },
-  { type: "practice", number: 1 },
-  { type: "quiz", number: 1 },
-];
-
- // Optional custom menu label.
-// If not provided, use the default generated label.
-  
-const TOPIC_ACTIVITY_OVERRIDES = {
-  "2": [
-    { type: "lesson", number: 1 },
-    { type: "practice", number: 1, label: "Practice 1A" },
-    { type: "practice", number: 2, label: "Practice 1B" },
-    { type: "quiz", number: 1 },
-    { type: "practice", number: 3 },
-    { type: "fill-blanks", number: 1 },
-    { type: "reflection", number: 1 },
-  ],
-}; 
-
   function pad2(value) {
     const match = String(value || "").match(/\d+/);
     return match ? match[0].padStart(2, "0") : "";
   }
 
-  function createMenu(siteTitle, homeUrl, items = [], settingsItems = null) {
+  function createMenu(siteTitle, homeUrl, items, settingsItems) {
     return {
-      siteTitle,
-      homeUrl,
-      items,
-      settingsItems,
+      siteTitle: siteTitle,
+      homeUrl: homeUrl,
+      items: Array.isArray(items) ? items : [],
+      settingsItems: settingsItems || null
     };
   }
 
   function createHomeMenu() {
-    return createMenu(
-      "GLIP - Guided Learning for Independent Progress",
-      "index.html",
-      [],
-      null
-    );
+    return createMenu("GLIP - Guided Learning for Independent Progress", "index.html", [], null);
   }
 
-function createLevelSubjectsMenu(level) {
-  return createMenu(
-    "GLIP - Guided Learning for Independent Progress",
-    null,
-    [],
-    [
-      {
-        text: "Subject Settings",
-        url: `subjects-${pad2(level)}-settings.html`,
-        target: "_blank",
-      },
-    ]
-  );
-}
+  function createLevelSubjectsMenu(level) {
+    return createMenu("GLIP - Guided Learning for Independent Progress", null, [], [
+      { text: "Subject Settings", url: "subjects-" + pad2(level) + "-settings.html", target: "_blank" }
+    ]);
+  }
 
   function createSubjectVisibilityMenu(level) {
+    return createMenu("← Back to Subject List", "subjects-" + pad2(level) + "-home.html", [], null);
+  }
+
+  function createSubjectLandingMenu(school) {
     return createMenu(
       "← Back to Subject List",
-      `subjects-${pad2(level)}-home.html`,
+      "/mylearningspace/schools/" + school + "/subjects-home.html",
       [],
-      null
+      [{ text: "Topic Settings", url: "../../../topic-settings.html", target: "_blank" }]
     );
   }
 
-function createSubjectLandingMenu(school, level, subject) {
-  return createMenu(
-    "← Back to Subject List",
-    `/mylearningspace/schools/${school}/subjects-home.html`,
-    [],
-    [
-      {
-        text: "Topic Settings",
-        url: `../../../topic-settings.html`,
-        target: "_blank",
-      },
-    ]
-  );
-}
+  function activityTypeLabel(code) {
+    const normalised = String(code || "").toLowerCase().replace(/_/g, "-");
+    const labels = {
+      lesson: "Lesson",
+      practice: "Practice",
+      quiz: "Quiz",
+      "fill-blanks": "Fill in the Blanks",
+      fillblank: "Fill in the Blanks",
+      reflection: "End-of-Topic Reflection",
+      checkpoint: "CheckPoint"
+    };
+    return labels[normalised] || normalised.replace(/(^|-)([a-z])/g, function (_, dash, letter) {
+      return (dash ? " " : "") + letter.toUpperCase();
+    });
+  }
 
-  function createTopicMenu(school, level, subject, topic, isSharedPage) {
-    const topicNumberRaw = String(topic).match(/\d+/)?.[0] || "1";
-    const topicNumber = String(Number(topicNumberRaw));
+  function activityFileName(activity) {
+    if (activity.file_name) return activity.file_name;
 
-    const topicToken = `${subject}_l${Number(level)}_t${Number(topicNumber)}`;
-    const activityConfig =
-      TOPIC_ACTIVITY_OVERRIDES[topicNumber] ||
-      DEFAULT_TOPIC_ACTIVITIES;
-    const topicFolder = `topic-${pad2(topicNumber)}`;
+    const id = String(activity.activity_id || "");
+    const type = String(activity.activity_type_code || "").toLowerCase().replace(/_/g, "-");
+    const numberMatch = id.match(/(\d+)$/);
+    const number = numberMatch ? pad2(numberMatch[1]) : "01";
 
-    const topicPagePrefix = isSharedPage
-      ? `../content/${subject}/${topicFolder}/`
-      : "";
+    if (type === "reflection") return "";
+    if (type === "fillblank") return "fill-blanks-" + number + ".html";
+    return type + "-" + number + ".html";
+  }
 
-    const backToTopicsUrl = isSharedPage
-? `../schools/${school}/topics-home.html`
-: `../../../schools/${school}/topics-home.html`;
+  function createTopicMenu(context) {
+    const school = context.school || "";
+    const topicCode = context.topic || "";
+    const subject = context.subject || "";
+    const level = context.level || "";
+    const curriculumId = context.curriculumId || "";
+    const topicId = context.topicId || "";
+    const backToTopicsUrl = "../../../schools/" + school + "/topics-home.html";
+    const query = new URLSearchParams({
+      school: school,
+      curriculum_id: curriculumId,
+      topic_id: topicId
+    }).toString();
 
-    const items = activityConfig.map(function (activity) {
+    const activities = (Array.isArray(context.activities) ? context.activities : [])
+      .filter(function (activity) {
+        return activity && activity.active !== false && activity.visible !== false;
+      })
+      .sort(function (a, b) {
+        return (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0);
+      });
 
-    let typeLabel =
-      activity.type.charAt(0).toUpperCase() + activity.type.slice(1);
-    
-if (activity.type === "reflection") {
-  typeLabel = "End-of-Topic Reflection";
-}
+    const items = activities.map(function (activity) {
+      const type = String(activity.activity_type_code || "").toLowerCase().replace(/_/g, "-");
+      let url;
 
-if (activity.type === "fill-blanks") {
-  typeLabel = "Fill in the Blanks";
-}
+      if (type === "reflection") {
+        url = "../../../shared/reflection.html?" + new URLSearchParams({
+          school: school,
+          subject: subject,
+          level: pad2(level),
+          topic: pad2(topicCode),
+          curriculum_id: curriculumId,
+          topic_id: topicId,
+          activity_id: activity.activity_id || ""
+        }).toString();
+      } else {
+        url = activityFileName(activity) + (query ? "?" + query : "");
+      }
 
-if (activity.type === "checkpoint") {
-  typeLabel = "CheckPoint";
-}
-      
-
-      const pageUrl =
-        activity.type === "reflection"
-          ? `../../../shared/reflection.html?school=${school}&subject=${subject}&level=${pad2(level)}&topic=${pad2(topicNumber)}`
-          : `${topicPagePrefix}${activity.type}-${pad2(activity.number)}.html`;
-
-return {
-  text:
-    activity.label ||
-    (activity.type === "reflection"
-      ? typeLabel
-      : `${typeLabel} ${activity.number}`),
-
-        url:
-          isSharedPage && activity.type === "reflection"
-            ? `reflection.html?school=${school}&subject=${subject}&level=${pad2(level)}&topic=${pad2(topicNumber)}`
-            : pageUrl,
-
-activity_id:
-  activity.type === "reflection"
-    ? `${topicToken}_reflection`
-    : activity.type === "fill-blanks"
-      ? `${topicToken}_fillblank${activity.number}`
-      : `${topicToken}_${activity.type}${activity.number}`,
+      return {
+        text: activity.activity_title || activityTypeLabel(type),
+        url: url,
+        activity_id: activity.activity_id || ""
       };
     });
 
@@ -150,70 +118,25 @@ activity_id:
   }
 
   function createTopicVisibilityMenu(subject, level) {
-    return createMenu(
-      "← Back to Topics",
-      `${subject}-topics-${pad2(level)}-home.html`,
-      [],
-      null
-    );
+    return createMenu("← Back to Topics", subject + "-topics-" + pad2(level) + "-home.html", [], null);
   }
 
-  function createTopicVisibilityHomeMenu(level) {
-    return createMenu(
-      "← Back to Subject List",
-      `../subjects-home.html`,
-      [],
-      null
-    );
+  function createTopicVisibilityHomeMenu() {
+    return createMenu("← Back to Subject List", "../subjects-home.html", [], null);
   }
 
   function buildMenu(context) {
     const type = context.type || "home";
-
-    if (type === "home") {
-      return createHomeMenu();
-    }
-
-    if (type === "level-subject-list") {
-      return createLevelSubjectsMenu(context.level);
-    }
-
-    if (type === "subject-visibility") {
-      return createSubjectVisibilityMenu(context.level);
-    }
-
-    if (type === "subject-landing") {
-      return createSubjectLandingMenu(
-        context.school,
-        context.level,
-        context.subject
-      );
-    }
-
-    if (type === "topic") {
-      return createTopicMenu(
-        context.school,
-        context.level,
-        context.subject,
-        context.topic,
-        context.sharedPage === true
-      );
-    }
-
-    if (type === "topic-visibility") {
-      return createTopicVisibilityMenu(context.subject, context.level);
-    }
-
-    if (type === "topic-visibility-home") {
-      return createTopicVisibilityHomeMenu(context.level || "");
-    }
-
+    if (type === "home") return createHomeMenu();
+    if (type === "level-subject-list") return createLevelSubjectsMenu(context.level);
+    if (type === "subject-visibility") return createSubjectVisibilityMenu(context.level);
+    if (type === "subject-landing") return createSubjectLandingMenu(context.school);
+    if (type === "topic") return createTopicMenu(context);
+    if (type === "topic-visibility") return createTopicVisibilityMenu(context.subject, context.level);
+    if (type === "topic-visibility-home") return createTopicVisibilityHomeMenu();
     return createHomeMenu();
   }
 
   window.buildMenuConfig = buildMenu;
-
-  window.MENU_CONFIG = {
-    home: createHomeMenu(),
-  };
+  window.MENU_CONFIG = { home: createHomeMenu() };
 })();

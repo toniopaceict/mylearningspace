@@ -3,7 +3,7 @@
 
   
   
-  const GLIP_ASSET_VERSION = "349";
+  const GLIP_ASSET_VERSION = "350";
   const GLIP_BASE_URL = "https://toniopaceict.github.io/mylearningspace";
 
   window.GLIP_ASSET_VERSION = GLIP_ASSET_VERSION;
@@ -18,9 +18,11 @@
       loadScriptOnce(versionedAssetUrl("/js/role-guard.js"), function () {
         loadScriptOnce(versionedAssetUrl("/js/menu-config.js"), function () {
           loadScriptOnce(versionedAssetUrl("/js/management-cache.js"), function () {
-            loadScriptOnce(versionedAssetUrl("/js/header.js"), function () {
-              loadPageSpecificScripts(function () {
-                document.dispatchEvent(new CustomEvent("glipReady"));
+            prepareTopicContext(function () {
+              loadScriptOnce(versionedAssetUrl("/js/header.js"), function () {
+                loadPageSpecificScripts(function () {
+                  document.dispatchEvent(new CustomEvent("glipReady"));
+                });
               });
             });
           });
@@ -30,6 +32,30 @@
   });
   });
   });
+
+  function prepareTopicContext(callback) {
+    const pageKind = getPageKind(window.PAGE_CONFIG || {});
+
+    if (pageKind !== "topic-home" && pageKind !== "lesson" &&
+        pageKind !== "practice" && pageKind !== "quiz" &&
+        pageKind !== "fillblank") {
+      callback();
+      return;
+    }
+
+    loadScriptOnce(versionedAssetUrl("/js/topic-page-context.js"), function () {
+      if (!window.GLIPTopicContext || typeof window.GLIPTopicContext.initialise !== "function") {
+        callback();
+        return;
+      }
+
+      Promise.resolve(window.GLIPTopicContext.initialise())
+        .catch(function (error) {
+          console.error("Could not initialise topic context.", error);
+        })
+        .finally(callback);
+    });
+  }
 
   function versionedAssetUrl(path) {
     if (!path) return path;
