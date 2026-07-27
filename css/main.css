@@ -789,6 +789,7 @@ body.glip-dyslexia-bg {
 .topic-card:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-lg);
+   z-index: 2;
 }
 
 .topic-card-img-wrap {
