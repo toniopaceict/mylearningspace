@@ -507,8 +507,7 @@ function populateSubjectDropdownForLevel(level, select, selectedSubjectId) {
       cancelBtn.id = "cancelClassTeachersEditBtn";
       cancelBtn.className = "glip-btn glip-btn-secondary teacher-cancel-btn";
       cancelBtn.textContent = "Cancel";
-      cancelBtn.style.marginLeft = "12px";
-      cancelBtn.style.marginRight = "12px";
+      cancelBtn.style.marginLeft = "8px";
       cancelBtn.addEventListener("click", cancelClassTeachersEditMode);
 
       editBtn.insertAdjacentElement("afterend", cancelBtn);
