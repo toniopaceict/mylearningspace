@@ -500,47 +500,21 @@ function populateSubjectDropdownForLevel(level, select, selectedSubjectId) {
       : "Edit Assignments";
 
     let cancelBtn = document.getElementById("cancelClassTeachersEditBtn");
-    let buttonGroup = document.getElementById("classTeacherEditButtonGroup");
 
-    if (classTeachersEditMode) {
-      if (!buttonGroup) {
-        buttonGroup = document.createElement("span");
-        buttonGroup.id = "classTeacherEditButtonGroup";
-        buttonGroup.style.display = "inline-flex";
-        buttonGroup.style.alignItems = "center";
-        buttonGroup.style.gap = "12px";
-        buttonGroup.style.marginRight = "16px";
+    if (classTeachersEditMode && !cancelBtn) {
+      cancelBtn = document.createElement("button");
+      cancelBtn.type = "button";
+      cancelBtn.id = "cancelClassTeachersEditBtn";
+      cancelBtn.className = "glip-btn glip-btn-secondary teacher-cancel-btn";
+      cancelBtn.textContent = "Cancel";
+      cancelBtn.style.marginLeft = "12px";
+      cancelBtn.style.marginRight = "12px";
+      cancelBtn.addEventListener("click", cancelClassTeachersEditMode);
 
-        editBtn.parentNode.insertBefore(buttonGroup, editBtn);
-        buttonGroup.appendChild(editBtn);
-      }
-
-      if (!cancelBtn) {
-        cancelBtn = document.createElement("button");
-        cancelBtn.type = "button";
-        cancelBtn.id = "cancelClassTeachersEditBtn";
-        cancelBtn.className = "glip-btn glip-btn-secondary teacher-cancel-btn";
-        cancelBtn.textContent = "Cancel";
-        cancelBtn.addEventListener("click", cancelClassTeachersEditMode);
-
-        buttonGroup.appendChild(cancelBtn);
-      }
-
-      return;
+      editBtn.insertAdjacentElement("afterend", cancelBtn);
     }
 
-    if (buttonGroup) {
-      buttonGroup.parentNode.insertBefore(editBtn, buttonGroup);
-
-      if (cancelBtn) {
-        cancelBtn.remove();
-      }
-
-      buttonGroup.remove();
-      return;
-    }
-
-    if (cancelBtn) {
+    if (!classTeachersEditMode && cancelBtn) {
       cancelBtn.remove();
     }
   }
