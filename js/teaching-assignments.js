@@ -78,13 +78,58 @@
     }
   }
 
-  function postToGlip(data) {
+  const READ_ONLY_ACTIONS = new Set([
+    "listTeachersAdmin",
+    "listLevelsAdmin",
+    "listClassesAdmin",
+    "getAllSubjectsAdmin",
+    "listClassTeachersAdmin"
+  ]);
+
+  function postToGlip(data, retryCount) {
+    const attempt = Number(retryCount || 0);
+
     return fetch(getWebAppUrl(), {
       method: "POST",
-      body: JSON.stringify(data)
-    }).then(function (res) {
-      return res.json();
-    });
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+      cache: "no-store",
+      body: JSON.stringify(data || {})
+    })
+      .then(function (res) {
+        return res.text();
+      })
+      .then(function (text) {
+        let result;
+
+        try {
+          result = JSON.parse(text);
+        } catch (error) {
+          throw new Error("GLIP returned an invalid server response.");
+        }
+
+        /*
+         * A newly deployed Apps Script version can occasionally return the
+         * doGet fallback while the deployment is propagating. Retrying is
+         * safe only for read-only actions.
+         */
+        if (
+          result &&
+          result.status === "error" &&
+          result.message === "Invalid or missing action" &&
+          READ_ONLY_ACTIONS.has(String(data && data.action || "")) &&
+          attempt < 1
+        ) {
+          return new Promise(function (resolve) {
+            setTimeout(resolve, 300);
+          }).then(function () {
+            return postToGlip(data, attempt + 1);
+          });
+        }
+
+        return result;
+      });
   }
 
   function loadTeachers() {
@@ -97,7 +142,9 @@
         throw new Error(result.message || "Could not load teachers.");
       }
 
-availableTeachers = result.teachers || [];
+      availableTeachers = (result.teachers || []).filter(function (teacher) {
+        return String(teacher.role || "").trim().toLowerCase() !== "owner";
+      });
     }).catch(function (error) {
       console.error(error);
       setAddMessage("Could not load teachers.", "error");
@@ -150,7 +197,7 @@ function loadLevels() {
 
     levelsByCode[levelCode] = {
       level_code: levelCode,
-      level_name: formatLevel(levelCode),
+      level_name: getLevelLabel(levelCode),
       active: item.level_active !== false
     };
   });
@@ -163,7 +210,7 @@ function loadLevels() {
     if (!levelsByCode[levelCode]) {
       levelsByCode[levelCode] = {
         level_code: levelCode,
-        level_name: formatLevel(levelCode),
+        level_name: getLevelLabel(levelCode),
         active: item.level_active !== false
       };
     } else if (item.level_active === false) {
@@ -226,7 +273,7 @@ if (typeof window.setupGlipTableFilter === "function") {
     tableId: "classTeachersTable",
 fields: [
   { value: "teacher_name", label: "Teacher", getValue: function (assignment) { return getTeacherNameById(assignment.teacher_id); } },
-  { value: "level", label: "Level", getValue: function (assignment) { return formatLevel(assignment.level); } },
+  { value: "level", label: "Level", getValue: function (assignment) { return getLevelLabel(assignment); } },
   { value: "subject_id", label: "Subject", getValue: function (assignment) { return getSubjectName(assignment.subject_id, assignment.level); } },
   { value: "class_id", label: "Class" },
   { value: "folder_id", label: "Work Folder" },
@@ -325,7 +372,8 @@ function populateLevelDropdown(select, selectedLevel) {
 
       const levelLabel =
         level.level_name ||
-        formatLevel(levelCode);
+        level.level_code ||
+        getLevelLabel(levelCode);
 
       return `
         <option value="${escapeHtml(levelCode)}" ${selected}>
@@ -350,7 +398,7 @@ function populateSubjectDropdownForLevel(level, select, selectedSubjectId) {
   }
 
   const subjectsForLevel = availableSubjects.filter(function (subject) {
-    return !subject.level || normaliseLevel(subject.level) === normaliseLevel(level);
+    return !subject.level || levelsMatch(subject.level, level);
   });
 
   select.innerHTML =
@@ -379,7 +427,7 @@ function populateSubjectDropdownForLevel(level, select, selectedSubjectId) {
     }
 
     const classesForLevel = availableClasses.filter(function (item) {
-      return normaliseLevel(item.level) === normaliseLevel(level);
+      return levelsMatch(item.level, level);
     });
 
     select.innerHTML =
@@ -505,7 +553,7 @@ function formatAssignmentTeacherCell(assignment) {
 function formatAssignmentLevelCell(assignment) {
   return escapeHtml(
     appendPlanningWarning(
-      formatLevel(assignment.level),
+      getLevelLabel(assignment),
       assignment.level_active === false
     )
   );
@@ -685,7 +733,7 @@ function renderAssignmentEditRow(assignment) {
   function getSubjectInfoByLevel(subjectId, level) {
     return availableSubjects.find(function (item) {
       return String(item.subject_id) === String(subjectId) &&
-        normaliseLevel(item.level) === normaliseLevel(level);
+        levelsMatch(item.level, level);
     }) || null;
   }
 
@@ -857,7 +905,11 @@ function renderAssignmentEditRow(assignment) {
   }
 
   function renderTeacherOptions(selectedTeacherId) {
-    return availableTeachers.map(function (teacher) {
+    return availableTeachers
+      .filter(function (teacher) {
+        return String(teacher.role || "").trim().toLowerCase() !== "owner";
+      })
+      .map(function (teacher) {
       const selected =
         teacher.teacher_id === selectedTeacherId ? "selected" : "";
 
@@ -881,7 +933,7 @@ function renderAssignmentEditRow(assignment) {
       });
 
       const levelLabel = appendPlanningWarning(
-        (levelRecord && levelRecord.level_name) || formatLevel(level),
+        (levelRecord && (levelRecord.level_name || levelRecord.level_code)) || getLevelLabel(level),
         !!(levelRecord && levelRecord.active === false)
       );
 
@@ -896,7 +948,7 @@ function renderAssignmentEditRow(assignment) {
 function renderSubjectOptionsForLevel(level, selectedSubjectId) {
   return availableSubjects
     .filter(function (subject) {
-      return !subject.level || normaliseLevel(subject.level) === normaliseLevel(level);
+      return !subject.level || levelsMatch(subject.level, level);
     })
     .map(function (subject) {
       const selected =
@@ -913,7 +965,7 @@ function renderSubjectOptionsForLevel(level, selectedSubjectId) {
   function renderClassOptionsForLevel(level, selectedClassId) {
     return availableClasses
       .filter(function (item) {
-        return normaliseLevel(item.level) === normaliseLevel(level);
+        return levelsMatch(item.level, level);
       })
       .map(function (item) {
         const selected =
@@ -1080,27 +1132,109 @@ if (resourcesInput) {
     return value === true || String(value).toLowerCase() === "true";
   }
 
+  function getLevelRecord(value) {
+    const source = value && typeof value === "object"
+      ? [
+          value.level_id,
+          value.level_code,
+          value.level,
+          value.level_name
+        ]
+      : [value];
+
+    const candidates = source
+      .map(function (item) { return String(item || "").trim().toLowerCase(); })
+      .filter(Boolean);
+
+    if (!candidates.length) return null;
+
+    const exactMatch = availableLevels.find(function (level) {
+      const identifiers = [
+        level.level_id,
+        level.level_code,
+        level.level_name
+      ].map(function (item) {
+        return String(item || "").trim().toLowerCase();
+      });
+
+      return candidates.some(function (candidate) {
+        return identifiers.indexOf(candidate) !== -1;
+      });
+    });
+
+    if (exactMatch) return exactMatch;
+
+    /*
+     * Legacy pages sometimes supplied only "4" or "level-04". Match that
+     * value to a year-specific code such as "level-04-26" only when the
+     * result is unambiguous.
+     */
+    const requestedNumber = getPrimaryLevelNumber(candidates[0]);
+    if (!requestedNumber) return null;
+
+    const numberMatches = availableLevels.filter(function (level) {
+      return getPrimaryLevelNumber(level.level_code || level.level_name) === requestedNumber;
+    });
+
+    return numberMatches.length === 1 ? numberMatches[0] : null;
+  }
+
+  function getPrimaryLevelNumber(value) {
+    const text = String(value || "").trim().toLowerCase();
+    if (!text) return "";
+
+    const codeMatch = text.match(/^level[-\s_]*(\d{1,2})(?:[-\s_]|$)/i);
+    if (codeMatch) return String(Number(codeMatch[1]));
+
+    const numberMatch = text.match(/\d{1,2}/);
+    return numberMatch ? String(Number(numberMatch[0])) : "";
+  }
+
   function normaliseLevel(level) {
-    const value = String(level || "").trim();
-
-    if (!value) return "";
-
-    if (value.indexOf("level-") === 0) {
-      return value;
+    const record = getLevelRecord(level);
+    if (record && record.level_code) {
+      return String(record.level_code).trim();
     }
 
-    const digits = value.replace(/\D/g, "");
+    const value = String(
+      level && typeof level === "object"
+        ? level.level_code || level.level || level.level_id || ""
+        : level || ""
+    ).trim();
 
-    if (!digits) return value;
+    if (!value) return "";
+    if (/^level-/i.test(value)) return value.toLowerCase();
 
-    return "level-" + digits.padStart(2, "0");
+    const levelNumber = getPrimaryLevelNumber(value);
+    return levelNumber
+      ? "level-" + String(levelNumber).padStart(2, "0")
+      : value;
+  }
+
+  function levelsMatch(first, second) {
+    const firstCode = normaliseLevel(first);
+    const secondCode = normaliseLevel(second);
+    return !!firstCode && !!secondCode && firstCode === secondCode;
+  }
+
+  function getLevelLabel(value) {
+    const record = getLevelRecord(value);
+
+    if (record) {
+      return String(record.level_name || record.level_code || "").trim();
+    }
+
+    const levelNumber = getPrimaryLevelNumber(
+      value && typeof value === "object"
+        ? value.level_code || value.level || value.level_id || ""
+        : value
+    );
+
+    return levelNumber ? "Level " + levelNumber : String(value || "");
   }
 
   function formatLevel(level) {
-    const value = normaliseLevel(level);
-    const digits = value.replace(/\D/g, "");
-
-    return digits ? "Level " + Number(digits) : level;
+    return getLevelLabel(level);
   }
 
   function escapeHtml(text) {
