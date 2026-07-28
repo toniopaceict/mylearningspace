@@ -8,6 +8,7 @@
   let initialised = false;
   let sortField = "sort_order";
   let sortDirection = "asc";
+  let activityCodeManuallyEdited = false;
 
   function post(data) {
     data.owner_teacher_id = sessionStorage.getItem("glipTeacherId");
@@ -32,6 +33,14 @@
     document.getElementById("activitySearchColumn")?.addEventListener("change", render);
     document.getElementById("activityTopic")?.addEventListener("change", updateGeneratedActivityId);
     document.getElementById("activityType")?.addEventListener("change", updateGeneratedActivityId);
+    document.getElementById("activityTitle")?.addEventListener("input", updateSuggestedActivityCode);
+    document.getElementById("activityCode")?.addEventListener("input", function () {
+      activityCodeManuallyEdited = true;
+      setActivityCodeHint("You may adjust the suggested code before saving. It cannot be changed afterwards.");
+    });
+    document.getElementById("activityCode")?.addEventListener("blur", function (event) {
+      event.target.value = normaliseActivityCode(event.target.value);
+    });
 
     setupSorting();
     applyActivityTableColumnSizing();
@@ -247,6 +256,37 @@
       .replace(/^_+|_+$/g, "");
   }
 
+  function suggestActivityCodeFromTitle(value) {
+    return normaliseActivityCode(value).replace(/(^|_)(\d+)(?=_|$)/g, function (_match, separator, digits) {
+      const number = Number(digits);
+      if (!Number.isFinite(number)) return separator + digits;
+      return separator + String(number).padStart(2, "0");
+    });
+  }
+
+  function updateSuggestedActivityCode() {
+    const title = document.getElementById("activityTitle");
+    const code = document.getElementById("activityCode");
+    if (!title || !code) return;
+
+    if (!activityCodeManuallyEdited || !code.value.trim()) {
+      code.value = suggestActivityCodeFromTitle(title.value);
+      activityCodeManuallyEdited = false;
+      setActivityCodeHint(
+        code.value
+          ? "Suggested from the title. You may adjust it before saving; it cannot be changed afterwards."
+          : "Enter a title and GLIP will suggest the Activity Code."
+      );
+    }
+  }
+
+  function setActivityCodeHint(text, type) {
+    const hint = document.getElementById("activityCodeHint");
+    if (!hint) return;
+    hint.textContent = text || "";
+    hint.className = "activity-code-hint" + (type ? " " + type : "");
+  }
+
   function addActivity() {
     const activityId = document.getElementById("activityId").value.trim();
     const topicSelect = document.getElementById("activityTopic");
@@ -286,6 +326,18 @@
 
     if (!/^[a-z0-9][a-z0-9_]*$/.test(payload.activity_code)) {
       setMessage("Activity code may contain lowercase letters, numbers and underscores only.", "error");
+      return;
+    }
+
+    const duplicateCode = activities.some(function (activity) {
+      return String(activity.topic_id) === String(payload.topic_id) &&
+        normaliseActivityCode(activity.activity_code) === payload.activity_code;
+    });
+
+    if (duplicateCode) {
+      setMessage("That Activity Code is already used in the selected topic.", "error");
+      setActivityCodeHint("Choose a different code for this topic.", "error");
+      document.getElementById("activityCode")?.focus();
       return;
     }
 
@@ -366,6 +418,8 @@
     if (type) type.value = "";
     if (code) code.value = "";
     if (title) title.value = "";
+    activityCodeManuallyEdited = false;
+    setActivityCodeHint("Enter a title and GLIP will suggest the Activity Code.");
     if (sortOrder) sortOrder.value = "";
     if (visible) visible.value = "true";
     if (active) active.value = "true";

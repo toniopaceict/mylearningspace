@@ -166,6 +166,25 @@ Help file:
       border: 2px solid #b00020 !important;
     }
 
+
+    .activity-code-field {
+      min-width: 0;
+    }
+
+    .activity-code-field .tracker-input {
+      width: 100%;
+    }
+
+    .activity-code-hint {
+      margin: 0.35rem 0 0;
+      font-size: 0.82rem;
+      line-height: 1.35;
+      color: var(--muted-text, #536273);
+    }
+
+    .activity-code-hint.error {
+      color: #b42318;
+    }
     @media (max-width: 760px) {
       .activity-panel-header {
         align-items: stretch;
@@ -212,7 +231,8 @@ Help file:
 <legend>Add Activity</legend>
 <p class="q">
           Select the topic and activity type. GLIP generates the Activity ID
-          automatically and creates the relevant progress column.
+          automatically and suggests an Activity Code from the title. The code becomes
+          the HTML filename and cannot be changed after the activity is saved.
         </p>
 <div class="activity-add-grid">
 <select class="tracker-input" id="activityTopic">
@@ -222,7 +242,10 @@ Help file:
 <option value="">Select activity type</option>
 </select>
 <input aria-label="Automatically generated Activity ID" class="tracker-input" id="activityId" placeholder="Activity ID generated automatically" readonly=""/>
-<input class="tracker-input" id="activityCode" placeholder="Activity code, for example my_lesson_01"/>
+<div class="activity-code-field">
+<input aria-describedby="activityCodeHint" class="tracker-input" id="activityCode" placeholder="Activity Code, for example my_lesson_01"/>
+<p class="activity-code-hint" id="activityCodeHint">Enter a title and GLIP will suggest the Activity Code.</p>
+</div>
 <input class="tracker-input" id="activityTitle" placeholder="Activity title"/>
 <input class="tracker-input" id="activitySortOrder" min="1" placeholder="Sort order" step="1" type="number"/>
 <select class="tracker-input" id="activityVisible">
