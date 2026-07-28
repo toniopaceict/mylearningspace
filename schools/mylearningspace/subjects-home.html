@@ -544,7 +544,6 @@ function renderSubjectCards(subjects, fallbackLevel) {
       const subjectStatus = getSubjectStatus(subject, progressItems);
 
       const subjectId = String(subject.subject_id || "").trim();
-      const subjectCode = String(subject.subject_code || subjectId).trim();
       const subjectName = String(subject.subject_name || "").trim();
       const subjectLevel = String(subject.level || fallbackLevel || LEVEL || "").trim();
       const levelId = String(subject.level_id || "").trim();
@@ -554,9 +553,9 @@ function renderSubjectCards(subjects, fallbackLevel) {
 
       const image =
         "../../content/" +
-        subjectCode +
-        "/assets/" +
-        subjectCode +
+        subjectId +
+        "/assets/icon-" +
+        subjectId +
         ".jpg";
 
       return `
@@ -1318,9 +1317,6 @@ async function loadAdminDashboard() {
   const normalGrid = document.getElementById("topic-grid");
 
   if (!subjects.length) {
-    const loadingProgress = document.getElementById("subjectsLoadingProgress");
-    if (loadingProgress) loadingProgress.style.display = "none";
-
     if (normalGrid) {
       normalGrid.style.display = "none";
     }
@@ -1378,9 +1374,6 @@ function loadSubjects() {
               startBackgroundTopicPreloadSoon(subjects);
             });
           } else {
-            const loadingProgress = document.getElementById("subjectsLoadingProgress");
-            if (loadingProgress) loadingProgress.style.display = "none";
-
             document.getElementById("topic-grid").innerHTML =
               "Unable to load subjects";
           }
