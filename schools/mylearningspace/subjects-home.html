@@ -1139,12 +1139,122 @@ async function fetchSubjectsForLevel(level) {
   }
 }
 
+async function fetchAllTeacherSubjects() {
+  try {
+    const result = await postToGlip({
+      action: "getSubjects",
+      userType: sessionStorage.getItem("glipUserType") || "",
+      teacher_id: sessionStorage.getItem("glipTeacherId") || ""
+    });
+
+    if (!result || result.status !== "success") {
+      throw new Error(
+        (result && result.message) || "Error loading assigned subjects"
+      );
+    }
+
+    return Array.isArray(result.subjects) ? result.subjects : [];
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
+function groupTeacherSubjects(subjects) {
+  const assignmentsByLevel = {};
+
+  (subjects || []).forEach(function (subject) {
+    const level = normaliseLevel(subject.level);
+
+    if (!level) return;
+
+    if (!assignmentsByLevel[level]) {
+      assignmentsByLevel[level] = [];
+    }
+
+    assignmentsByLevel[level].push(subject);
+    setTeacherSubjectCacheForLevel(level, assignmentsByLevel[level]);
+  });
+
+  return assignmentsByLevel;
+}
+
+function rebuildTeacherPermissionsFromSubjects(subjects) {
+  const existingPermissions = getTeacherPermissions();
+  const permissionsByKey = {};
+
+  existingPermissions.forEach(function (permission) {
+    const key = [
+      normaliseLevel(permission.level),
+      String(permission.subject_id || "").trim(),
+      String(permission.class_id || "").trim()
+    ].join("|");
+
+    permissionsByKey[key] = permission;
+  });
+
+  (subjects || []).forEach(function (subject) {
+    const level = normaliseLevel(subject.level);
+    const subjectId = String(subject.subject_id || "").trim();
+    const classId = String(subject.class_id || "").trim();
+
+    if (!level || !subjectId) return;
+
+    const key = [level, subjectId, classId].join("|");
+
+    permissionsByKey[key] = Object.assign(
+      {},
+      permissionsByKey[key] || {},
+      {
+        level: level,
+        level_id: subject.level_id || "",
+        curriculum_id: subject.curriculum_id || "",
+        subject_id: subjectId,
+        subject_code: subject.subject_code || "",
+        subject_name: subject.subject_name || "",
+        class_id: classId,
+        access_type: subject.access_type || "current",
+        active: subject.active !== false
+      }
+    );
+  });
+
+  sessionStorage.setItem(
+    "glipTeacherPermissions",
+    JSON.stringify(Object.values(permissionsByKey))
+  );
+}
+
 async function loadTeacherDashboard() {
-  const levels = getTeacherAssignedLevels();
   const dashboard = document.getElementById("teacher-dashboard");
   const normalGrid = document.getElementById("topic-grid");
 
-  if (!levels.length) {
+  /*
+   * Do not use glipTeacherPermissions as the authority for whether a teacher
+   * has assignments. A new session may legitimately contain no warmed
+   * permissions even though active TeachingAssignments records exist.
+   * Ask Apps Script for the teacher's current subjects instead.
+   */
+  const subjects = await fetchAllTeacherSubjects();
+
+  if (subjects === null) {
+    const loadingProgress = document.getElementById("subjectsLoadingProgress");
+    if (loadingProgress) loadingProgress.style.display = "none";
+
+    if (normalGrid) normalGrid.style.display = "none";
+
+    if (dashboard) {
+      dashboard.style.display = "";
+      dashboard.innerHTML = `
+        <p class="q">
+          GLIP could not load your assigned subjects. Please refresh the page.
+        </p>
+      `;
+    }
+    return;
+  }
+
+  if (!subjects.length) {
     const loadingProgress = document.getElementById("subjectsLoadingProgress");
     if (loadingProgress) loadingProgress.style.display = "none";
 
@@ -1161,43 +1271,12 @@ async function loadTeacherDashboard() {
     return;
   }
 
-  const assignmentsByLevel = {};
-  const missingLevels = [];
+  rebuildTeacherPermissionsFromSubjects(subjects);
 
-  levels.forEach(function (level) {
-    const cachedSubjects = getTeacherSubjectCacheForLevel(level);
-
-    if (cachedSubjects) {
-      assignmentsByLevel[level] = cachedSubjects;
-    } else {
-      missingLevels.push(level);
-    }
-  });
-
-  // Login normally warms every assigned level. When all entries are present,
-  // the dashboard is rendered without contacting Apps Script.
-  if (!missingLevels.length) {
-    renderTeacherDashboard(assignmentsByLevel);
-    startBackgroundTopicPreloadSoon(
-      Object.keys(assignmentsByLevel).flatMap(function (level) {
-        return assignmentsByLevel[level] || [];
-      }),
-    );
-    return;
-  }
-
-  await Promise.all(
-    missingLevels.map(async function (level) {
-      assignmentsByLevel[level] = await fetchSubjectsForLevel(level);
-    }),
-  );
+  const assignmentsByLevel = groupTeacherSubjects(subjects);
 
   renderTeacherDashboard(assignmentsByLevel);
-  startBackgroundTopicPreloadSoon(
-    Object.keys(assignmentsByLevel).flatMap(function (level) {
-      return assignmentsByLevel[level] || [];
-    }),
-  );
+  startBackgroundTopicPreloadSoon(subjects);
 }
 
 
