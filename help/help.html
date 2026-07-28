@@ -673,7 +673,175 @@ Help Section:
 
       
       
+<details class="help-topic" id="activity-management" data-roles="owner">
+  <summary>Activity Management</summary>
 
+  <div class="help-topic-body">
+
+    <section class="help-subsection">
+      <h3>Purpose</h3>
+      <p>
+        Activity Management is used to create and maintain the learning activities that make up each topic in GLIP.
+        Activities define the order in which learners complete work and are used for navigation, progress tracking and
+        content validation.
+      </p>
+      <p>
+        Every activity belongs to a single topic and has a unique Activity ID and Activity Code. The Activity ID is used
+        internally by GLIP, while the Activity Code identifies the corresponding HTML content page.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Adding an activity</h3>
+      <p>
+        To add an activity:
+      </p>
+      <ol>
+        <li>Select the required <strong>Level, Subject and Topic</strong>.</li>
+        <li>Select the <strong>Activity Type</strong>.</li>
+        <li>Enter a descriptive <strong>Activity Title</strong>.</li>
+        <li>Specify the <strong>Sort Order</strong>.</li>
+        <li>Choose whether the activity is <strong>Visible</strong> and <strong>Active</strong>.</li>
+        <li>Save the activity.</li>
+      </ol>
+
+      <p>
+        GLIP generates the <strong>Activity ID</strong> automatically and suggests an
+        <strong>Activity Code</strong> based on the title.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Activity ID and Activity Code</h3>
+
+      <p>
+        The <strong>Activity ID</strong> is the internal database identifier used by GLIP to maintain relationships
+        between activities and learner progress. It is generated automatically and should never be edited manually.
+      </p>
+
+      <p>
+        The <strong>Activity Code</strong> is a permanent content identifier. It is used to locate the HTML page that
+        contains the learning material.
+      </p>
+
+      <p>
+        For example:
+      </p>
+
+      <pre>
+Activity Code: my_lesson_01
+
+HTML page:
+my_lesson_01.html
+      </pre>
+
+      <p>
+        Once an activity has been created, the Activity Code should not be changed because it forms part of the content
+        structure and may be referenced by links, validation routines and other resources.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Sort Order</h3>
+
+      <p>
+        The Sort Order determines the sequence in which activities appear to learners.
+      </p>
+
+      <p>
+        It is recommended to number activities in multiples of ten, for example:
+      </p>
+
+      <pre>
+10
+20
+30
+40
+      </pre>
+
+      <p>
+        This makes it easy to insert additional activities later without having to renumber the entire topic.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Visible and Active</h3>
+
+      <p>
+        Two settings control whether an activity is available.
+      </p>
+
+      <ul>
+        <li><strong>Visible</strong> determines whether learners can see the activity.</li>
+        <li><strong>Active</strong> determines whether the activity is available for use.</li>
+      </ul>
+
+      <p>
+        An activity must normally be both <strong>Visible</strong> and <strong>Active</strong> before learners can
+        access it.
+      </p>
+
+      <p>
+        Owners can still view inactive activities for planning and development purposes.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Editing activities</h3>
+
+      <p>
+        Existing activities can be edited using the <strong>Edit Activities</strong> button.
+      </p>
+
+      <p>
+        Changes are applied immediately in the browser and then saved in the background. Modified fields are highlighted
+        until the changes have been saved successfully.
+      </p>
+
+      <p>
+        The Activity Code is treated as a permanent identifier and should not normally be changed after the activity has
+        been created.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Searching and sorting</h3>
+
+      <p>
+        The Activities table supports searching, sorting and filtering to make it easier to locate activities in large
+        courses.
+      </p>
+
+      <p>
+        You can search across all columns or limit the search to a specific field.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Relationship with Content Validator</h3>
+
+      <p>
+        Every activity should have a matching HTML content page whose filename matches the Activity Code.
+      </p>
+
+      <p>
+        The Content Validator checks for:
+      </p>
+
+      <ul>
+        <li>activities without matching HTML pages;</li>
+        <li>HTML pages that are not linked to any activity;</li>
+        <li>duplicate Activity Codes;</li>
+        <li>other content consistency issues.</li>
+      </ul>
+
+      <p>
+        Running the Content Validator regularly helps ensure that the published content remains complete and consistent.
+      </p>
+    </section>
+
+  </div>
+</details>
 
 
 
