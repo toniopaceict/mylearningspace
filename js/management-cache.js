@@ -37,6 +37,38 @@
     listMyWorkFolders: "workFolders"
   };
 
+  const ACTION_PRIMARY_COLLECTIONS = {
+    listLevelsManagementAdmin: ["levels"],
+    listLevelsAdmin: ["levels"],
+    listSubjectCatalogueOwner: ["subjects"],
+    listTopicCatalogueOwner: ["topics"],
+    listCurriculumManagementAdmin: ["curriculum", "subjects"],
+    getAllSubjectsAdmin: ["subjects"],
+    getCurriculumTopicManagement: ["topics", "curriculum_topics"],
+    listTeachersAdmin: ["teachers"],
+    listClassesAdmin: ["classes"],
+    listClassTeachersAdmin: ["assignments", "class_teachers", "teaching_assignments"],
+    listStudentsAdmin: ["students"],
+    getStudentSubjectManagementAdmin: ["student_subjects", "assignments"],
+    listMyWorkFolders: ["folders", "assignments", "work_folders"]
+  };
+
+  function cachedResultConfirmsRecords(action, data) {
+    const fields = ACTION_PRIMARY_COLLECTIONS[action] || [];
+    if (!fields.length || !data || data.status !== "success") return true;
+
+    const presentFields = fields.filter(function (field) {
+      return Array.isArray(data[field]);
+    });
+
+    // Unknown response shape: preserve existing cache behaviour.
+    if (!presentFields.length) return true;
+
+    return presentFields.some(function (field) {
+      return data[field].length > 0;
+    });
+  }
+
   const DATASET_ACTIONS = Object.keys(ACTION_DATASETS).reduce(function (map, action) {
     const dataset = ACTION_DATASETS[action];
     if (!map[dataset]) map[dataset] = [];
@@ -767,6 +799,16 @@
       pauseBackgroundWarming(ADMIN_BACKGROUND_PAUSE_MS);
       const cachedEntry = readEntry(action, false);
       if (cachedEntry) {
+        /*
+         * A cached non-empty result may be shown immediately. A cached empty
+         * result must never be used as proof that records do not exist. In
+         * that case, wait for Apps Script and let the authoritative response
+         * decide whether the page should show an empty state.
+         */
+        if (!cachedResultConfirmsRecords(action, cachedEntry.data)) {
+          return fetchAndCache(input, options, requestData);
+        }
+
         checkVersions(apiUrl, false).then(function () {
           const latestEntry = readEntry(action, false);
           if (!latestEntry) refreshInBackground(input, options, requestData, cachedEntry.data);
@@ -776,6 +818,10 @@
 
       const staleEntry = readEntry(action, true);
       if (staleEntry) {
+        if (!cachedResultConfirmsRecords(action, staleEntry.data)) {
+          return fetchAndCache(input, options, requestData);
+        }
+
         refreshInBackground(input, options, requestData, staleEntry.data);
         return Promise.resolve(responseFrom(staleEntry.data));
       }
