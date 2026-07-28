@@ -41,9 +41,13 @@ Help file:
 
     .activity-add-grid {
       display: grid;
-      grid-template-columns: minmax(250px, 1.35fr) minmax(180px, 0.9fr) minmax(230px, 1fr) minmax(230px, 1fr);
-      gap: 0.65rem;
-      align-items: end;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      grid-template-areas:
+        "topic topic topic type type type"
+        "id id code code title title"
+        "sort sort visible visible active active";
+      gap: 0.75rem;
+      align-items: start;
       margin-top: 1rem;
     }
 
@@ -51,6 +55,15 @@ Help file:
       width: 100%;
       box-sizing: border-box;
     }
+
+    #activityTopic { grid-area: topic; }
+    #activityType { grid-area: type; }
+    #activityId { grid-area: id; }
+    .activity-code-field { grid-area: code; }
+    #activityTitle { grid-area: title; }
+    #activitySortOrder { grid-area: sort; }
+    #activityVisible { grid-area: visible; }
+    #activityActive { grid-area: active; }
 
     .activity-add-actions {
       display: flex;
@@ -101,7 +114,7 @@ Help file:
 
     #activitiesTable {
       width: 100%;
-      min-width: 1160px;
+      min-width: 1040px;
       table-layout: fixed;
     }
 
@@ -112,31 +125,34 @@ Help file:
     }
 
     #activitiesTable th:nth-child(1),
-    #activitiesTable td:nth-child(1) { width: 7%; }
+    #activitiesTable td:nth-child(1) { width: 6%; }
 
     #activitiesTable th:nth-child(2),
-    #activitiesTable td:nth-child(2) { width: 8%; }
+    #activitiesTable td:nth-child(2) { width: 15%; }
 
     #activitiesTable th:nth-child(3),
     #activitiesTable td:nth-child(3) { width: 12%; }
 
     #activitiesTable th:nth-child(4),
-    #activitiesTable td:nth-child(4) { width: 10%; }
+    #activitiesTable td:nth-child(4) { width: 8%; }
 
     #activitiesTable th:nth-child(5),
-    #activitiesTable td:nth-child(5) { width: 18%; }
+    #activitiesTable td:nth-child(5) { width: 8%; }
 
     #activitiesTable th:nth-child(6),
-    #activitiesTable td:nth-child(6) { width: 23%; }
+    #activitiesTable td:nth-child(6) { width: 14%; }
 
     #activitiesTable th:nth-child(7),
-    #activitiesTable td:nth-child(7) { width: 10%; }
+    #activitiesTable td:nth-child(7) { width: 13%; }
 
     #activitiesTable th:nth-child(8),
-    #activitiesTable td:nth-child(8) { width: 6%; }
+    #activitiesTable td:nth-child(8) { width: 8%; }
 
     #activitiesTable th:nth-child(9),
-    #activitiesTable td:nth-child(9) { width: 8%; }
+    #activitiesTable td:nth-child(9) { width: 7%; }
+
+    #activitiesTable th:nth-child(10),
+    #activitiesTable td:nth-child(10) { width: 9%; }
 
     #activitiesTable td .tracker-input {
       width: 100%;
@@ -202,6 +218,18 @@ Help file:
       .activity-add-grid,
       .activity-search-panel {
         grid-template-columns: 1fr;
+      }
+
+      .activity-add-grid {
+        grid-template-areas:
+          "topic"
+          "type"
+          "id"
+          "code"
+          "title"
+          "sort"
+          "visible"
+          "active";
       }
 
       .activity-record-count {
