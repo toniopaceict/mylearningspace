@@ -100,6 +100,7 @@ function getManagementScripts() {
   const page = path.split("/").pop();
 
 const managementScriptsByPage = {
+  "activity-management.html": ["/js/activity-management.js"],
   "subject-catalogue.html": ["/js/subject-catalogue.js"],
   "topic-catalogue.html": ["/js/topic-catalogue.js"],
   "performance-monitor.html": ["/js/performance-monitor.js"],

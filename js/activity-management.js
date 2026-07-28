@@ -12,18 +12,49 @@
 
   function post(data) {
     data.owner_teacher_id = sessionStorage.getItem("glipTeacherId");
+
     return fetch(window.getGlipWebAppUrl(), {
       method: "POST",
-      body: JSON.stringify(data)
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(data),
+      redirect: "follow",
+      cache: "no-store"
     }).then(function (response) {
-      return response.json();
+      return response.text().then(function (text) {
+        let result;
+
+        try {
+          result = JSON.parse(text);
+        } catch (_error) {
+          throw new Error(
+            response.ok
+              ? "The server returned an invalid response. Please refresh the page."
+              : "Could not contact the GLIP server."
+          );
+        }
+
+        if (!response.ok) {
+          throw new Error(result.message || "Could not contact the GLIP server.");
+        }
+
+        return result;
+      });
     });
   }
 
   function init() {
-    if (initialised || typeof isOwner !== "function") return;
+    if (initialised) return;
+
+    if (typeof isOwner !== "function" || typeof window.getGlipWebAppUrl !== "function") {
+      return;
+    }
+
+    if (!isOwner()) {
+      setLoading(false);
+      return;
+    }
+
     initialised = true;
-    if (!isOwner()) return;
 
     document.getElementById("saveActivityBtn")?.addEventListener("click", addActivity);
     document.getElementById("cancelAddActivityBtn")?.addEventListener("click", resetAddActivityForm);
@@ -49,7 +80,22 @@
 
   document.addEventListener("glipReady", init);
   document.addEventListener("DOMContentLoaded", function () {
-    setTimeout(init, 100);
+    setLoading(true);
+
+    let attempts = 0;
+    const initialiseWhenReady = window.setInterval(function () {
+      attempts += 1;
+      init();
+
+      if (initialised || attempts >= 100) {
+        window.clearInterval(initialiseWhenReady);
+
+        if (!initialised && attempts >= 100) {
+          setLoading(false);
+          setMessage("GLIP could not initialise Activity Management. Please reload the page.", "error");
+        }
+      }
+    }, 100);
   });
 
   function setMessage(text, type) {

@@ -295,15 +295,15 @@ Help file:
 </div>
 <p class="panel-message text-center" id="activityMessage"></p>
 
-<div class="page-loading-box text-center" id="activitiesLoadingProgress" style="display: none">
+</fieldset>
+<fieldset class="task-box panel-box topics-box">
+<legend>Activities</legend>
+<div class="page-loading-box text-center" id="activitiesLoadingProgress">
 <div class="glip-progress show topics-progress">
 <div class="glip-progress-bar"></div>
 </div>
 <p>Loading activities...</p>
 </div>
-</fieldset>
-<fieldset class="task-box panel-box topics-box">
-<legend>Activities</legend>
 <div class="panel-header activity-panel-header">
 <p class="q panel-top-text">
             Search, sort and edit the activities used in GLIP content and progress tracking.
@@ -372,8 +372,6 @@ Help file:
 </fieldset>
 </div>
 </div>
-<script src="../../js/optimistic-update.js"></script>
-<script src="../../js/activity-management.js"></script>
 <script>
     document.addEventListener("glipReady", function () {
       requireRole("owner");
