@@ -78,8 +78,8 @@ Help file:
             Guided Learning for Independent Progress
           </p>
 
-          <h1>Topics</h1>
-          <h2 id="pageSubtitle">Topics</h2>
+          <h1 id="pageTitle">Subject</h1>
+          <h2>Topics</h2>
 
           <div class="page-hero-divider-bottom"></div>
         </div>
@@ -138,14 +138,14 @@ Help file:
           });
       }
 
-      function setPageSubtitle() {
-        const subtitle = document.getElementById("pageSubtitle");
-        if (!subtitle) return;
+      function setPageTitle() {
+        const title = document.getElementById("pageTitle");
+        if (!title) return;
 
-        subtitle.textContent =
+        title.textContent =
           getSubjectDisplayName(SUBJECT) +
           (getLevelNumber(LEVEL)
-            ? " - Level " + Number(getLevelNumber(LEVEL))
+            ? " – Level " + Number(getLevelNumber(LEVEL))
             : "");
       }
 
@@ -199,34 +199,31 @@ function glipCacheKey(parts) {
 
       function getProgressCache() {
         const studentId = getStudentId();
-
         if (!studentId) return null;
 
-        const key = glipCacheKey([
-          SCHOOL,
-          LEVEL,
-          studentId,
-          SUBJECT,
-          "progress"
-        ]);
-
-        return readTimedSessionCache(key, PROGRESS_CACHE_DURATION);
+        return window.GLIP_CACHE.readProgress({
+          school: SCHOOL,
+          level: LEVEL,
+          studentId: studentId,
+          subjectId: SUBJECT
+        }, PROGRESS_CACHE_DURATION);
       }
 
       function setProgressCache(progress) {
         const studentId = getStudentId();
-
         if (!studentId) return;
 
-        const key = glipCacheKey([
-          SCHOOL,
-          LEVEL,
-          studentId,
-          SUBJECT,
-          "progress"
-        ]);
+        const written = window.GLIP_CACHE.writeProgress({
+          school: SCHOOL,
+          level: LEVEL,
+          studentId: studentId,
+          subjectId: SUBJECT
+        }, progress);
 
-        writeTimedSessionCache(key, progress);
+        window.GLIP_CACHE.mergeAllProgress({
+          school: SCHOOL,
+          studentId: studentId
+        }, written);
       }
 
       function normaliseStatus(status) {
@@ -582,7 +579,7 @@ function getTopicStatus(topic) {
       }
 
       document.addEventListener("glipReady", function () {
-        setPageSubtitle();
+        setPageTitle();
         loadTopics();
       });
     </script>

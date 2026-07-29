@@ -421,7 +421,7 @@ const subjectsResult = await postToGlip({
             ? subjectsResult.subjects
             : [];
 
-          saveLocalCache(glipCacheKey([SCHOOL, level, "subjects"]), subjects);
+          saveLocalCache(glipCacheKey([SCHOOL, "student", "", studentId, "subjects"]), subjects);
           addLoginLog("Subjects loaded.");
 
           const visibleSubjects = subjects.filter(function (subject) {
@@ -465,23 +465,22 @@ const subjectsResult = await postToGlip({
                   function (item) {
                     return {
                       subject_id: subjectId,
-                      level: level,
+                      topic_id: String(item.topic_id || "").trim(),
+                      level: window.GLIP_CACHE.normaliseLevel(
+                        item.level || subject.level || level
+                      ),
                       activity_id: item.activity_id,
                       status: item.status || "not_started",
                     };
                   }
                 );
 
-                saveSessionCache(
-                  glipCacheKey([
-                    SCHOOL,
-                    level,
-                    studentId,
-                    subjectId,
-                    "progress",
-                  ]),
-                  subjectProgress
-                );
+                window.GLIP_CACHE.writeProgress({
+                  school: SCHOOL,
+                  level: subject.level || level,
+                  studentId: studentId,
+                  subjectId: subjectId
+                }, subjectProgress);
 
                 return subjectProgress;
               }
@@ -506,10 +505,10 @@ const subjectsResult = await postToGlip({
 
           const mergedProgress = successfulProgress.flat();
 
-          sessionStorage.setItem(
-            "glipProgress",
-            JSON.stringify(mergedProgress)
-          );
+          window.GLIP_CACHE.writeAllProgress({
+            school: SCHOOL,
+            studentId: studentId
+          }, mergedProgress);
 
           addLoginLog("Preparing your next activities...");
           await preloadTopicsAndTopicPages(

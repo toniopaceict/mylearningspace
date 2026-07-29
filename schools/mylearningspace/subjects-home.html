@@ -82,7 +82,6 @@ function getLevelFromUrl() {
           </p>
 
           <h1>Subjects</h1>
-          <h2 id="levelTitle">Level</h2>
 
           <div class="page-hero-divider-bottom"></div>
         </div>
@@ -215,41 +214,12 @@ function setSubjectCache(subjects) {
 
       function getCachedProgress() {
         const studentId = sessionStorage.getItem("glipStudentId") || "";
-        const progressItems = [];
+        if (!studentId || !window.GLIP_CACHE) return [];
 
-        const generalProgress = sessionStorage.getItem("glipProgress");
-
-        if (generalProgress) {
-          try {
-            const parsed = JSON.parse(generalProgress);
-            if (Array.isArray(parsed)) {
-              progressItems.push(...parsed);
-            }
-          } catch {
-            // Ignore invalid general progress cache.
-          }
-        }
-
-        Object.keys(sessionStorage).forEach(function (key) {
-          const isCurrentProgressKey =
-            key.startsWith(
-              "glip_v1_" + SCHOOL + "_" + LEVEL + "_" + studentId + "_",
-            ) && key.endsWith("_progress");
-
-          if (!isCurrentProgressKey) return;
-
-          try {
-            const parsed = JSON.parse(sessionStorage.getItem(key));
-
-            if (Array.isArray(parsed)) {
-              progressItems.push(...parsed);
-            }
-          } catch {
-            // Ignore invalid subject progress cache.
-          }
-        });
-
-        return progressItems;
+        return window.GLIP_CACHE.readAllProgress({
+          school: SCHOOL,
+          studentId: studentId
+        }, 30 * 60 * 1000);
       }
 
       function normaliseStatus(status) {
@@ -264,7 +234,7 @@ function setSubjectCache(subjects) {
         const subjectId = String(subject.subject_id || "").trim();
 
         const subjectActivities = progressData.filter(function (item) {
-          return String(item.activity_id || "").startsWith(subjectId + "_");
+          return String(item.subject_id || "").trim() === subjectId;
         });
 
         if (subjectActivities.length === 0) {
@@ -589,50 +559,56 @@ function renderSubjectCards(subjects, fallbackLevel) {
     .join("");
 }
 
-function renderStudentSubjectsByClass(subjects) {
-  const container = document.getElementById("topic-grid");
-  const grouped = {};
+function renderSubjectsByLevelThenYear(subjects) {
+  const levelGroups = groupSubjectsByLevel(subjects);
 
-  subjects.forEach(function (subject) {
-    const key = getSubjectYearGroupKey(subject);
-    if (!grouped[key]) grouped[key] = [];
-    grouped[key].push(subject);
-  });
-
-  const groups = Object.keys(grouped)
-    .map(function (key) {
-      return {
-        key: key,
-        subjects: removeDuplicateSubjectCards(grouped[key]),
-        sortValue: getSubjectYearGroupSortValue(grouped[key])
-      };
-    })
+  return levelGroups
     .sort(function (a, b) {
-      return b.sortValue - a.sortValue;
-    });
+      return Number(getLevelNumber(b.level)) - Number(getLevelNumber(a.level));
+    })
+    .map(function (levelGroup) {
+      const yearGroups = {};
 
-  container.style.display = "block";
-  container.innerHTML = groups
-    .map(function (group) {
+      levelGroup.subjects.forEach(function (subject) {
+        const key = getSubjectYearGroupKey(subject);
+        if (!yearGroups[key]) yearGroups[key] = [];
+        yearGroups[key].push(subject);
+      });
+
+      const innerGroups = Object.keys(yearGroups)
+        .map(function (key) {
+          return {
+            subjects: removeDuplicateSubjectCards(yearGroups[key]),
+            sortValue: getSubjectYearGroupSortValue(yearGroups[key])
+          };
+        })
+        .sort(function (a, b) {
+          return b.sortValue - a.sortValue;
+        });
+
       return `
         <fieldset class="task-box subjects-box teacher-level-group">
-          <legend>${getSubjectYearGroupLabel(group.subjects)}</legend>
-${groupSubjectsByLevel(group.subjects)
-  .map(function (levelGroup) {
-    return `
-      <fieldset class="task-box subjects-box teacher-level-group">
-        <legend>${getLevelLabel(levelGroup.level)}</legend>
-        <div class="topic-grid">
-          ${renderSubjectCards(levelGroup.subjects, levelGroup.level)}
-        </div>
-      </fieldset>
-    `;
-  })
-  .join("")}
+          <legend>${getLevelLabel(levelGroup.level)}</legend>
+          ${innerGroups.map(function (group) {
+            return `
+              <fieldset class="task-box subjects-box teacher-level-group">
+                <legend>${getSubjectYearGroupLabel(group.subjects)}</legend>
+                <div class="topic-grid">
+                  ${renderSubjectCards(group.subjects, levelGroup.level)}
+                </div>
+              </fieldset>
+            `;
+          }).join("")}
         </fieldset>
       `;
     })
     .join("");
+}
+
+function renderStudentSubjectsByClass(subjects) {
+  const container = document.getElementById("topic-grid");
+  container.style.display = "block";
+  container.innerHTML = renderSubjectsByLevelThenYear(subjects);
 }
 
   
@@ -730,47 +706,7 @@ if (loadingProgress) loadingProgress.style.display = "none";
     return;
   }
 
-  const grouped = {};
-
-  allSubjects.forEach(function (subject) {
-    const key = getSubjectYearGroupKey(subject);
-    if (!grouped[key]) grouped[key] = [];
-    grouped[key].push(subject);
-  });
-
-  const groups = Object.keys(grouped)
-    .map(function (key) {
-      return {
-        key: key,
-subjects: removeDuplicateSubjectCards(grouped[key]),
-sortValue: getSubjectYearGroupSortValue(grouped[key])
-      };
-    })
-    .sort(function (a, b) {
-      return b.sortValue - a.sortValue;
-    });
-
-  dashboard.innerHTML = groups
-    .map(function (group) {
-      return `
-        <fieldset class="task-box subjects-box teacher-level-group">
-          <legend>${getSubjectYearGroupLabel(group.subjects)}</legend>
-${groupSubjectsByLevel(group.subjects)
-  .map(function (levelGroup) {
-    return `
-      <fieldset class="task-box subjects-box teacher-level-group">
-        <legend>${getLevelLabel(levelGroup.level)}</legend>
-        <div class="topic-grid">
-          ${renderSubjectCards(levelGroup.subjects, levelGroup.level)}
-        </div>
-      </fieldset>
-    `;
-  })
-  .join("")}
-        </fieldset>
-      `;
-    })
-    .join("");
+  dashboard.innerHTML = renderSubjectsByLevelThenYear(allSubjects);
 }
 
   
@@ -848,28 +784,19 @@ const res = await fetch(getWebAppUrl(), {
                 const subjectProgress = data.progress.map(function (item) {
                   return {
                     subject_id: subjectId,
-                    level: normaliseLevel(subject.level || LEVEL),
+                    topic_id: String(item.topic_id || "").trim(),
+                    level: normaliseLevel(item.level || subject.level || LEVEL),
                     activity_id: item.activity_id,
                     status: item.status || "not_started",
                   };
                 });
 
-                const progressKey = glipCacheKey([
-                  SCHOOL,
-                  normaliseLevel(subject.level || LEVEL),
-                  studentId,
-                  subjectId,
-                  "progress",
-                ]);
-
-                sessionStorage.setItem(
-                  progressKey,
-                  JSON.stringify(subjectProgress),
-                );
-                sessionStorage.setItem(
-                  progressKey + "_time",
-                  String(Date.now()),
-                );
+                window.GLIP_CACHE.writeProgress({
+                  school: SCHOOL,
+                  level: subject.level || LEVEL,
+                  studentId: studentId,
+                  subjectId: subjectId
+                }, subjectProgress);
 
                 allProgress.push(...subjectProgress);
               }
@@ -880,8 +807,10 @@ const res = await fetch(getWebAppUrl(), {
         );
 
         if (allProgress.length > 0) {
-          sessionStorage.setItem("glipProgress", JSON.stringify(allProgress));
-          sessionStorage.setItem("glipProgressTime", String(Date.now()));
+          window.GLIP_CACHE.writeAllProgress({
+            school: SCHOOL,
+            studentId: studentId
+          }, allProgress);
 
           renderSubjects(subjects);
         }
@@ -1455,7 +1384,6 @@ document.addEventListener("click", function (event) {
 
       
       document.addEventListener("glipReady", function () {
-        setLevelTitle();
         loadSubjects();
       });
     </script>
