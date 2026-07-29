@@ -27,9 +27,13 @@
 
   function clear() { sessionStorage.removeItem(STORAGE_KEY); }
 
+  function hasValidSession() {
+    return read() !== null;
+  }
+
   function curricula() {
     const session = read();
-    return session && Array.isArray(session.curricula) ? session.curricula : [];
+    return session && Array.isArray(session.curricula) ? session.curricula : null;
   }
 
   function getCurriculum(criteria) {
@@ -38,7 +42,10 @@
     const subject = String(criteria.subject_id || criteria.subject_code || criteria.subject || "").trim().toLowerCase();
     const level = String(criteria.level || criteria.level_code || "").trim().toLowerCase();
 
-    return curricula().find(function (item) {
+    const items = curricula();
+    if (!items) return null;
+
+    return items.find(function (item) {
       if (curriculumId && String(item.curriculum_id || "") === curriculumId) return true;
       const itemSubject = String(item.subject_id || item.subject_code || "").toLowerCase();
       const itemLevel = String(item.level || item.level_code || "").toLowerCase();
@@ -47,7 +54,10 @@
   }
 
   function getSubjects() {
-    return curricula().map(function (item) {
+    const items = curricula();
+    if (!items) return null;
+
+    return items.map(function (item) {
       const copy = Object.assign({}, item);
       delete copy.topics;
       delete copy.progress;
@@ -67,7 +77,10 @@
   }
 
   function getAllProgress() {
-    return curricula().reduce(function (all, item) {
+    const items = curricula();
+    if (!items) return null;
+
+    return items.reduce(function (all, item) {
       return all.concat(Array.isArray(item.progress) ? item.progress : []);
     }, []);
   }
@@ -130,7 +143,7 @@
   }
 
   window.GLIPLearningSession = {
-    read: read, write: write, clear: clear,
+    read: read, write: write, clear: clear, hasValidSession: hasValidSession,
     getSubjects: getSubjects, getCurriculum: getCurriculum,
     getTopics: getTopics, getProgress: getProgress,
     getAllProgress: getAllProgress, updateProgress: updateProgress,
