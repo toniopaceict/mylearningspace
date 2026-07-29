@@ -722,10 +722,19 @@ if (loadingProgress) loadingProgress.style.display = "none";
             window.GLIPLearningSession.hasValidSession()
           ) {
             const sessionSubjects = window.GLIPLearningSession.getSubjects();
-            if (Array.isArray(sessionSubjects)) {
+
+            // A populated Learning Session is authoritative. An empty session
+            // is not: it may have been created by a partial or older Apps
+            // Script deployment, so verify the student's assignments through
+            // the established getSubjects action before showing "no subjects".
+            if (Array.isArray(sessionSubjects) && sessionSubjects.length > 0) {
               setSubjectCache(sessionSubjects);
               return sessionSubjects;
             }
+
+            console.warn(
+              "GLIP Learning Session contains no curricula; verifying student subjects with Apps Script."
+            );
           }
 
           // A missing or invalid Learning Session must never be interpreted as
@@ -1349,7 +1358,10 @@ function loadSubjects() {
 
   const cachedSubjects = getSubjectCache();
 
-        if (cachedSubjects) {
+        // Only a populated student cache is safe to render immediately.
+        // An empty array may be a stale cache written during the failed
+        // v374/v375 session bootstrap and must not suppress a fresh request.
+        if (Array.isArray(cachedSubjects) && cachedSubjects.length > 0) {
           renderSubjects(cachedSubjects);
 
           fetchProgressForSubjects(cachedSubjects).then(function () {
