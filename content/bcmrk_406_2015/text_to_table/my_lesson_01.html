@@ -16,7 +16,7 @@ DO NOT EDIT:
 • Accessibility attributes
 • Shared page structure
 
-Progress is stored using the immutable activityId. The GLIP navigation menu remains the main guide between activities.
+Progress is stored using the immutable activityId. Subject, topic, level and activity titles are read from Google Sheets. The GLIP navigation menu remains the main guide between activities.
 =========================================================
 -->
 <!doctype html>
@@ -37,60 +37,36 @@ Progress is stored using the immutable activityId. The GLIP navigation menu rema
 
       1. Rename the HTML file.
       2. Update activityId.
-      3. Update activityTitle.
-      4. Update the file link and button text.
-      5. Update the poster image and video URL.
-      6. Update the lesson introduction.
-      7. Update the learning outcomes.
-      8. Update the file and video instructions.
+      3. Update the file link and button text.
+      4. Update the poster image and video URL.
+      5. Update the lesson introduction.
+      6. Update the learning outcomes.
+      7. Update the file and video instructions.
 
-      Subject, level and topic values normally remain the same when creating another lesson within this topic.
+      Do not enter subject, topic, level or activity titles.
+      GLIP reads these values from Google Sheets.
       =====================================================
       */
 
       window.LESSON_CONFIG = {
         // -------------------------------------------------
-        // LESSON IDENTITY
+        // ACTIVITY IDENTITY
         //
-        // These values connect this page to the relational data stored in the GLIP spreadsheet.
+        // activityId is the only spreadsheet identifier
+        // entered in the lesson file.
         //
-        // subjectId:
-        // Immutable Subject ID from the Subjects sheet.
-        //
-        // level:
-        // Level code used to locate the correct Progress sheet, for example level-04.
-        //
-        // topicId:
-        // Immutable Topic ID from the Topics sheet.
-        //
-        // activityId:
-        // Immutable Activity ID from the Activities sheet. This is the value used when saving progress.
+        // GLIP uses it to find the matching activity and then
+        // reads the subject name, topic name, activity title,
+        // curriculum and level from Google Sheets.
         // -------------------------------------------------
-        subjectId: "1",
-        level: "level-04",
-        topicId: "1",
         activityId: "1",
-
-        // -------------------------------------------------
-        // DISPLAY TEXT
-        //
-        // These values are used automatically for:
-        // • the browser tab title
-        // • the lesson hero
-        // • video accessibility labels
-        // -------------------------------------------------
-        subjectName: "Advanced Administrative IT Applications",
-        topicName: "Text to Table",
-        activityTitle: "My Lesson 1",
 
         // -------------------------------------------------
         // REQUIRED FILE
         //
-        // fileLink:
-        // Direct or shareable link to the required file.
-        //
-        // fileButtonText:
-        // Text shown on the download button.
+        // These values describe a resource that belongs to
+        // this particular lesson and is not stored in the
+        // GLIP relational tables.
         // -------------------------------------------------
         fileLink:
           "https://drive.google.com/uc?export=download&id=1HQ3g_LXCzfN_aZJDVHZ47HjJ68yOiup5",
@@ -99,11 +75,7 @@ Progress is stored using the immutable activityId. The GLIP navigation menu rema
         // -------------------------------------------------
         // VIDEO
         //
-        // posterImage:
-        // Relative path to the video preview image.
-        //
-        // videoUrl:
-        // Embeddable Google Drive preview URL.
+        // These values describe the lesson media itself.
         // -------------------------------------------------
         posterImage: "assets/text_to_table_lesson_video_image.jpg",
         videoUrl:
@@ -125,34 +97,22 @@ Progress is stored using the immutable activityId. The GLIP navigation menu rema
         const lesson = window.LESSON_CONFIG;
 
         window.PAGE_CONFIG = {
-          // Shared page behaviour
           helpSection: "activity",
           pageKind: "lesson",
 
-          // Values generated from LESSON_CONFIG
-          pageTitle:
-            lesson.topicName + " – " + lesson.activityTitle + " – GLIP",
-          topline: lesson.subjectName,
-          mainTitle: lesson.topicName,
-          subTitle: lesson.activityTitle,
+          // This is the only relational value stored in the
+          // HTML page. All other lesson metadata is supplied
+          // by topic-page-context.js from Google Sheets.
+          activityId: lesson.activityId,
 
-          // Required file
+          // Lesson-specific resources
           fileLink: lesson.fileLink,
           fileButtonText: lesson.fileButtonText,
 
-          // The correct Apps Script deployment URL is obtained
-          // automatically for the current school.
           webAppUrl:
             typeof window.getGlipWebAppUrl === "function"
               ? window.getGlipWebAppUrl()
               : "",
-
-          // Relational identifiers used by GLIP progress handling
-          subjectId: lesson.subjectId,
-          level: lesson.level,
-          topicId: lesson.topicId,
-          topicName: lesson.topicName,
-          activityId: lesson.activityId,
         };
       })();
     </script>
@@ -179,7 +139,7 @@ Progress is stored using the immutable activityId. The GLIP navigation menu rema
       SECTION 1: LESSON HERO
 
       Displays the subject, topic and lesson title.
-      Values are inserted automatically from LESSON_CONFIG.
+      Values are inserted automatically from Google Sheets.
       =====================================================
       -->
       <header class="page-hero">
@@ -437,88 +397,94 @@ Progress is stored using the immutable activityId. The GLIP navigation menu rema
 
       Do not edit this section when creating a new lesson.
 
-      Responsibilities:
-      • populates the browser title
-      • populates the lesson hero
-      • configures the download button
-      • configures the video poster and iframe
-      • generates video accessibility labels
-      • provides keyboard access to the video poster
+      The subject name, topic name and activity title have
+      already been added to PAGE_CONFIG from Google Sheets
+      by topic-page-context.js.
+
+      This section configures only lesson-specific resources
+      and accessibility labels.
       =====================================================
       */
-      document.addEventListener("DOMContentLoaded", function () {
-        const lesson = window.LESSON_CONFIG;
+      (function () {
+        function initialiseLessonResources() {
+          const lesson = window.LESSON_CONFIG || {};
+          const page = window.PAGE_CONFIG || {};
 
-        // Browser title
-        document.title =
-          lesson.topicName + " – " + lesson.activityTitle + " – GLIP";
+          const fileButton = document.getElementById("fileLinkBtn");
 
-        // Lesson hero
-        const heroTopline = document.getElementById("heroTopline");
-        const heroMainTitle = document.getElementById("heroMainTitle");
-        const heroSubTitle = document.getElementById("heroSubTitle");
+          if (fileButton) {
+            fileButton.href = lesson.fileLink || "#";
+            fileButton.textContent =
+              lesson.fileButtonText || "Download required file";
 
-        if (heroTopline) heroTopline.textContent = lesson.subjectName;
-        if (heroMainTitle) heroMainTitle.textContent = lesson.topicName;
-        if (heroSubTitle) heroSubTitle.textContent = lesson.activityTitle;
+            if (!lesson.fileLink) {
+              fileButton.style.display = "none";
+            }
+          }
 
-        // Required file button
-        const fileButton = document.getElementById("fileLinkBtn");
+          const poster = document.getElementById("videoPoster");
+          const posterImage = document.getElementById("videoPosterImage");
+          const playButton = poster
+            ? poster.querySelector(".video-play-btn")
+            : null;
+          const videoFrame = document.getElementById("videoFrame");
 
-        if (fileButton) {
-          fileButton.href = lesson.fileLink || "#";
-          fileButton.textContent =
-            lesson.fileButtonText || "Download required file";
+          const activityTitle =
+            page.subTitle || "this lesson";
+          const videoLabel =
+            "Play the video for " + activityTitle;
+          const videoTitle =
+            activityTitle + " video lesson";
 
-          // Hide the button when no file link has been supplied.
-          if (!lesson.fileLink) {
-            fileButton.style.display = "none";
+          if (poster) {
+            poster.setAttribute("aria-label", videoLabel);
+          }
+
+          if (posterImage) {
+            posterImage.src = lesson.posterImage;
+            posterImage.alt =
+              "Preview image for the " + activityTitle + " video lesson";
+          }
+
+          if (playButton) {
+            playButton.setAttribute("aria-label", videoLabel);
+          }
+
+          if (videoFrame) {
+            videoFrame.title = videoTitle;
+            videoFrame.dataset.src = lesson.videoUrl;
+          }
+
+          if (poster && !poster.dataset.keyboardReady) {
+            poster.dataset.keyboardReady = "true";
+            poster.addEventListener("keydown", function (event) {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                poster.click();
+              }
+            });
           }
         }
 
-        // Video configuration
-        const poster = document.getElementById("videoPoster");
-        const posterImage = document.getElementById("videoPosterImage");
-        const playButton = poster
-          ? poster.querySelector(".video-play-btn")
-          : null;
-        const videoFrame = document.getElementById("videoFrame");
-
-        const videoLabel =
-          "Play the " + lesson.topicName + " video lesson";
-        const videoTitle =
-          lesson.topicName + " video lesson";
-
-        if (poster) {
-          poster.setAttribute("aria-label", videoLabel);
+        if (document.readyState === "loading") {
+          document.addEventListener(
+            "DOMContentLoaded",
+            initialiseLessonResources
+          );
+        } else {
+          initialiseLessonResources();
         }
 
-        if (posterImage) {
-          posterImage.src = lesson.posterImage;
-          posterImage.alt =
-            "Preview image for the " + lesson.topicName + " video lesson";
-        }
+        document.addEventListener(
+          "glipReady",
+          initialiseLessonResources
+        );
 
-        if (playButton) {
-          playButton.setAttribute("aria-label", videoLabel);
-        }
-
-        if (videoFrame) {
-          videoFrame.title = videoTitle;
-          videoFrame.dataset.src = lesson.videoUrl;
-        }
-
-        // Keyboard accessibility:
-        // Enter or Space activates the video poster.
-        if (poster) {
-          poster.addEventListener("keydown", function (event) {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              poster.click();
-            }
-          });
-        }
-      });
+        document.addEventListener(
+          "glipTopicContextRefreshed",
+          initialiseLessonResources
+        );
+      })();
     </script>
   </body>
 </html>
