@@ -672,6 +672,325 @@ Help Section:
 </details>
 
 
+
+<!-- Creating lesson pages +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+
+<details class="help-topic" id="creating-lesson-pages" data-roles="owner">
+  <summary>Creating Lesson Pages *</summary>
+
+  <div class="help-topic-body">
+
+    <section class="help-subsection">
+      <h3>Purpose</h3>
+
+      <p>
+        GLIP lesson pages use a standard template so that new lessons can be
+        created safely and consistently. The template keeps all lesson-specific
+        settings together near the top of the HTML file and clearly marks the
+        educational content that must be updated.
+      </p>
+
+      <p>
+        When creating a new lesson, copy an existing lesson page from the same
+        topic, rename the HTML file and edit only the sections identified in
+        this guidance. Avoid searching through the whole page for repeated
+        titles, links or accessibility text.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>New lesson workflow</h3>
+
+      <ol>
+        <li>Copy the most recent lesson template from the same topic.</li>
+        <li>Rename the HTML file using the activity code stored in GLIP.</li>
+        <li>Update the values inside <code>LESSON_CONFIG</code>.</li>
+        <li>Update the lesson introduction and learning outcomes.</li>
+        <li>Update the required-file and video instructions when necessary.</li>
+        <li>Confirm that the activity exists in Activity Management.</li>
+        <li>Test the download, video, progress buttons and navigation menu.</li>
+      </ol>
+    </section>
+
+    <section class="help-subsection">
+      <h3>The lesson configuration block</h3>
+
+      <p>
+        All values that normally change between lessons are grouped inside one
+        block near the top of the file:
+      </p>
+
+      <pre><code>window.LESSON_CONFIG = {
+  subjectId: "1",
+  level: "level-04",
+  topicId: "1",
+  activityId: "1",
+
+  subjectName: "Advanced Administrative IT Applications",
+  topicName: "Text to Table",
+  activityTitle: "My Lesson 1",
+
+  fileLink: "DIRECT_OR_SHAREABLE_FILE_LINK",
+  fileButtonText: "Download Word file",
+
+  posterImage: "assets/text_to_table_lesson_video_image.jpg",
+  videoUrl: "EMBEDDABLE_VIDEO_PREVIEW_URL"
+};</code></pre>
+
+      <p>
+        Do not rename the properties. Change only their values.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Lesson identity values</h3>
+
+      <p><strong><code>subjectId</code></strong></p>
+      <p>
+        The immutable Subject ID stored in the GLIP spreadsheet. It connects
+        the lesson to the correct subject record.
+      </p>
+
+      <p><strong><code>level</code></strong></p>
+      <p>
+        The level code used to locate the correct progress data, for example
+        <code>level-04</code>.
+      </p>
+
+      <p><strong><code>topicId</code></strong></p>
+      <p>
+        The immutable Topic ID stored in the Topics sheet.
+      </p>
+
+      <p><strong><code>activityId</code></strong></p>
+      <p>
+        The immutable Activity ID stored in the Activities sheet. GLIP uses
+        this value when saving learner progress. It must match the activity
+        record exactly.
+      </p>
+
+      <p>
+        When copying a lesson within the same subject, level and topic,
+        <code>subjectId</code>, <code>level</code> and <code>topicId</code>
+        normally remain unchanged. The <code>activityId</code> must be updated
+        for every new activity.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Display text</h3>
+
+      <p>
+        The following values provide the human-readable names shown to the
+        learner:
+      </p>
+
+      <ul>
+        <li><code>subjectName</code> is shown above the main lesson title.</li>
+        <li><code>topicName</code> is used as the main hero heading.</li>
+        <li><code>activityTitle</code> identifies the individual lesson.</li>
+      </ul>
+
+      <p>
+        GLIP uses these values automatically to generate the browser title,
+        hero text, video title, poster alternative text and accessibility
+        labels. Do not repeat these titles elsewhere in the HTML structure.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Required file settings</h3>
+
+      <p><strong><code>fileLink</code></strong></p>
+      <p>
+        The direct or shareable link to the file required for the lesson.
+        Check that the learner has permission to open or download it.
+      </p>
+
+      <p><strong><code>fileButtonText</code></strong></p>
+      <p>
+        The text displayed on the download button, for example
+        <code>Download Word file</code>, <code>Download spreadsheet</code> or
+        <code>Download presentation</code>.
+      </p>
+
+      <p>
+        If a lesson does not require a file, leave <code>fileLink</code> blank.
+        The template hides the download button automatically.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Video settings</h3>
+
+      <p><strong><code>posterImage</code></strong></p>
+      <p>
+        The relative path to the preview image shown before the video loads.
+        Use lower-case snake_case filenames and place the image in the topic's
+        <code>assets</code> folder.
+      </p>
+
+      <p><strong><code>videoUrl</code></strong></p>
+      <p>
+        The embeddable preview URL for the video. For Google Drive videos, use
+        the URL ending in <code>/preview</code> rather than the normal sharing
+        page URL.
+      </p>
+
+      <p>
+        The video is loaded only after the learner selects the poster image.
+        This improves initial page-loading performance.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Lesson-specific educational content</h3>
+
+      <p>
+        The editable educational content is grouped into clearly labelled
+        sections within the body of the page.
+      </p>
+
+      <p><strong>Lesson Overview</strong></p>
+      <ul>
+        <li>Write a short introduction explaining what the learner will study.</li>
+        <li>List the learning outcomes as clear bullet points.</li>
+      </ul>
+
+      <p><strong>Required File</strong></p>
+      <ul>
+        <li>Explain when the learner should download or open the file.</li>
+        <li>Explain how the file will be used during the lesson.</li>
+      </ul>
+
+      <p><strong>Video Lesson</strong></p>
+      <ul>
+        <li>Tell the learner how to use the video.</li>
+        <li>State whether the learner should follow the steps in the required file.</li>
+      </ul>
+
+      <p>
+        Keep the instructions simple, direct and suitable for the intended
+        learner level.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Generated page configuration</h3>
+
+      <p>
+        The template converts <code>LESSON_CONFIG</code> into the
+        <code>PAGE_CONFIG</code> format expected by existing GLIP shared
+        scripts. This generated block provides:
+      </p>
+
+      <ul>
+        <li>the Help section and page type;</li>
+        <li>the browser and hero titles;</li>
+        <li>the file link and button label;</li>
+        <li>the correct school Apps Script deployment URL;</li>
+        <li>the subject, level, topic and activity identifiers used by progress handling.</li>
+      </ul>
+
+      <p>
+        Do not edit the generated <code>PAGE_CONFIG</code> block when creating
+        a new lesson. Make all lesson-specific changes in
+        <code>LESSON_CONFIG</code> instead.
+      </p>
+
+      <p>
+        The Apps Script URL must never be hardcoded in an individual lesson.
+        GLIP obtains the correct deployment URL automatically for the current
+        school.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Progress controls</h3>
+
+      <p>
+        The standard lesson template contains two progress buttons:
+      </p>
+
+      <ul>
+        <li><strong>'Partly Completed'</strong> saves the activity as In Progress.</li>
+        <li><strong>'Completed'</strong> saves the activity as Completed.</li>
+      </ul>
+
+      <p>
+        These values contribute to activity badges, topic badges and future
+        subject badges. Progress is saved using the immutable
+        <code>activityId</code>.
+      </p>
+
+      <p>
+        Do not change the progress button IDs or the shared progress structure.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Shared structure and accessibility</h3>
+
+      <p>
+        The remaining parts of the template provide shared GLIP behaviour and
+        should normally remain unchanged. They include:
+      </p>
+
+      <ul>
+        <li>the shared site loader;</li>
+        <li>the header, footer and navigation menu;</li>
+        <li>theme and text-size support;</li>
+        <li>read-aloud buttons;</li>
+        <li>status and progress messages;</li>
+        <li>keyboard access to the video poster;</li>
+        <li>automatically generated video labels and alternative text.</li>
+      </ul>
+
+      <p>
+        Keep the existing IDs, CSS classes, <code>aria-label</code> attributes,
+        <code>aria-live</code> regions and keyboard handling unless a platform
+        change has been approved and tested.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Do not edit when copying a lesson</h3>
+
+      <ul>
+        <li>Do not edit shared JavaScript references.</li>
+        <li>Do not add a hardcoded Apps Script deployment URL.</li>
+        <li>Do not change the generated <code>PAGE_CONFIG</code> block.</li>
+        <li>Do not change shared CSS classes or the page structure.</li>
+        <li>Do not change progress button IDs.</li>
+        <li>Do not remove accessibility attributes or status regions.</li>
+        <li>Do not duplicate lesson titles elsewhere in the HTML.</li>
+      </ul>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Final test checklist</h3>
+
+      <ol>
+        <li>Confirm that the renamed HTML file matches the activity code.</li>
+        <li>Confirm that <code>activityId</code> matches Activity Management.</li>
+        <li>Confirm that the subject, topic and lesson titles are correct.</li>
+        <li>Confirm that the required file opens or downloads correctly.</li>
+        <li>Confirm that the video poster image is displayed.</li>
+        <li>Confirm that the video opens and plays.</li>
+        <li>Confirm that Enter and Space activate the video poster.</li>
+        <li>Confirm that 'Partly Completed' saves In Progress.</li>
+        <li>Confirm that 'Completed' saves Completed.</li>
+        <li>Confirm that the activity and topic badges update correctly.</li>
+        <li>Confirm that the navigation menu shows the new lesson.</li>
+        <li>Check the page using normal, large and larger text sizes.</li>
+        <li>Check the page using the available themes and display settings.</li>
+      </ol>
+    </section>
+
+  </div>
+</details>
+
+
 <!-- Activity Management +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 
       
