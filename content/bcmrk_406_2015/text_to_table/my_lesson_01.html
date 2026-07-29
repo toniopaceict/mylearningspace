@@ -43,25 +43,33 @@ Progress is stored using the immutable activityId. Subject, topic, level and act
       6. Update the learning outcomes.
       7. Update the file and video instructions.
 
-      Do not enter subject, topic, level or activity titles. GLIP reads these values from Google Sheets.
+      Do not enter subject, topic, level or activity titles.
+      GLIP reads these values from Google Sheets.
       =====================================================
       */
 
       window.LESSON_CONFIG = {
         // -------------------------------------------------
         // ACTIVITY IDENTITY
-        // activityId is the only spreadsheet identifier entered in the lesson file.
-        // GLIP uses it to find the matching activity and then reads the subject name, topic name, activity title,curriculum and level from Google Sheets.
+        //
+        // activityId is the only spreadsheet identifier
+        // entered in the lesson file.
+        //
+        // GLIP uses it to find the matching activity and then
+        // reads the subject name, topic name, activity title,
+        // curriculum and level from Google Sheets.
         // -------------------------------------------------
         activityId: "1",
 
         // -------------------------------------------------
         // REQUIRED FILE
         //
-        // These values describe a resource that belongs to this particular lesson and is not stored in the GLIP relational tables.
+        // These values describe a resource that belongs to
+        // this particular lesson and is not stored in the
+        // GLIP relational tables.
         // -------------------------------------------------
         fileLink:
-          "https://drive.google.com/uc?export=download&id=19J4MyYeC6AzHo-tKqfgLMgJ79Hcb4mOu",
+          "https://drive.google.com/uc?export=download&id=1HQ3g_LXCzfN_aZJDVHZ47HjJ68yOiup5",
         fileButtonText: "Download Word file",
 
         // -------------------------------------------------
@@ -71,15 +79,17 @@ Progress is stored using the immutable activityId. Subject, topic, level and act
         // -------------------------------------------------
         posterImage: "assets/text_to_table_lesson_video_image.jpg",
         videoUrl:
-          "https://drive.google.com/file/d/1MPOEluwbatIvBIYI5PGSPGb3pejn1HxV/preview",
+          "https://drive.google.com/file/d/1rpsFH6ZYge6AAZXunKPi4jCYFo0s3112/preview",
       };
 
       /*
       =====================================================
       END OF LESSON-SPECIFIC SETTINGS
 
-      Do not edit the generated configuration below. It converts the simplified LESSON_CONFIG into the
-      PAGE_CONFIG format expected by the existing GLIP shared scripts.
+      Do not edit the generated configuration below.
+      It converts the simplified LESSON_CONFIG into the
+      PAGE_CONFIG format expected by the existing GLIP
+      shared scripts.
       =====================================================
       */
 
@@ -90,7 +100,8 @@ Progress is stored using the immutable activityId. Subject, topic, level and act
           helpSection: "activity",
           pageKind: "lesson",
 
-          // This is the only relational value stored in the HTML page. All other lesson metadata is supplied
+          // This is the only relational value stored in the
+          // HTML page. All other lesson metadata is supplied
           // by topic-page-context.js from Google Sheets.
           activityId: lesson.activityId,
 
@@ -229,9 +240,21 @@ Progress is stored using the immutable activityId. Subject, topic, level and act
               class="glip-btn download-btn"
               id="fileLinkBtn"
               href="#"
-              target="_blank"
-              rel="noopener"
+              target="glipDownloadFrame"
             ></a>
+
+            <!--
+              Google Drive briefly loads a download response before
+              starting the file transfer. Sending that response to this
+              hidden frame prevents the learner from seeing a blank
+              Google Drive page or a temporary browser tab.
+            -->
+            <iframe
+              name="glipDownloadFrame"
+              id="glipDownloadFrame"
+              title="File download"
+              hidden
+            ></iframe>
           </div>
 
           <div
@@ -255,12 +278,15 @@ Progress is stored using the immutable activityId. Subject, topic, level and act
         ===================================================
         SECTION 4: VIDEO LESSON
 
-        EDIT THE INSTRUCTION TEXT FOR EACH NEW LESSON WHEN NECESSARY.
+        EDIT THE INSTRUCTION TEXT FOR EACH NEW LESSON
+        WHEN NECESSARY.
 
-        The preview image, video URL and accessibility labels are generated automatically from
+        The preview image, video URL and accessibility
+        labels are generated automatically from
         LESSON_CONFIG.
 
-        The video is loaded only after the learner selects the preview image, which improves page load speed.
+        The video is loaded only after the learner selects
+        the preview image, which improves page load speed.
         ===================================================
         -->
         <fieldset class="tracker-box readable-section">
@@ -315,9 +341,16 @@ Progress is stored using the immutable activityId. Subject, topic, level and act
         ===================================================
         SECTION 5: SAVE PROGRESS
 
-        Progress is saved using activityId. 'Partly Completed'saves the activity as In Progress.
-        'Completed'Saves the activity as Completed.
-        Progress contributes to activity, topic and futuresubject badges.
+        Progress is saved using activityId.
+
+        'Partly Completed'
+        Saves the activity as In Progress.
+
+        'Completed'
+        Saves the activity as Completed.
+
+        Progress contributes to activity, topic and future
+        subject badges.
 
         Do not change the button IDs.
         ===================================================
@@ -376,10 +409,12 @@ Progress is stored using the immutable activityId. Subject, topic, level and act
 
       Do not edit this section when creating a new lesson.
 
-      The subject name, topic name and activity title have already been added to PAGE_CONFIG from Google Sheets
+      The subject name, topic name and activity title have
+      already been added to PAGE_CONFIG from Google Sheets
       by topic-page-context.js.
 
-      This section configures only lesson-specific resources and accessibility labels.
+      This section configures only lesson-specific resources
+      and accessibility labels.
       =====================================================
       */
       (function () {
