@@ -544,9 +544,7 @@ function renderSubjectCards(subjects, fallbackLevel) {
       const subjectStatus = getSubjectStatus(subject, progressItems);
 
       const subjectId = String(subject.subject_id || "").trim();
-      const subjectCode = String(
-        subject.subject_code || subject.subject_id || ""
-      ).trim().toLowerCase();
+      const subjectCode = String(subject.subject_code || "").trim();
       const subjectName = String(subject.subject_name || "").trim();
       const subjectLevel = String(subject.level || fallbackLevel || LEVEL || "").trim();
       const levelId = String(subject.level_id || "").trim();
@@ -554,14 +552,10 @@ function renderSubjectCards(subjects, fallbackLevel) {
 
       const link = getSubjectHomeLink(subjectLevel, subjectId);
 
-      /*
-       * subject_id is the relational key used by Apps Script and Sheets.
-       * subject_code is the content-folder and icon filename key.
-       */
       const image =
         "../../content/" +
         subjectCode +
-        "/assets/icon-" +
+        "/assets/" +
         subjectCode +
         ".jpg";
 
@@ -920,14 +914,14 @@ const res = await fetch(getWebAppUrl(), {
         });
       }
 
-      function getTopicImageFromSubjectPage(subjectId, topic) {
+      function getTopicImageFromSubjectPage(subjectCode, topic) {
         const topicFolder = String(topic.topic_code || topic.topic_id || "").trim();
 
-        if (!topicFolder) return "";
+        if (!subjectCode || !topicFolder) return "";
 
         return (
           "../../content/" +
-          subjectId +
+          subjectCode +
           "/" +
           topicFolder +
           "/assets/" +
@@ -940,9 +934,7 @@ const res = await fetch(getWebAppUrl(), {
         subject = subject || {};
 
         const subjectId = String(subject.subject_id || "").trim();
-        const subjectCode = String(
-          subject.subject_code || subject.subject_id || ""
-        ).trim().toLowerCase();
+        const subjectCode = String(subject.subject_code || "").trim();
         const subjectLevel = String(subject.level || LEVEL || "").trim();
         const levelId = String(subject.level_id || "").trim();
         const curriculumId = String(subject.curriculum_id || "").trim();
