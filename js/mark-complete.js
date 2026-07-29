@@ -171,8 +171,18 @@ fetch(webAppUrl, {
       })
       .then(function (data) {
         if (data.status === "success") {
+          if (window.GLIPLearningSession) {
+            window.GLIPLearningSession.updateProgress({
+              subject_id: config.subjectId,
+              level: config.level,
+              topic_id: config.topicId || "",
+              activity_id: config.activityId,
+              status: config.status || "completed"
+            });
+          }
+
           // Keep the current progress cache intact. The glipProgressSaved
-          // event below updates the canonical subject and aggregate caches.
+          // event below updates compatibility caches.
           if (window.GLIPNextActivity && typeof window.GLIPNextActivity.clearRecommendations === "function") {
             window.GLIPNextActivity.clearRecommendations();
           }

@@ -290,7 +290,21 @@
 
   function initialise() {
     const initial = getInitialContext();
-    const cached = readCache(initial);
+    let learningSessionTopic = null;
+
+    if (window.GLIPLearningSession) {
+      const topicPage = window.GLIPLearningSession.getTopicPageData({
+        curriculum_id: initial.curriculum_id,
+        subject_id: initial.subject_code || initial.subject_id,
+        level: initial.level_code,
+        topic_id: initial.topic_id || initial.topic_code
+      });
+      if (topicPage) {
+        learningSessionTopic = normaliseResponse({ topic_page: topicPage }, initial);
+      }
+    }
+
+    const cached = learningSessionTopic || readCache(initial);
 
     function install(topicData) {
       if (!topicData) return;
@@ -322,11 +336,10 @@
     }
 
     if (cached) {
-      // Do not hold the whole page while Apps Script checks for a fresher
-      // copy. The login stage or an earlier topics page has already warmed
-      // this authoritative context.
       install(cached);
-      setTimeout(refreshInBackground, 0);
+      if (!learningSessionTopic) {
+        setTimeout(refreshInBackground, 0);
+      }
       return Promise.resolve(cached);
     }
 
