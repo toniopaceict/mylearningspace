@@ -230,39 +230,59 @@
     const initial = getInitialContext();
     const cached = readCache(initial);
 
-    if (cached) {
-      window.GLIP_TOPIC_PAGE_DATA = cached;
-      window.PAGE_MENU_CONTEXT = buildPageContext(cached);
-      applyTopicHeadings(cached);
-      applyPageConfig(cached);
-    } else {
-      window.PAGE_MENU_CONTEXT = buildPageContext(initial);
+    function install(topicData) {
+      if (!topicData) return;
+      window.GLIP_TOPIC_PAGE_DATA = topicData;
+      window.PAGE_MENU_CONTEXT = buildPageContext(topicData);
+      applyTopicHeadings(topicData);
+      applyPageConfig(topicData);
     }
 
-    return postTopicData(initial)
+    function refreshInBackground() {
+      return postTopicData(initial)
+        .then(function (fresh) {
+          if (!fresh) return cached || initial;
+          writeCache(initial, fresh);
+          saveStoredContext(fresh);
+          install(fresh);
+          document.dispatchEvent(new CustomEvent("glipTopicContextRefreshed", {
+            detail: fresh
+          }));
+          return fresh;
+        })
+        .catch(function (error) {
+          console.error("GLIP topic context:", error);
+          return cached || initial;
+        });
+    }
+
+    if (cached) {
+      // Do not hold the whole page while Apps Script checks for a fresher
+      // copy. The login stage or an earlier topics page has already warmed
+      // this authoritative context.
+      install(cached);
+      setTimeout(refreshInBackground, 0);
+      return Promise.resolve(cached);
+    }
+
+    window.PAGE_MENU_CONTEXT = buildPageContext(initial);
+
+    return refreshInBackground()
       .then(function (fresh) {
-        if (!fresh) return cached || initial;
-        writeCache(initial, fresh);
-        saveStoredContext(fresh);
-        window.GLIP_TOPIC_PAGE_DATA = fresh;
-        window.PAGE_MENU_CONTEXT = buildPageContext(fresh);
-        applyTopicHeadings(fresh);
-        applyPageConfig(fresh);
-        return fresh;
+        const resolved = fresh || initial;
+        install(resolved);
+        return resolved;
       })
       .catch(function (error) {
-        console.error("GLIP topic context:", error);
-        const fallback = cached || initial;
-        applyPageConfig(fallback);
-
+        applyPageConfig(initial);
         const message = error && error.name === "AbortError"
           ? "Topic information took too long to load. Please refresh the page."
           : (error && error.message ? error.message : "Topic information could not be loaded.");
-
         showContextError(message);
-        return fallback;
+        return initial;
       });
   }
+
 
   window.GLIPTopicContext = {
     initialise: initialise,
