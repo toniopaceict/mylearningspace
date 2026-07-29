@@ -1,13 +1,31 @@
 <!--
 =========================================================
-GLIP ACTIVITY PAGE
+GLIP LESSON PAGE
 
-Template: GLIP Lesson Template v2
+Template: GLIP Lesson Template v3
 Platform version: 368
 Help file: /help/help.html
 
-The navigation menu is the main guide between activities.
-Progress is saved using the immutable activity_id.
+PURPOSE
+This template is designed to be copied when creating a new
+lesson page.
+
+FOR EACH NEW LESSON, EDIT ONLY:
+1. The LESSON_CONFIG block near the top of this file.
+2. The lesson-specific educational content inside the
+   clearly marked editable content sections.
+
+DO NOT EDIT:
+• The generated PAGE_CONFIG block
+• Shared JavaScript references
+• Shared CSS classes
+• Progress button IDs
+• Accessibility attributes
+• Shared page structure
+
+Progress is stored using the immutable activityId.
+The GLIP navigation menu remains the main guide between
+activities.
 =========================================================
 -->
 <!doctype html>
@@ -19,31 +37,149 @@ Progress is saved using the immutable activity_id.
     <link rel="icon" href="../../../assets/GLIP-icon-transparent.png" />
 
     <script>
-      window.PAGE_CONFIG = {
-        helpSection: "activity",
-        pageKind: "lesson",
-        pageTitle: "Text to Table – My Lesson 1 – GLIP",
-        topline: "Advanced Administrative IT Applications",
-        mainTitle: "Text to Table",
-        subTitle: "My Lesson 1",
+      /*
+      =====================================================
+      EDIT THIS SECTION FOR EACH NEW LESSON
+      =====================================================
 
+      NEW LESSON CHECKLIST
+
+      1. Rename the HTML file.
+      2. Update activityId.
+      3. Update activityTitle.
+      4. Update the file link and button text.
+      5. Update the poster image and video URL.
+      6. Update the lesson introduction.
+      7. Update the learning outcomes.
+      8. Update the file and video instructions.
+
+      Subject, level and topic values normally remain the
+      same when creating another lesson within this topic.
+      =====================================================
+      */
+
+      window.LESSON_CONFIG = {
+        // -------------------------------------------------
+        // LESSON IDENTITY
+        //
+        // These values connect this page to the relational
+        // data stored in the GLIP spreadsheet.
+        //
+        // subjectId:
+        // Immutable Subject ID from the Subjects sheet.
+        //
+        // level:
+        // Level code used to locate the correct Progress
+        // sheet, for example level-04.
+        //
+        // topicId:
+        // Immutable Topic ID from the Topics sheet.
+        //
+        // activityId:
+        // Immutable Activity ID from the Activities sheet.
+        // This is the value used when saving progress.
+        // -------------------------------------------------
+        subjectId: "1",
+        level: "level-04",
+        topicId: "1",
+        activityId: "1",
+
+        // -------------------------------------------------
+        // DISPLAY TEXT
+        //
+        // These values are used automatically for:
+        // • the browser tab title
+        // • the lesson hero
+        // • video accessibility labels
+        // -------------------------------------------------
+        subjectName: "Advanced Administrative IT Applications",
+        topicName: "Text to Table",
+        activityTitle: "My Lesson 1",
+
+        // -------------------------------------------------
+        // REQUIRED FILE
+        //
+        // fileLink:
+        // Direct or shareable link to the required file.
+        //
+        // fileButtonText:
+        // Text shown on the download button.
+        // -------------------------------------------------
         fileLink:
           "https://drive.google.com/uc?export=download&id=1HQ3g_LXCzfN_aZJDVHZ47HjJ68yOiup5",
         fileButtonText: "Download Word file",
 
-        webAppUrl:
-          typeof window.getGlipWebAppUrl === "function"
-            ? window.getGlipWebAppUrl()
-            : "",
-
-        subjectId: "1",
-        level: "level-04",
-        topicId: "1",
-        topicName: "Text to Table",
-        activityId: "1",
+        // -------------------------------------------------
+        // VIDEO
+        //
+        // posterImage:
+        // Relative path to the video preview image.
+        //
+        // videoUrl:
+        // Embeddable Google Drive preview URL.
+        // -------------------------------------------------
+        posterImage: "assets/text_to_table_lesson_video_image.jpg",
+        videoUrl:
+          "https://drive.google.com/file/d/1rpsFH6ZYge6AAZXunKPi4jCYFo0s3112/preview",
       };
+
+      /*
+      =====================================================
+      END OF LESSON-SPECIFIC SETTINGS
+
+      Do not edit the generated configuration below.
+      It converts the simplified LESSON_CONFIG into the
+      PAGE_CONFIG format expected by the existing GLIP
+      shared scripts.
+      =====================================================
+      */
+
+      (function buildPageConfig() {
+        const lesson = window.LESSON_CONFIG;
+
+        window.PAGE_CONFIG = {
+          // Shared page behaviour
+          helpSection: "activity",
+          pageKind: "lesson",
+
+          // Values generated from LESSON_CONFIG
+          pageTitle:
+            lesson.topicName + " – " + lesson.activityTitle + " – GLIP",
+          topline: lesson.subjectName,
+          mainTitle: lesson.topicName,
+          subTitle: lesson.activityTitle,
+
+          // Required file
+          fileLink: lesson.fileLink,
+          fileButtonText: lesson.fileButtonText,
+
+          // The correct Apps Script deployment URL is obtained
+          // automatically for the current school.
+          webAppUrl:
+            typeof window.getGlipWebAppUrl === "function"
+              ? window.getGlipWebAppUrl()
+              : "",
+
+          // Relational identifiers used by GLIP progress handling
+          subjectId: lesson.subjectId,
+          level: lesson.level,
+          topicId: lesson.topicId,
+          topicName: lesson.topicName,
+          activityId: lesson.activityId,
+        };
+      })();
     </script>
 
+    <!--
+    Loads shared GLIP functionality, including:
+    • header and footer
+    • themes and display settings
+    • role handling
+    • navigation
+    • progress saving
+    • speech support
+    • lesson initialisation
+    -->
     <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
   </head>
 
@@ -51,6 +187,14 @@ Progress is saved using the immutable activity_id.
     <div id="header-placeholder"></div>
 
     <div class="page-shell">
+      <!--
+      =====================================================
+      SECTION 1: LESSON HERO
+
+      Displays the subject, topic and lesson title.
+      Values are inserted automatically from LESSON_CONFIG.
+      =====================================================
+      -->
       <header class="page-hero">
         <div class="page-hero-panel">
           <div class="page-hero-divider-top"></div>
@@ -63,12 +207,9 @@ Progress is saved using the immutable activity_id.
 
           <div class="page-hero-logo">GLIP</div>
 
-          <p class="page-hero-topline" id="heroTopline">
-            Advanced Administrative IT Applications
-          </p>
-
-          <h1 id="heroMainTitle">Text to Table</h1>
-          <h2 id="heroSubTitle">My Lesson 1</h2>
+          <p class="page-hero-topline" id="heroTopline"></p>
+          <h1 id="heroMainTitle"></h1>
+          <h2 id="heroSubTitle"></h2>
 
           <div class="page-hero-divider-bottom"></div>
         </div>
@@ -82,6 +223,17 @@ Progress is saved using the immutable activity_id.
       </div>
 
       <main class="wrap" id="mainContent">
+        <!--
+        ===================================================
+        SECTION 2: LESSON OVERVIEW
+
+        EDIT THIS SECTION FOR EACH NEW LESSON.
+
+        Include:
+        • a short introduction
+        • clear learning outcomes
+        ===================================================
+        -->
         <fieldset class="tracker-box readable-section">
           <legend>Lesson Overview</legend>
 
@@ -101,15 +253,25 @@ Progress is saved using the immutable activity_id.
           <p class="q" data-read>
             By the end of this lesson, you should be able to:
           </p>
-          
+
           <ul class="lesson-outcomes" data-read>
             <li>Identify the separator used in the text.</li>
             <li>Convert the text into a table.</li>
             <li>Adjust the table so that the information is displayed clearly.</li>
           </ul>
-          
         </fieldset>
 
+        <!--
+        ===================================================
+        SECTION 3: REQUIRED FILE
+
+        EDIT THE INSTRUCTION TEXT FOR EACH NEW LESSON
+        WHEN NECESSARY.
+
+        The file URL and button text come automatically
+        from LESSON_CONFIG.
+        ===================================================
+        -->
         <fieldset class="download-box readable-section">
           <legend>Required File</legend>
 
@@ -133,9 +295,7 @@ Progress is saved using the immutable activity_id.
               href="#"
               target="_blank"
               rel="noopener"
-            >
-              Download Word file
-            </a>
+            ></a>
           </div>
 
           <div
@@ -155,6 +315,21 @@ Progress is saved using the immutable activity_id.
           ></p>
         </fieldset>
 
+        <!--
+        ===================================================
+        SECTION 4: VIDEO LESSON
+
+        EDIT THE INSTRUCTION TEXT FOR EACH NEW LESSON
+        WHEN NECESSARY.
+
+        The preview image, video URL and accessibility
+        labels are generated automatically from
+        LESSON_CONFIG.
+
+        The video is loaded only after the learner selects
+        the preview image, which improves page load speed.
+        ===================================================
+        -->
         <fieldset class="tracker-box readable-section">
           <legend>Video Lesson</legend>
 
@@ -176,18 +351,17 @@ Progress is saved using the immutable activity_id.
             id="videoPoster"
             role="button"
             tabindex="0"
-            aria-label="Play the Text to Table video lesson"
           >
             <img
               class="glip-image"
-              src="assets/text_to_table_lesson_video_image.jpg"
-              alt="Preview image for the Text to Table video lesson"
+              id="videoPosterImage"
+              src=""
+              alt=""
             />
 
             <button
               type="button"
               class="video-play-btn"
-              aria-label="Play video lesson"
             >
               ▶
             </button>
@@ -196,14 +370,32 @@ Progress is saved using the immutable activity_id.
           <div class="video-wrapper" id="videoWrapper" style="display: none">
             <iframe
               id="videoFrame"
-              title="Text to Table video lesson"
-              data-src="https://drive.google.com/file/d/1rpsFH6ZYge6AAZXunKPi4jCYFo0s3112/preview"
+              title=""
+              data-src=""
               allow="autoplay"
               allowfullscreen
             ></iframe>
           </div>
         </fieldset>
 
+        <!--
+        ===================================================
+        SECTION 5: SAVE PROGRESS
+
+        Progress is saved using activityId.
+
+        'Partly Completed'
+        Saves the activity as In Progress.
+
+        'Completed'
+        Saves the activity as Completed.
+
+        Progress contributes to activity, topic and future
+        subject badges.
+
+        Do not change the button IDs.
+        ===================================================
+        -->
         <fieldset class="tracker-box no-print readable-section">
           <legend>Save Progress</legend>
 
@@ -252,16 +444,93 @@ Progress is saved using the immutable activity_id.
     </div>
 
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const poster = document.getElementById("videoPoster");
-        if (!poster) return;
+      /*
+      =====================================================
+      SHARED LESSON INITIALISATION
 
-        poster.addEventListener("keydown", function (event) {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            poster.click();
+      Do not edit this section when creating a new lesson.
+
+      Responsibilities:
+      • populates the browser title
+      • populates the lesson hero
+      • configures the download button
+      • configures the video poster and iframe
+      • generates video accessibility labels
+      • provides keyboard access to the video poster
+      =====================================================
+      */
+      document.addEventListener("DOMContentLoaded", function () {
+        const lesson = window.LESSON_CONFIG;
+
+        // Browser title
+        document.title =
+          lesson.topicName + " – " + lesson.activityTitle + " – GLIP";
+
+        // Lesson hero
+        const heroTopline = document.getElementById("heroTopline");
+        const heroMainTitle = document.getElementById("heroMainTitle");
+        const heroSubTitle = document.getElementById("heroSubTitle");
+
+        if (heroTopline) heroTopline.textContent = lesson.subjectName;
+        if (heroMainTitle) heroMainTitle.textContent = lesson.topicName;
+        if (heroSubTitle) heroSubTitle.textContent = lesson.activityTitle;
+
+        // Required file button
+        const fileButton = document.getElementById("fileLinkBtn");
+
+        if (fileButton) {
+          fileButton.href = lesson.fileLink || "#";
+          fileButton.textContent =
+            lesson.fileButtonText || "Download required file";
+
+          // Hide the button when no file link has been supplied.
+          if (!lesson.fileLink) {
+            fileButton.style.display = "none";
           }
-        });
+        }
+
+        // Video configuration
+        const poster = document.getElementById("videoPoster");
+        const posterImage = document.getElementById("videoPosterImage");
+        const playButton = poster
+          ? poster.querySelector(".video-play-btn")
+          : null;
+        const videoFrame = document.getElementById("videoFrame");
+
+        const videoLabel =
+          "Play the " + lesson.topicName + " video lesson";
+        const videoTitle =
+          lesson.topicName + " video lesson";
+
+        if (poster) {
+          poster.setAttribute("aria-label", videoLabel);
+        }
+
+        if (posterImage) {
+          posterImage.src = lesson.posterImage;
+          posterImage.alt =
+            "Preview image for the " + lesson.topicName + " video lesson";
+        }
+
+        if (playButton) {
+          playButton.setAttribute("aria-label", videoLabel);
+        }
+
+        if (videoFrame) {
+          videoFrame.title = videoTitle;
+          videoFrame.dataset.src = lesson.videoUrl;
+        }
+
+        // Keyboard accessibility:
+        // Enter or Space activates the video poster.
+        if (poster) {
+          poster.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              poster.click();
+            }
+          });
+        }
       });
     </script>
   </body>
