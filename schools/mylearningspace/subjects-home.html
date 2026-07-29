@@ -1140,6 +1140,33 @@ async function fetchSubjectsForLevel(level) {
   }
 }
 
+
+function getAllTeacherSubjectsCache() {
+  const userType = sessionStorage.getItem("glipUserType") || "";
+  const teacherId = sessionStorage.getItem("glipTeacherId") || "";
+  if (!userType || !teacherId) return null;
+
+  return readTimedLocalCache(glipCacheKey([
+    SCHOOL,
+    userType,
+    teacherId,
+    "all-subjects"
+  ]), SUBJECT_CACHE_DURATION);
+}
+
+function setAllTeacherSubjectsCache(subjects) {
+  const userType = sessionStorage.getItem("glipUserType") || "";
+  const teacherId = sessionStorage.getItem("glipTeacherId") || "";
+  if (!userType || !teacherId || !Array.isArray(subjects)) return;
+
+  writeTimedLocalCache(glipCacheKey([
+    SCHOOL,
+    userType,
+    teacherId,
+    "all-subjects"
+  ]), subjects);
+}
+
 async function fetchAllTeacherSubjects() {
   try {
     const result = await postToGlip({
@@ -1154,7 +1181,9 @@ async function fetchAllTeacherSubjects() {
       );
     }
 
-    return Array.isArray(result.subjects) ? result.subjects : [];
+    const subjects = Array.isArray(result.subjects) ? result.subjects : [];
+    setAllTeacherSubjectsCache(subjects);
+    return subjects;
   } catch (err) {
     console.error(err);
     return null;
@@ -1229,21 +1258,44 @@ function rebuildTeacherPermissionsFromSubjects(subjects) {
 async function loadTeacherDashboard() {
   const dashboard = document.getElementById("teacher-dashboard");
   const normalGrid = document.getElementById("topic-grid");
+  const cachedSubjects = getAllTeacherSubjectsCache();
 
-  /*
-   * Do not use glipTeacherPermissions as the authority for whether a teacher
-   * has assignments. A new session may legitimately contain no warmed
-   * permissions even though active TeachingAssignments records exist.
-   * Ask Apps Script for the teacher's current subjects instead.
-   */
-  const subjects = await fetchAllTeacherSubjects();
+  function showSubjects(subjects) {
+    if (!Array.isArray(subjects)) return false;
 
-  if (subjects === null) {
+    if (!subjects.length) {
+      const loadingProgress = document.getElementById("subjectsLoadingProgress");
+      if (loadingProgress) loadingProgress.style.display = "none";
+      if (normalGrid) normalGrid.style.display = "none";
+      if (dashboard) {
+        dashboard.style.display = "";
+        dashboard.innerHTML = `
+          <p class="q">
+            No subjects have been assigned to your account. Please contact your administrator if you believe this is incorrect.
+          </p>
+        `;
+      }
+      return true;
+    }
+
+    rebuildTeacherPermissionsFromSubjects(subjects);
+    renderTeacherDashboard(groupTeacherSubjects(subjects));
+    startBackgroundTopicPreloadSoon(subjects);
+    return true;
+  }
+
+  // Render the login-warmed copy immediately. This also makes the Back to
+  // Subject List route instant instead of showing the loading screen again.
+  if (cachedSubjects) showSubjects(cachedSubjects);
+
+  const freshSubjects = await fetchAllTeacherSubjects();
+
+  if (freshSubjects === null) {
+    if (cachedSubjects) return;
+
     const loadingProgress = document.getElementById("subjectsLoadingProgress");
     if (loadingProgress) loadingProgress.style.display = "none";
-
     if (normalGrid) normalGrid.style.display = "none";
-
     if (dashboard) {
       dashboard.style.display = "";
       dashboard.innerHTML = `
@@ -1255,29 +1307,7 @@ async function loadTeacherDashboard() {
     return;
   }
 
-  if (!subjects.length) {
-    const loadingProgress = document.getElementById("subjectsLoadingProgress");
-    if (loadingProgress) loadingProgress.style.display = "none";
-
-    if (normalGrid) normalGrid.style.display = "none";
-
-    if (dashboard) {
-      dashboard.style.display = "";
-      dashboard.innerHTML = `
-        <p class="q">
-          No subjects have been assigned to your account. Please contact your administrator if you believe this is incorrect.
-        </p>
-      `;
-    }
-    return;
-  }
-
-  rebuildTeacherPermissionsFromSubjects(subjects);
-
-  const assignmentsByLevel = groupTeacherSubjects(subjects);
-
-  renderTeacherDashboard(assignmentsByLevel);
-  startBackgroundTopicPreloadSoon(subjects);
+  showSubjects(freshSubjects);
 }
 
 

@@ -233,6 +233,139 @@ Help file:
         });
       }
 
+
+      function getTopicCacheKey(subject) {
+        return glipCacheKey([
+          SCHOOL,
+          String(subject.curriculum_id || subject.level_id || subject.level || "").trim(),
+          String(subject.subject_id || "").trim(),
+          "topics"
+        ]);
+      }
+
+      function getTopicPageCacheKey(subject, topic) {
+        return "glip_topic_page_data_" + [
+          SCHOOL,
+          String(subject.curriculum_id || subject.level_id || subject.level || "").trim(),
+          String(topic.topic_pk || topic.topic_id || topic.topic_code || "").trim()
+        ].join("_");
+      }
+
+      function normaliseTopicPagePreload(data, subject, topic) {
+        const source = data && data.topic_page ? data.topic_page : data || {};
+        const sourceTopic = source.topic || {};
+        const sourceSubject = source.subject || {};
+        const sourceLevel = source.level || {};
+
+        return {
+          school: String(source.school || SCHOOL || "").trim(),
+          curriculum_id: String(source.curriculum_id || subject.curriculum_id || "").trim(),
+          topic_id: String(sourceTopic.topic_id || topic.topic_pk || topic.topic_id || "").trim(),
+          topic_code: String(sourceTopic.topic_code || topic.topic_code || topic.topic_id || "").trim(),
+          topic_name: String(sourceTopic.topic_name || topic.topic_name || "").trim(),
+          subject_id: String(sourceSubject.subject_id || subject.subject_id || "").trim(),
+          subject_code: String(sourceSubject.subject_code || subject.subject_code || "").trim(),
+          subject_name: String(sourceSubject.subject_name || subject.subject_name || "").trim(),
+          level_id: String(sourceLevel.level_id || subject.level_id || "").trim(),
+          level_code: String(sourceLevel.level_code || subject.level || "").trim(),
+          activities: Array.isArray(source.activities) ? source.activities : []
+        };
+      }
+
+      async function runWithConcurrency(items, limit, worker) {
+        const queue = Array.isArray(items) ? items.slice() : [];
+        const runners = [];
+        const runnerCount = Math.min(Math.max(1, limit || 1), queue.length);
+
+        async function runNext() {
+          while (queue.length) {
+            const item = queue.shift();
+            try {
+              await worker(item);
+            } catch (error) {
+              console.warn("Learning-space preload item failed:", error);
+            }
+          }
+        }
+
+        for (let i = 0; i < runnerCount; i += 1) runners.push(runNext());
+        await Promise.all(runners);
+      }
+
+      async function preloadTopicsAndTopicPages(subjects, userType, userId) {
+        const visibleSubjects = (Array.isArray(subjects) ? subjects : []).filter(function (subject) {
+          return subject && subject.visible !== false && subject.active !== false;
+        });
+
+        if (!visibleSubjects.length) return;
+
+        addLoginLog("Loading topics and topic images...");
+
+        await runWithConcurrency(visibleSubjects, 3, async function (subject) {
+          const subjectId = String(subject.subject_id || "").trim();
+          const subjectCode = String(subject.subject_code || "").trim();
+          if (!subjectId) return;
+
+          const result = await postToGlip({
+            action: "getTopics",
+            curriculum_id: String(subject.curriculum_id || "").trim(),
+            subject_id: subjectId,
+            level_id: String(subject.level_id || "").trim(),
+            level: String(subject.level || "").trim(),
+            userType: userType,
+            teacher_id: userType === "student" ? "" : userId,
+            student_id: userType === "student" ? userId : ""
+          });
+
+          if (!result || result.status !== "success") return;
+
+          const topics = Array.isArray(result.topics) ? result.topics : [];
+          saveLocalCache(getTopicCacheKey(subject), topics);
+
+          await Promise.all(topics.filter(function (topic) {
+            return topic.available === true;
+          }).map(function (topic) {
+            const topicFolder = String(topic.topic_code || topic.topic_id || "").trim();
+            if (!subjectCode || !topicFolder) return Promise.resolve(false);
+            return preloadImage(
+              "../../content/" + subjectCode + "/" + topicFolder +
+              "/assets/" + topicFolder + ".jpg"
+            );
+          }));
+
+          await runWithConcurrency(topics.filter(function (topic) {
+            return topic.available === true;
+          }), 2, async function (topic) {
+            const pageResult = await postToGlip({
+              action: "getTopicPageData",
+              school_id: SCHOOL,
+              curriculum_id: String(subject.curriculum_id || "").trim(),
+              topic_id: String(topic.topic_pk || topic.topic_id || "").trim(),
+              topic_code: String(topic.topic_code || topic.topic_id || "").trim(),
+              subject_id: subjectId,
+              subject_code: subjectCode,
+              level_id: String(subject.level_id || "").trim(),
+              level: String(subject.level || "").trim(),
+              userType: userType,
+              teacher_id: userType === "student" ? "" : userId,
+              student_id: userType === "student" ? userId : ""
+            });
+
+            if (!pageResult || pageResult.status !== "success") return;
+
+            sessionStorage.setItem(
+              getTopicPageCacheKey(subject, topic),
+              JSON.stringify({
+                saved_at: Date.now(),
+                data: normaliseTopicPagePreload(pageResult, subject, topic)
+              })
+            );
+          });
+        });
+
+        addLoginLog("Topics and learning pages ready.");
+      }
+
       async function preloadStudentData(student) {
         const studentId = String(student.student_id || "").trim();
         const rawLevel = String(student.level || "").trim();
@@ -344,6 +477,8 @@ const subjectsResult = await postToGlip({
           await Promise.all(imagePromises);
           addLoginLog("Subject images ready.");
 
+          await preloadTopicsAndTopicPages(visibleSubjects, "student", studentId);
+
           const mergedProgress = successfulProgress.flat();
 
           sessionStorage.setItem(
@@ -360,51 +495,64 @@ const subjectsResult = await postToGlip({
         if (!teacher || !teacher.teacher_id) return;
         if (userType !== "lead_teacher" && userType !== "subject_teacher") return;
 
-        const permissions = Array.isArray(teacher.permissions) ? teacher.permissions : [];
-        const levels = Array.from(new Set(
-          permissions
-            .filter(function (permission) {
-              return permission.active !== false &&
-                String(permission.active).toLowerCase() !== "false";
-            })
-            .map(function (permission) {
-              return getLevelFolder(permission.level || "");
-            })
-            .filter(Boolean)
-        ));
-
-        if (!levels.length) return;
-
+        const teacherId = String(teacher.teacher_id || "").trim();
         addLoginLog("Loading Subjects...");
 
-        await Promise.all(levels.map(async function (level) {
-          try {
-            const result = await postToGlip({
-              action: "getSubjects",
-              level: level,
-              userType: userType,
-              teacher_id: teacher.teacher_id
-            });
+        try {
+          const result = await postToGlip({
+            action: "getSubjects",
+            userType: userType,
+            teacher_id: teacherId
+          });
 
-            if (!result || result.status !== "success") return;
+          if (!result || result.status !== "success") {
+            throw new Error((result && result.message) || "Assigned subjects could not be loaded.");
+          }
 
-            const subjects = Array.isArray(result.subjects) ? result.subjects : [];
-            const key = glipCacheKey([
+          const subjects = Array.isArray(result.subjects) ? result.subjects : [];
+
+          saveLocalCache(glipCacheKey([
+            SCHOOL,
+            userType,
+            teacherId,
+            "all-subjects"
+          ]), subjects);
+
+          const subjectsByLevel = {};
+          subjects.forEach(function (subject) {
+            const level = getLevelFolder(subject.level || "");
+            if (!level) return;
+            if (!subjectsByLevel[level]) subjectsByLevel[level] = [];
+            subjectsByLevel[level].push(subject);
+          });
+
+          Object.keys(subjectsByLevel).forEach(function (level) {
+            saveLocalCache(glipCacheKey([
               SCHOOL,
               level,
               userType,
-              String(teacher.teacher_id),
+              teacherId,
               "",
               "subjects"
-            ]);
+            ]), subjectsByLevel[level]);
+          });
 
-            saveLocalCache(key, subjects);
-          } catch (error) {
-            console.warn("Subject preload failed for " + level + ":", error);
-          }
-        }));
+          addLoginLog("Loading subject images...");
+          await Promise.all(subjects.filter(function (subject) {
+            return subject.visible !== false;
+          }).map(function (subject) {
+            const subjectCode = String(subject.subject_code || "").trim();
+            if (!subjectCode) return Promise.resolve(false);
+            return preloadImage(
+              "../../content/" + subjectCode + "/assets/" + subjectCode + ".jpg"
+            );
+          }));
 
-        addLoginLog("Subjects ready.");
+          await preloadTopicsAndTopicPages(subjects, userType, teacherId);
+          addLoginLog("Subjects ready.");
+        } catch (error) {
+          console.warn("Teacher learning-space preload failed:", error);
+        }
       }
 
       async function preloadManagementData(teacher, userType) {
