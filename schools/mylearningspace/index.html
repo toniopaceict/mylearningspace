@@ -292,7 +292,8 @@ Help file:
         await Promise.all(runners);
       }
 
-      async function preloadTopicsAndTopicPages(subjects, userType, userId) {
+      async function preloadTopicsAndTopicPages(subjects, userType, userId, progressItems) {
+        const progress = Array.isArray(progressItems) ? progressItems : [];
         const visibleSubjects = (Array.isArray(subjects) ? subjects : []).filter(function (subject) {
           return subject && subject.visible !== false && subject.active !== false;
         });
@@ -353,13 +354,39 @@ Help file:
 
             if (!pageResult || pageResult.status !== "success") return;
 
+            const topicPageData = normaliseTopicPagePreload(pageResult, subject, topic);
+
             sessionStorage.setItem(
               getTopicPageCacheKey(subject, topic),
               JSON.stringify({
                 saved_at: Date.now(),
-                data: normaliseTopicPagePreload(pageResult, subject, topic)
+                data: topicPageData
               })
             );
+
+            // Student-only predictive loading. The same central algorithm is
+            // used wherever GLIP needs to decide the learner's next step.
+            if (userType === "student" && window.GLIPNextActivity) {
+              const topicActivityIds = new Set(topicPageData.activities.map(function (activity) {
+                return String(activity.activity_id || "").trim();
+              }));
+              const topicProgress = progress.filter(function (item) {
+                return topicActivityIds.has(String(item.activity_id || "").trim());
+              });
+              const nextActivity = window.GLIPNextActivity.getNextActivity(
+                topicPageData.activities,
+                topicProgress
+              );
+              const nextContext = Object.assign({}, topicPageData, {
+                student_id: userId,
+                base_url: "../..",
+                topic_base_url: "../../content/" + subjectCode + "/" +
+                  String(topicPageData.topic_code || "").trim()
+              });
+              const nextUrl = window.GLIPNextActivity.buildActivityUrl(nextContext, nextActivity);
+              window.GLIPNextActivity.saveRecommendation(nextContext, nextActivity, nextUrl);
+              if (nextUrl) await window.GLIPNextActivity.preloadUrl(nextUrl);
+            }
           });
         });
 
@@ -477,14 +504,21 @@ const subjectsResult = await postToGlip({
           await Promise.all(imagePromises);
           addLoginLog("Subject images ready.");
 
-          await preloadTopicsAndTopicPages(visibleSubjects, "student", studentId);
-
           const mergedProgress = successfulProgress.flat();
 
           sessionStorage.setItem(
             "glipProgress",
             JSON.stringify(mergedProgress)
           );
+
+          addLoginLog("Preparing your next activities...");
+          await preloadTopicsAndTopicPages(
+            visibleSubjects,
+            "student",
+            studentId,
+            mergedProgress
+          );
+          addLoginLog("Your next activities are ready.");
           sessionStorage.setItem("glipProgressTime", String(Date.now()));
         } catch (err) {
           console.warn("Preload skipped:", err);
@@ -548,7 +582,7 @@ const subjectsResult = await postToGlip({
             );
           }));
 
-          await preloadTopicsAndTopicPages(subjects, userType, teacherId);
+          await preloadTopicsAndTopicPages(subjects, userType, teacherId, []);
           addLoginLog("Subjects ready.");
         } catch (error) {
           console.warn("Teacher learning-space preload failed:", error);

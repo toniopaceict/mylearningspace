@@ -3,7 +3,7 @@
 
   
   
-  const GLIP_ASSET_VERSION = "367";
+  const GLIP_ASSET_VERSION = "368";
   const GLIP_BASE_URL = "https://toniopaceict.github.io/mylearningspace";
 
   window.GLIP_ASSET_VERSION = GLIP_ASSET_VERSION;
@@ -16,6 +16,7 @@
       loadScriptOnce(versionedAssetUrl("/js/performance-monitor-client.js"), function () {
     loadScriptOnce(versionedAssetUrl("/js/roles.js"), function () {
       loadScriptOnce(versionedAssetUrl("/js/role-guard.js"), function () {
+        loadScriptOnce(versionedAssetUrl("/js/next-activity-engine.js"), function () {
         loadScriptOnce(versionedAssetUrl("/js/menu-config.js"), function () {
           loadScriptOnce(versionedAssetUrl("/js/management-cache.js"), function () {
             prepareTopicContext(function () {
@@ -26,6 +27,7 @@
               });
             });
           });
+        });
         });
       });
     });

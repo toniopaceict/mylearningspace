@@ -59,6 +59,10 @@ function toggleSaveProgressBar(show) {
   }
 
   function clearGlipProgressCache() {
+    if (window.GLIPNextActivity && typeof window.GLIPNextActivity.clearRecommendations === "function") {
+      window.GLIPNextActivity.clearRecommendations();
+    }
+
     const studentId = sessionStorage.getItem("glipStudentId") || "";
     const level = sessionStorage.getItem("glipLevel") || "";
 
