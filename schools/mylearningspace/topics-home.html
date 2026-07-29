@@ -566,9 +566,37 @@ function getTopicStatus(topic) {
         });
       }
 
+      function refreshVisibleTopicBadges() {
+        if (!window.GLIPProgressEngine) return;
+
+        if (window.GLIPLearningSession) {
+          const sessionProgress = window.GLIPLearningSession.getProgress({
+            curriculum_id: CURRICULUM_ID,
+            subject_id: SUBJECT,
+            level: LEVEL
+          });
+          if (Array.isArray(sessionProgress)) {
+            progressItems = sessionProgress;
+          }
+        }
+
+        const topics = getTopicsCache();
+        if (Array.isArray(topics)) {
+          applyTopicBadges(topics.map(normaliseTopic));
+        }
+      }
+
       document.addEventListener("glipReady", function () {
         setPageTitle();
         loadTopics();
+      });
+
+      window.addEventListener("pageshow", function () {
+        refreshVisibleTopicBadges();
+      });
+
+      window.addEventListener("glipProgressSaved", function () {
+        refreshVisibleTopicBadges();
       });
     </script>
   </body>

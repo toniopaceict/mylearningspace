@@ -1314,6 +1314,35 @@ async function loadAdminDashboard() {
 
       
 
+function refreshStudentSubjectBadges() {
+  if (!isStudentUser() || !window.GLIPLearningSession || !window.GLIPProgressEngine) return;
+
+  const subjects = window.GLIPLearningSession.getSubjects();
+  if (!Array.isArray(subjects)) return;
+
+  document.querySelectorAll(".topic-card[data-subject-id]").forEach(function (card) {
+    const curriculumId = String(card.dataset.curriculumId || "").trim();
+    const subjectId = String(card.dataset.subjectId || "").trim().toLowerCase();
+    const level = normaliseLevel(card.dataset.level || "");
+
+    const subject = subjects.find(function (item) {
+      if (curriculumId && String(item.curriculum_id || "") === curriculumId) return true;
+      const keys = [item.subject_pk, item.subject_id, item.subject_code]
+        .map(function (value) { return String(value || "").trim().toLowerCase(); })
+        .filter(Boolean);
+      return keys.indexOf(subjectId) !== -1 &&
+        (!level || normaliseLevel(item.level || item.level_code) === level);
+    });
+
+    if (!subject) return;
+    const badge = card.querySelector(".topic-badge");
+    window.GLIPProgressEngine.applyBadge(
+      badge,
+      window.GLIPProgressEngine.getSubjectStatus(subject)
+    );
+  });
+}
+
 function loadSubjects() {
   if (isAdminUser()) {
     loadAdminDashboard();
@@ -1401,6 +1430,14 @@ document.addEventListener("click", function (event) {
       
       document.addEventListener("glipReady", function () {
         loadSubjects();
+      });
+
+      window.addEventListener("pageshow", function () {
+        refreshStudentSubjectBadges();
+      });
+
+      window.addEventListener("glipProgressSaved", function () {
+        refreshStudentSubjectBadges();
       });
     </script>
   </body>
