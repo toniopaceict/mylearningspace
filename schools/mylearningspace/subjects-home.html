@@ -715,6 +715,14 @@ if (loadingProgress) loadingProgress.style.display = "none";
 
       async function fetchSubjects() {
         try {
+          if (isStudentUser() && window.GLIPLearningSession) {
+            const sessionSubjects = window.GLIPLearningSession.getSubjects();
+            if (Array.isArray(sessionSubjects)) {
+              setSubjectCache(sessionSubjects);
+              return sessionSubjects;
+            }
+          }
+
 const payload = {
   action: "getSubjects",
   userType: sessionStorage.getItem("glipUserType") || "",
@@ -755,6 +763,16 @@ const res = await fetch(getWebAppUrl(), {
         const studentId = sessionStorage.getItem("glipStudentId") || "";
 
         if (!studentId || !Array.isArray(subjects)) return [];
+
+        if (isStudentUser() && window.GLIPLearningSession) {
+          const sessionProgress = window.GLIPLearningSession.getAllProgress();
+          if (Array.isArray(sessionProgress)) {
+            progressItems = sessionProgress;
+            window.GLIP_CACHE.writeAllProgress({ school: SCHOOL, studentId: studentId }, sessionProgress);
+            renderSubjects(subjects);
+            return sessionProgress;
+          }
+        }
 
         const visibleSubjects = subjects.filter(function (subject) {
           return subject.visible === true;
@@ -947,6 +965,8 @@ const res = await fetch(getWebAppUrl(), {
       }
 
       async function startBackgroundTopicPreload(subjects) {
+        if (isStudentUser() && window.GLIPLearningSession && window.GLIPLearningSession.read()) return;
+
         const userType = sessionStorage.getItem("glipUserType") || "";
         const teacherId = sessionStorage.getItem("glipTeacherId") || "";
         const studentId = sessionStorage.getItem("glipStudentId") || "";

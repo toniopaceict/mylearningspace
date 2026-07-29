@@ -722,6 +722,10 @@ const subjectsResult = await postToGlip({
           sessionStorage.setItem("glipRole", "student");
           sessionStorage.setItem("glipUserType", "student");
 
+          if (result.learningSession && window.GLIPLearningSession) {
+            window.GLIPLearningSession.write(result.learningSession);
+          }
+
             addLoginLog("Code accepted.");
             addLoginLog("Preparing your learning space...");
 

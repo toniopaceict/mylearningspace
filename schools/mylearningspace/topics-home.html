@@ -470,6 +470,17 @@ function getTopicStatus(topic) {
       async function fetchProgress() {
         const studentId = getStudentId();
 
+        if (studentId && window.GLIPLearningSession) {
+          const sessionProgress = window.GLIPLearningSession.getProgress({
+            curriculum_id: CURRICULUM_ID, subject_id: SUBJECT, level: LEVEL
+          });
+          if (Array.isArray(sessionProgress)) {
+            progressItems = sessionProgress;
+            setProgressCache(progressItems);
+            return progressItems;
+          }
+        }
+
         if (!studentId) {
           progressItems = [];
           return [];
@@ -502,6 +513,15 @@ function getTopicStatus(topic) {
 
       async function fetchTopics() {
         try {
+          if (window.GLIPLearningSession) {
+            const sessionTopics = window.GLIPLearningSession.getTopics({
+              curriculum_id: CURRICULUM_ID, subject_id: SUBJECT, level: LEVEL
+            });
+            if (Array.isArray(sessionTopics)) {
+              setTopicsCache(sessionTopics);
+              return sessionTopics;
+            }
+          }
           const res = await fetch(getWebAppUrl(), {
             method: "POST",
             body: JSON.stringify({
