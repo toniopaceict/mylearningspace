@@ -715,12 +715,24 @@ if (loadingProgress) loadingProgress.style.display = "none";
 
       async function fetchSubjects() {
         try {
-          if (isStudentUser() && window.GLIPLearningSession) {
+          if (
+            isStudentUser() &&
+            window.GLIPLearningSession &&
+            typeof window.GLIPLearningSession.hasValidSession === "function" &&
+            window.GLIPLearningSession.hasValidSession()
+          ) {
             const sessionSubjects = window.GLIPLearningSession.getSubjects();
             if (Array.isArray(sessionSubjects)) {
               setSubjectCache(sessionSubjects);
               return sessionSubjects;
             }
+          }
+
+          // A missing or invalid Learning Session must never be interpreted as
+          // a learner with no assignments. Fall back to the established API
+          // so a partial deployment cannot hide valid subjects.
+          if (isStudentUser()) {
+            console.warn("GLIP Learning Session is unavailable; loading subjects from Apps Script.");
           }
 
 const payload = {
@@ -1348,16 +1360,19 @@ function loadSubjects() {
         }
 
         fetchSubjects().then(function (subjects) {
-          if (subjects && subjects.length > 0) {
+          if (Array.isArray(subjects)) {
             renderSubjects(subjects);
 
-            fetchProgressForSubjects(subjects).then(function () {
-              startBackgroundTopicPreloadSoon(subjects);
-            });
-          } else {
-            document.getElementById("topic-grid").innerHTML =
-              "Unable to load subjects";
+            if (subjects.length > 0) {
+              fetchProgressForSubjects(subjects).then(function () {
+                startBackgroundTopicPreloadSoon(subjects);
+              });
+            }
+            return;
           }
+
+          document.getElementById("topic-grid").innerHTML =
+            "Unable to load subjects";
         });
       }
 
