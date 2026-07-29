@@ -3,11 +3,29 @@
  
   
   
-  const GLIP_ASSET_VERSION = "380";
+  const GLIP_ASSET_VERSION = "381";
   const GLIP_BASE_URL = "https://toniopaceict.github.io/mylearningspace";
+
+  const GLIP_PAGE_CHECK_CLASS = "glip-page-checking";
+  let pageRevealScheduled = false;
+  let pageRevealed = false;
+  let pageRevealFallbackTimer = null;
 
   window.GLIP_ASSET_VERSION = GLIP_ASSET_VERSION;
   window.GLIP_BASE_URL = GLIP_BASE_URL;
+
+  /*
+   * Keep the page shell hidden while shared and page-specific scripts
+   * replace placeholder content. The class is added before the body is
+   * parsed, which prevents a flash of default headings on a hard refresh.
+   */
+  document.documentElement.classList.add(GLIP_PAGE_CHECK_CLASS);
+
+  /*
+   * Safety fallback: a script or network error must never leave the page
+   * permanently hidden. Normal initialisation clears this timer.
+   */
+  pageRevealFallbackTimer = window.setTimeout(revealPageShell, 8000);
 
   loadCssOnce(versionedAssetUrl("/css/main.css"));
 
@@ -25,6 +43,7 @@
               loadScriptOnce(versionedAssetUrl("/js/header.js"), function () {
                 loadPageSpecificScripts(function () {
                   document.dispatchEvent(new CustomEvent("glipReady"));
+                  revealPageShell();
                 });
               });
             });
@@ -315,9 +334,37 @@ const managementScriptsByPage = {
     document.head.appendChild(script);
   }
 
+  function revealPageShell() {
+    if (pageRevealed || pageRevealScheduled) return;
+
+    pageRevealScheduled = true;
+
+    runWhenDomReady(function () {
+      /*
+       * Two animation frames allow DOMContentLoaded handlers and synchronous
+       * glipReady listeners to finish updating headings before the shell is
+       * shown.
+       */
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(function () {
+          document.documentElement.classList.remove(GLIP_PAGE_CHECK_CLASS);
+          pageRevealed = true;
+          pageRevealScheduled = false;
+
+          if (pageRevealFallbackTimer) {
+            window.clearTimeout(pageRevealFallbackTimer);
+            pageRevealFallbackTimer = null;
+          }
+
+          document.dispatchEvent(new CustomEvent("glipPageVisible"));
+        });
+      });
+    });
+  }
+
   function runWhenDomReady(callback) {
     if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", callback);
+      document.addEventListener("DOMContentLoaded", callback, { once: true });
     } else {
       callback();
     }
