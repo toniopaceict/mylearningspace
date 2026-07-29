@@ -276,7 +276,13 @@ function normaliseTopic(topic) {
       : "",
     status: isAvailable ? "available" : "unavailable",
     sort: Number(topic.sort_order) || 0,
-    unavailableReason: String(topic.not_available_reason || "Not available").trim()
+    unavailableReason: String(topic.not_available_reason || "Not available").trim(),
+    topic_pk: String(topic.topic_pk || "").trim(),
+    topic_code: String(topic.topic_code || topicFolder || "").trim(),
+    curriculum_id: String(topic.curriculum_id || CURRICULUM_ID || "").trim(),
+    subject_id: String(topic.subject_id || SUBJECT || "").trim(),
+    level: String(topic.level || LEVEL || "").trim(),
+    activities: Array.isArray(topic.activities) ? topic.activities : []
   };
 }
 
@@ -413,54 +419,16 @@ function normaliseTopic(topic) {
           if (!badge) return;
 
           const status = getTopicStatus(topic);
-
-          badge.classList.remove("completed", "in-progress", "not-started");
-
-          if (status === "completed") {
-            badge.textContent = "✓";
-            badge.classList.add("completed");
-            badge.title = "Completed";
-          } else if (status === "in_progress") {
-            badge.textContent = "✎";
-            badge.classList.add("in-progress");
-            badge.title = "Partly completed";
-          } else {
-            badge.textContent = "";
-            badge.classList.add("not-started");
-            badge.title = "Not started";
+          if (window.GLIPProgressEngine) {
+            window.GLIPProgressEngine.applyBadge(badge, status);
           }
         });
       }
 
 function getTopicStatus(topic) {
-  const topicId = String(topic.topicId || topic.id || "").trim();
-
-  if (!topicId) {
-    return "not_started";
-  }
-
-  const topicActivities = progressItems.filter(function (item) {
-    return String(item.topic_id || "").trim() === topicId;
-  });
-
-  if (topicActivities.length === 0) {
-    return "not_started";
-  }
-
-  const allCompleted = topicActivities.every(function (item) {
-    return normaliseStatus(item.status) === "completed";
-  });
-
-  if (allCompleted) {
-    return "completed";
-  }
-
-  const anyStarted = topicActivities.some(function (item) {
-    const status = normaliseStatus(item.status);
-    return status === "completed" || status === "in_progress";
-  });
-
-  return anyStarted ? "in_progress" : "not_started";
+  return window.GLIPProgressEngine
+    ? window.GLIPProgressEngine.getTopicStatus(topic, progressItems)
+    : "not_started";
 }
 
 

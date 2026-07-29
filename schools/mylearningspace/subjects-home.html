@@ -223,38 +223,15 @@ function setSubjectCache(subjects) {
       }
 
       function normaliseStatus(status) {
-        if (status === "completed") return "completed";
-        if (status === "in_progress" || status === "partly_completed") {
-          return "in_progress";
-        }
-        return "not_started";
+        return window.GLIPProgressEngine
+          ? window.GLIPProgressEngine.normaliseStatus(status)
+          : "not_started";
       }
 
       function getSubjectStatus(subject, progressData) {
-        const subjectId = String(subject.subject_id || "").trim();
-
-        const subjectActivities = progressData.filter(function (item) {
-          return String(item.subject_id || "").trim() === subjectId;
-        });
-
-        if (subjectActivities.length === 0) {
-          return "not_started";
-        }
-
-        const allCompleted = subjectActivities.every(function (item) {
-          return normaliseStatus(item.status) === "completed";
-        });
-
-        if (allCompleted) {
-          return "completed";
-        }
-
-        const anyStarted = subjectActivities.some(function (item) {
-          const status = normaliseStatus(item.status);
-          return status === "completed" || status === "in_progress";
-        });
-
-        return anyStarted ? "in_progress" : "not_started";
+        return window.GLIPProgressEngine
+          ? window.GLIPProgressEngine.getSubjectStatus(subject, progressData)
+          : "not_started";
       }
 
 function getTeacherPermissions() {
@@ -338,17 +315,9 @@ function getSubjectHomeLink(level, subjectId) {
 }
       
       function getSubjectBadgeHtml(status) {
-
-        
-        if (status === "completed") {
-          return `<span class="topic-badge completed" title="Completed">✓</span>`;
-        }
-
-        if (status === "in_progress") {
-          return `<span class="topic-badge in-progress" title="Partly completed">✎</span>`;
-        }
-
-        return `<span class="topic-badge not-started" title="Not started"></span>`;
+        return window.GLIPProgressEngine
+          ? window.GLIPProgressEngine.badgeHtml(status)
+          : `<span class="topic-badge not-started" title="Not started"></span>`;
       }
 
 function isStudentUser() {
