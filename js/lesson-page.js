@@ -185,11 +185,18 @@ function showDownloadProgress() {
       return;
     }
 
-    document.title = config.pageTitle || "Lesson Page";
-
-    setText("heroTopline", config.topline);
-    setText("heroMainTitle", config.mainTitle);
-    setText("heroSubTitle", config.subTitle);
+    /*
+     * Use the single shared GLIP hero renderer. The fallback protects
+     * older pages if the shared topic-context script is unavailable.
+     */
+    if (typeof window.GLIPRenderPageHero === "function") {
+      window.GLIPRenderPageHero(config);
+    } else {
+      document.title = config.pageTitle || "Lesson Page";
+      setText("heroTopline", config.topline);
+      setText("heroMainTitle", config.mainTitle);
+      setText("heroSubTitle", config.subTitle);
+    }
 
 setLink(
   "fileLinkBtn",

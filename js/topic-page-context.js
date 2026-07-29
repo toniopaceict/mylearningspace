@@ -155,16 +155,37 @@
     };
   }
 
-  function applyTopicHeadings(topicData) {
+  /*
+   * Single authoritative renderer for the standard GLIP page hero.
+   *
+   * PAGE_CONFIG owns the final display mapping:
+   *   topline  = subject name
+   *   mainTitle = topic name
+   *   subTitle = activity title
+   *
+   * Both the initial lesson render and later metadata refreshes call
+   * this same function, preventing the hero mappings from drifting.
+   */
+  function renderPageHero(config) {
+    const page = config || {};
+    const topline = document.getElementById("heroTopline");
     const title = document.getElementById("heroMainTitle");
     const subtitle = document.getElementById("heroSubTitle");
 
-    if (title && topicData.topic_name) title.textContent = topicData.topic_name;
-    if (subtitle && topicData.subject_name) subtitle.textContent = topicData.subject_name;
+    if (topline) topline.textContent = text(page.topline);
+    if (title) title.textContent = text(page.mainTitle);
+    if (subtitle) subtitle.textContent = text(page.subTitle);
 
-    if (topicData.topic_name && topicData.subject_name) {
-      document.title = topicData.topic_name + " – " + topicData.subject_name + " – GLIP";
-    }
+    document.title = text(page.pageTitle) || "GLIP";
+  }
+
+  /*
+   * Retained as a compatibility method for existing callers.
+   * Topic data must first be mapped into PAGE_CONFIG by
+   * applyPageConfig(); this function then uses the shared renderer.
+   */
+  function applyTopicHeadings() {
+    renderPageHero(window.PAGE_CONFIG || {});
   }
 
   function showContextError(message) {
@@ -268,8 +289,11 @@
       if (!topicData) return;
       window.GLIP_TOPIC_PAGE_DATA = topicData;
       window.PAGE_MENU_CONTEXT = buildPageContext(topicData);
-      applyTopicHeadings(topicData);
+
+      // First map authoritative Google Sheets metadata into PAGE_CONFIG.
+      // Then render the hero once using the shared renderer.
       applyPageConfig(topicData);
+      applyTopicHeadings();
     }
 
     function refreshInBackground() {
@@ -318,8 +342,11 @@
   }
 
 
+  window.GLIPRenderPageHero = renderPageHero;
+
   window.GLIPTopicContext = {
     initialise: initialise,
-    applyTopicHeadings: applyTopicHeadings
+    applyTopicHeadings: applyTopicHeadings,
+    renderPageHero: renderPageHero
   };
 })();
