@@ -85,38 +85,83 @@
     }, []);
   }
 
+  function normaliseLevel(value) {
+    const match = String(value || "").match(/\d+/);
+    return match ? "level-" + match[0].padStart(2, "0") : "";
+  }
+
+  function curriculumMatchesProgressChange(curriculum, change) {
+    const curriculumId = String(change.curriculum_id || change.curriculumId || "").trim();
+    if (curriculumId && String(curriculum.curriculum_id || "") === curriculumId) {
+      return true;
+    }
+
+    const suppliedSubject = String(
+      change.subject_id || change.subjectId || change.subject_code || change.subjectCode || ""
+    ).trim().toLowerCase();
+    const subjectKeys = [
+      curriculum.subject_pk,
+      curriculum.subject_id,
+      curriculum.subject_code
+    ].map(function (value) {
+      return String(value || "").trim().toLowerCase();
+    }).filter(Boolean);
+
+    const suppliedLevel = normaliseLevel(change.level || change.level_code || change.levelCode);
+    const curriculumLevel = normaliseLevel(curriculum.level || curriculum.level_code);
+
+    if (suppliedSubject && subjectKeys.indexOf(suppliedSubject) !== -1) {
+      return !suppliedLevel || !curriculumLevel || suppliedLevel === curriculumLevel;
+    }
+
+    const activityId = String(change.activity_id || change.activityId || "").trim();
+    if (!activityId || !Array.isArray(curriculum.topics)) return false;
+
+    return curriculum.topics.some(function (topic) {
+      return (Array.isArray(topic.activities) ? topic.activities : []).some(function (activity) {
+        return String(activity.activity_id || activity.activityId || "").trim() === activityId;
+      });
+    });
+  }
+
   function updateProgress(change) {
     const session = read();
     if (!session || !Array.isArray(session.curricula)) return false;
 
-    const subject = String(change.subject_id || change.subjectId || "").trim().toLowerCase();
-    const level = String(change.level || "").trim().toLowerCase();
     const activityId = String(change.activity_id || change.activityId || "").trim();
+    if (!activityId) return false;
+
     let changed = false;
 
     session.curricula.forEach(function (curriculum) {
-      const sameSubject = String(curriculum.subject_id || curriculum.subject_code || "").toLowerCase() === subject;
-      const sameLevel = String(curriculum.level || curriculum.level_code || "").toLowerCase() === level;
-      if (!sameSubject || !sameLevel) return;
+      if (!curriculumMatchesProgressChange(curriculum, change)) return;
       if (!Array.isArray(curriculum.progress)) curriculum.progress = [];
 
       let item = curriculum.progress.find(function (row) {
-        return String(row.activity_id || "") === activityId;
+        return String(row.activity_id || row.activityId || "").trim() === activityId;
       });
+
       if (!item) {
         item = {
           curriculum_id: curriculum.curriculum_id,
-          subject_id: curriculum.subject_id,
-          subject_code: curriculum.subject_code,
-          level: curriculum.level,
+          subject_id: curriculum.subject_id || curriculum.subject_code,
+          subject_code: curriculum.subject_code || curriculum.subject_id,
+          level: curriculum.level || curriculum.level_code,
           topic_id: String(change.topic_id || change.topicId || ""),
           activity_id: activityId,
           status: "not_started"
         };
         curriculum.progress.push(item);
       }
+
+      item.curriculum_id = curriculum.curriculum_id;
+      item.subject_id = curriculum.subject_id || curriculum.subject_code;
+      item.subject_code = curriculum.subject_code || curriculum.subject_id;
+      item.level = curriculum.level || curriculum.level_code;
       item.status = String(change.status || "completed");
-      if (change.topic_id || change.topicId) item.topic_id = String(change.topic_id || change.topicId);
+      if (change.topic_id || change.topicId) {
+        item.topic_id = String(change.topic_id || change.topicId);
+      }
       changed = true;
     });
 

@@ -225,6 +225,35 @@
     element.title = "Not started";
   }
 
+  function findCurriculumForChange(change) {
+    if (!window.GLIPLearningSession) return null;
+
+    const session = window.GLIPLearningSession.read();
+    if (!session || !Array.isArray(session.curricula)) return null;
+
+    const activityId = text(change && (change.activity_id || change.activityId));
+    const suppliedSubject = text(change && (
+      change.subject_id || change.subjectId || change.subject_code || change.subjectCode
+    )).toLowerCase();
+    const suppliedLevel = normaliseLevel(change && (change.level || change.level_code));
+
+    return session.curricula.find(function (curriculum) {
+      const keys = subjectKeys(curriculum);
+      const curriculumLevel = normaliseLevel(curriculum.level || curriculum.level_code);
+      const subjectMatches = suppliedSubject && keys.indexOf(suppliedSubject) !== -1;
+      const levelMatches = !suppliedLevel || !curriculumLevel || suppliedLevel === curriculumLevel;
+
+      if (subjectMatches && levelMatches) return true;
+      if (!activityId || !Array.isArray(curriculum.topics)) return false;
+
+      return curriculum.topics.some(function (topic) {
+        return visibleActivities(topic.activities).some(function (activity) {
+          return text(activity.activity_id || activity.activityId) === activityId;
+        });
+      });
+    }) || null;
+  }
+
   function updateProgress(change) {
     const value = change || {};
 
@@ -233,17 +262,25 @@
     }
 
     if (window.GLIP_CACHE) {
+      const curriculum = findCurriculumForChange(value);
+      const canonicalSubject = curriculum
+        ? (curriculum.subject_id || curriculum.subject_code)
+        : (value.subject_id || value.subjectId || "");
+      const canonicalLevel = curriculum
+        ? (curriculum.level || curriculum.level_code)
+        : (value.level || "");
+
       const context = {
         school: sessionStorage.getItem("glipSchool") || "",
         studentId: sessionStorage.getItem("glipStudentId") || "",
-        subjectId: value.subject_id || value.subjectId || "",
-        level: value.level || ""
+        subjectId: canonicalSubject,
+        level: canonicalLevel
       };
 
       window.GLIP_CACHE.upsertProgress(context, {
-        subject_id: context.subjectId,
+        subject_id: canonicalSubject,
         topic_id: value.topic_id || value.topicId || "",
-        level: context.level,
+        level: canonicalLevel,
         activity_id: value.activity_id || value.activityId || "",
         status: value.status || "completed"
       });
