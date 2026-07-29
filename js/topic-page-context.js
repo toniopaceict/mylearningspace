@@ -174,7 +174,11 @@
 
     if (topline) topline.textContent = text(page.topline);
     if (title) title.textContent = text(page.mainTitle);
-    if (subtitle) subtitle.textContent = text(page.subTitle);
+    if (subtitle) {
+      const subtitleText = text(page.subTitle);
+      subtitle.textContent = subtitleText;
+      subtitle.hidden = !subtitleText;
+    }
 
     document.title = text(page.pageTitle) || "GLIP";
   }
@@ -223,10 +227,13 @@
       ? activity.activity_id
       : configuredActivityId;
 
-    // Human-readable metadata is authoritative in Google Sheets.
-    config.topline = topicData.subject_name || "";
+    // The branding statement remains consistent on every GLIP page.
+    // Topic pages show only the topic. Activity pages show topic + activity.
+    config.topline = "Guided Learning for Independent Progress";
     config.mainTitle = topicData.topic_name || "";
-    config.subTitle = activity ? activity.activity_title : "";
+    config.subTitle = config.pageKind === "topic-home"
+      ? ""
+      : (activity ? activity.activity_title : "");
 
     if (config.mainTitle && config.subTitle) {
       config.pageTitle =

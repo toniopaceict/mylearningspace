@@ -171,7 +171,11 @@ fetch(webAppUrl, {
       })
       .then(function (data) {
         if (data.status === "success") {
-          clearGlipProgressCache();
+          // Keep the current progress cache intact. The glipProgressSaved
+          // event below updates the canonical subject and aggregate caches.
+          if (window.GLIPNextActivity && typeof window.GLIPNextActivity.clearRecommendations === "function") {
+            window.GLIPNextActivity.clearRecommendations();
+          }
 
           setMessage(
             config.successText || "Progress saved.",

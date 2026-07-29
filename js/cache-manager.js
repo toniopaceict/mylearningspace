@@ -72,6 +72,125 @@
     });
   }
 
+
+  function normaliseLevel(level) {
+    const match = String(level || "").match(/\d+/);
+    return match ? "level-" + match[0].padStart(2, "0") : "";
+  }
+
+  function normaliseProgressItem(item, defaults) {
+    const source = item || {};
+    const fallback = defaults || {};
+
+    return {
+      subject_id: String(source.subject_id || fallback.subjectId || "").trim(),
+      topic_id: String(source.topic_id || fallback.topicId || "").trim(),
+      level: normaliseLevel(source.level || fallback.level || ""),
+      activity_id: String(source.activity_id || "").trim(),
+      status: String(source.status || "not_started").trim() || "not_started"
+    };
+  }
+
+  function progressKey(context) {
+    const value = context || {};
+    return makeKey([
+      value.school || sessionStorage.getItem("glipSchool") || "",
+      normaliseLevel(value.level || sessionStorage.getItem("glipLevel") || ""),
+      value.studentId || sessionStorage.getItem("glipStudentId") || "",
+      value.subjectId || "",
+      "progress"
+    ]);
+  }
+
+  function allProgressKey(context) {
+    const value = context || {};
+    return makeKey([
+      value.school || sessionStorage.getItem("glipSchool") || "",
+      value.studentId || sessionStorage.getItem("glipStudentId") || "",
+      "all-progress"
+    ]);
+  }
+
+  function deduplicateProgress(items) {
+    const map = new Map();
+
+    (Array.isArray(items) ? items : []).forEach(function (item) {
+      const normalised = normaliseProgressItem(item);
+      if (!normalised.activity_id) return;
+
+      const identity = [
+        normalised.subject_id,
+        normalised.level,
+        normalised.activity_id
+      ].join("|");
+
+      map.set(identity, normalised);
+    });
+
+    return Array.from(map.values());
+  }
+
+  function readProgress(context, maxAge) {
+    const parsed = readTimed("session", progressKey(context), maxAge);
+    return Array.isArray(parsed) ? parsed : null;
+  }
+
+  function writeProgress(context, items) {
+    const value = context || {};
+    const normalised = deduplicateProgress(
+      (Array.isArray(items) ? items : []).map(function (item) {
+        return normaliseProgressItem(item, value);
+      })
+    );
+    writeTimed("session", progressKey(value), normalised);
+    return normalised;
+  }
+
+  function readAllProgress(context, maxAge) {
+    const value = context || {};
+    const parsed = readTimed("session", allProgressKey(value), maxAge);
+    if (Array.isArray(parsed)) return parsed;
+
+    // Compatibility with pages opened before the canonical cache was added.
+    try {
+      const legacy = JSON.parse(sessionStorage.getItem("glipProgress") || "null");
+      return Array.isArray(legacy) ? deduplicateProgress(legacy) : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function writeAllProgress(context, items) {
+    const normalised = deduplicateProgress(items);
+    writeTimed("session", allProgressKey(context), normalised);
+
+    // Keep the legacy aggregate during the transition to the canonical API.
+    sessionStorage.setItem("glipProgress", JSON.stringify(normalised));
+    sessionStorage.setItem("glipProgressTime", String(Date.now()));
+    return normalised;
+  }
+
+  function mergeAllProgress(context, items) {
+    const combined = readAllProgress(context).concat(Array.isArray(items) ? items : []);
+    return writeAllProgress(context, combined);
+  }
+
+  function upsertProgress(context, item) {
+    const value = context || {};
+    const next = normaliseProgressItem(item, value);
+    if (!next.activity_id) return [];
+
+    const current = readProgress(value) || [];
+    const updated = current.filter(function (existing) {
+      return String(existing.activity_id) !== next.activity_id;
+    });
+    updated.push(next);
+
+    const written = writeProgress(value, updated);
+    mergeAllProgress(value, written);
+    return written;
+  }
+
   window.GLIP_CACHE_VERSION = version;
   window.GLIP_CACHE = {
     version: version,
@@ -97,7 +216,15 @@
     clearOldVersions: function () {
       clearOldVersionKeys("local");
       clearOldVersionKeys("session");
-    }
+    },
+    normaliseLevel: normaliseLevel,
+    progressKey: progressKey,
+    readProgress: readProgress,
+    writeProgress: writeProgress,
+    readAllProgress: readAllProgress,
+    writeAllProgress: writeAllProgress,
+    mergeAllProgress: mergeAllProgress,
+    upsertProgress: upsertProgress
   };
 
   window.GLIP_CACHE.clearOldVersions();

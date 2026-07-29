@@ -763,27 +763,36 @@ if (school) {
   }
 
   function getActivityProgressStatus(activityId) {
-    let foundStatus = "not_started";
+    const pageContext = window.PAGE_MENU_CONTEXT || {};
+    const studentId = sessionStorage.getItem("glipStudentId") || "";
+    const school = pageContext.school || sessionStorage.getItem("glipSchool") || "";
+    const level = pageContext.level || sessionStorage.getItem("glipLevel") || "";
+    const subjectId = (window.PAGE_CONFIG && window.PAGE_CONFIG.subjectId) ||
+      pageContext.subject || "";
 
-    Object.keys(sessionStorage).forEach(function (key) {
-      if (key.endsWith("_time")) return;
+    let progress = [];
 
-      try {
-        const parsed = JSON.parse(sessionStorage.getItem(key));
+    if (window.GLIP_CACHE && studentId && subjectId && level) {
+      progress = window.GLIP_CACHE.readProgress({
+        school: school,
+        level: level,
+        studentId: studentId,
+        subjectId: subjectId
+      }) || [];
+    }
 
-        if (!Array.isArray(parsed)) return;
+    if (!progress.length && window.GLIP_CACHE) {
+      progress = window.GLIP_CACHE.readAllProgress({
+        school: school,
+        studentId: studentId
+      }) || [];
+    }
 
-        parsed.forEach(function (item) {
-          if (String(item.activity_id) === String(activityId)) {
-            foundStatus = normaliseProgressStatus(item.status);
-          }
-        });
-      } catch {
-        // Ignore non-JSON session items.
-      }
+    const item = progress.find(function (candidate) {
+      return String(candidate.activity_id) === String(activityId);
     });
 
-    return foundStatus;
+    return normaliseProgressStatus(item && item.status);
   }
 
   function applyStatusToMenuBadge(badge, status) {
@@ -826,53 +835,33 @@ if (school) {
 
   window.addEventListener("glipProgressSaved", function (event) {
     const detail = event.detail || {};
-
     const pageContext = window.PAGE_MENU_CONTEXT || {};
-
     const studentId = sessionStorage.getItem("glipStudentId") || "";
+    if (!studentId || !window.GLIP_CACHE) return;
 
-    if (!studentId) return;
+    const school = pageContext.school ||
+      sessionStorage.getItem("glipSchool") || "";
+    const level = detail.level || pageContext.level ||
+      sessionStorage.getItem("glipLevel") || "";
+    const subjectId = detail.subjectId ||
+      (window.PAGE_CONFIG && window.PAGE_CONFIG.subjectId) ||
+      pageContext.subject || "";
 
-    const level = normaliseLevel(detail.level || sessionStorage.getItem("glipLevel") || "");
+    if (!level || !subjectId || !detail.activityId) return;
 
-    if (!level) return;
-
-    const subject = detail.subjectId || pageContext.subject || "";
-
-    const key = [
-      "glip",
-      "v1",
-      pageContext.school ||
-      sessionStorage.getItem("glipSchool") ||
-      "unknown-school",
-      level,
-      studentId,
-      subject,
-      "progress",
-    ].join("_");
-
-    let cached = [];
-
-    try {
-      cached = JSON.parse(sessionStorage.getItem(key) || "[]");
-    } catch {
-      cached = [];
-    }
-
-    const existing = cached.find(function (item) {
-      return item.activity_id === detail.activityId;
+    window.GLIP_CACHE.upsertProgress({
+      school: school,
+      level: level,
+      studentId: studentId,
+      subjectId: subjectId,
+      topicId: detail.topicId || ""
+    }, {
+      subject_id: subjectId,
+      topic_id: detail.topicId || "",
+      level: level,
+      activity_id: detail.activityId,
+      status: detail.status || "completed"
     });
-
-    if (existing) {
-      existing.status = detail.status;
-    } else {
-      cached.push({
-        activity_id: detail.activityId,
-        status: detail.status,
-      });
-    }
-
-    sessionStorage.setItem(key, JSON.stringify(cached));
 
     updateMenuProgressBadges();
   });
@@ -911,20 +900,17 @@ if (school) {
           return;
         }
 
-        const key = [
-          "glip",
-          "v1",
-          pageContext.school ||
-      sessionStorage.getItem("glipSchool") ||
-      "unknown-school",
-          level,
-          studentId,
-          subject,
-          "progress",
-        ].join("_");
+        const written = window.GLIP_CACHE.writeProgress({
+          school: pageContext.school || sessionStorage.getItem("glipSchool") || "",
+          level: level,
+          studentId: studentId,
+          subjectId: subject
+        }, data.progress);
 
-        sessionStorage.setItem(key, JSON.stringify(data.progress));
-        sessionStorage.setItem(key + "_time", String(Date.now()));
+        window.GLIP_CACHE.mergeAllProgress({
+          school: pageContext.school || sessionStorage.getItem("glipSchool") || "",
+          studentId: studentId
+        }, written);
 
         updateMenuProgressBadges();
       })
