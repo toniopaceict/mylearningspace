@@ -53,7 +53,11 @@
       school: text(query.get("school") || stored.school || sessionStorage.getItem("glipSchool")),
       curriculum_id: text(query.get("curriculum_id") || stored.curriculum_id || sessionStorage.getItem("glipCurriculumId")),
       topic_id: text(query.get("topic_id") || stored.topic_id),
-      activity_id: text(query.get("activity_id") || stored.activity_id),
+      activity_id: text(
+        query.get("activity_id") ||
+        (window.PAGE_CONFIG && window.PAGE_CONFIG.activityId) ||
+        stored.activity_id
+      ),
       level_id: text(stored.level_id || sessionStorage.getItem("glipLevelId")),
       level_code: text(stored.level_code || sessionStorage.getItem("glipLevel")),
       subject_id: text(stored.subject_id || sessionStorage.getItem("glipSubjectId")),
@@ -178,11 +182,41 @@
 
   function applyPageConfig(topicData) {
     const config = window.PAGE_CONFIG || (window.PAGE_CONFIG = {});
-    config.subjectId = topicData.subject_id || config.subjectId || "";
-    config.level = topicData.level_code || config.level || "";
-    config.topicId = topicData.topic_id || config.topicId || "";
-    config.topicName = topicData.topic_name || config.topicName || "";
-    if (topicData.activity_id) config.activityId = topicData.activity_id;
+    const configuredActivityId = text(config.activityId || topicData.activity_id);
+    const pageFile = text(topicData.page_file).toLowerCase();
+
+    const activity = (topicData.activities || []).find(function (item) {
+      if (configuredActivityId && text(item.activity_id) === configuredActivityId) {
+        return true;
+      }
+
+      return pageFile &&
+        text(item.file_name).toLowerCase() === pageFile;
+    }) || null;
+
+    config.subjectId = topicData.subject_id || "";
+    config.level = topicData.level_code || "";
+    config.topicId = topicData.topic_id || "";
+    config.topicName = topicData.topic_name || "";
+    config.activityId = activity
+      ? activity.activity_id
+      : configuredActivityId;
+
+    // Human-readable metadata is authoritative in Google Sheets.
+    config.topline = topicData.subject_name || "";
+    config.mainTitle = topicData.topic_name || "";
+    config.subTitle = activity ? activity.activity_title : "";
+
+    if (config.mainTitle && config.subTitle) {
+      config.pageTitle =
+        config.mainTitle + " – " + config.subTitle + " – GLIP";
+    } else if (config.mainTitle && config.topline) {
+      config.pageTitle =
+        config.mainTitle + " – " + config.topline + " – GLIP";
+    }
+
+    topicData.activity_id = config.activityId;
+    topicData.activity_title = config.subTitle;
   }
 
   function postTopicData(initial) {
