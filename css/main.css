@@ -669,7 +669,7 @@ body.glip-dyslexia-bg {
 .page-hero-panel {
   background: rgba(11, 60, 111, 0.04);
   border-radius: 5px;
-  padding: 28px 24px 34px;
+  padding: 28px 24px 46px;
 }
 
 .page-hero-divider-top,
@@ -724,7 +724,7 @@ body.glip-dyslexia-bg {
 }
 
 .page-hero h1 {
-  margin: 0 0 20px;
+  margin: 0;
   font-size: var(--font-hero-heading);
   line-height: 0.95;
   font-weight: 900;
