@@ -171,7 +171,15 @@ fetch(webAppUrl, {
       })
       .then(function (data) {
         if (data.status === "success") {
-          if (window.GLIPLearningSession) {
+          if (window.GLIPProgressEngine) {
+            window.GLIPProgressEngine.updateProgress({
+              subject_id: config.subjectId,
+              level: config.level,
+              topic_id: config.topicId || "",
+              activity_id: config.activityId,
+              status: config.status || "completed"
+            });
+          } else if (window.GLIPLearningSession) {
             window.GLIPLearningSession.updateProgress({
               subject_id: config.subjectId,
               level: config.level,
