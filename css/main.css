@@ -221,6 +221,7 @@ body.glip-dyslexia-bg {
   display: none !important;
 }
 
+/* Prevent placeholder headings and empty content from flashing during startup. */
 .glip-page-checking .page-shell {
   visibility: hidden;
 }
