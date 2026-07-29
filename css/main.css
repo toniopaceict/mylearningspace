@@ -724,7 +724,7 @@ body.glip-dyslexia-bg {
 }
 
 .page-hero h1 {
-  margin: 0;
+  margin: 0 0 20px;
   font-size: var(--font-hero-heading);
   line-height: 0.95;
   font-weight: 900;
