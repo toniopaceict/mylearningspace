@@ -672,6 +672,10 @@ body.glip-dyslexia-bg {
   padding: 28px 24px 34px;
 }
 
+.page-hero-panel.page-hero-no-subtitle {
+  padding-bottom: 50px;
+}
+
 .page-hero-divider-top,
 .page-hero-divider-bottom {
   width: 100%;
