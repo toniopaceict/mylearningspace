@@ -544,6 +544,9 @@ function renderSubjectCards(subjects, fallbackLevel) {
       const subjectStatus = getSubjectStatus(subject, progressItems);
 
       const subjectId = String(subject.subject_id || "").trim();
+      const subjectCode = String(
+        subject.subject_code || subject.subject_id || ""
+      ).trim().toLowerCase();
       const subjectName = String(subject.subject_name || "").trim();
       const subjectLevel = String(subject.level || fallbackLevel || LEVEL || "").trim();
       const levelId = String(subject.level_id || "").trim();
@@ -551,11 +554,15 @@ function renderSubjectCards(subjects, fallbackLevel) {
 
       const link = getSubjectHomeLink(subjectLevel, subjectId);
 
+      /*
+       * subject_id is the relational key used by Apps Script and Sheets.
+       * subject_code is the content-folder and icon filename key.
+       */
       const image =
         "../../content/" +
-        subjectId +
+        subjectCode +
         "/assets/icon-" +
-        subjectId +
+        subjectCode +
         ".jpg";
 
       return `
@@ -933,6 +940,9 @@ const res = await fetch(getWebAppUrl(), {
         subject = subject || {};
 
         const subjectId = String(subject.subject_id || "").trim();
+        const subjectCode = String(
+          subject.subject_code || subject.subject_id || ""
+        ).trim().toLowerCase();
         const subjectLevel = String(subject.level || LEVEL || "").trim();
         const levelId = String(subject.level_id || "").trim();
         const curriculumId = String(subject.curriculum_id || "").trim();
@@ -967,7 +977,7 @@ const res = await fetch(getWebAppUrl(), {
               return topic.available === true;
             })
             .map(function (topic) {
-              const image = getTopicImageFromSubjectPage(subjectId, topic);
+              const image = getTopicImageFromSubjectPage(subjectCode, topic);
 
               if (!image) return Promise.resolve(false);
 
