@@ -1,0 +1,15 @@
+GLIP ADR-020: Topic Activity Cache Coherence
+
+Decision
+--------
+Topic and activity navigation uses cached data for the immediate first paint,
+but every topic page then performs an authoritative live refresh. The refreshed
+context rebuilds the navigation menu without requiring a hard refresh.
+
+Activity add/edit operations invalidate the relational snapshot explicitly.
+Direct edits to watched relational sheets invalidate the snapshot through
+onEdit. Fresh topic-page requests also bypass the snapshot and read the live
+sheets, covering structural row deletions that may not fire a simple onEdit
+trigger.
+
+Asset version: 384.
