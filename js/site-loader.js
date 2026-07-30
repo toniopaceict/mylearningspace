@@ -3,7 +3,7 @@
  
   
   
-  const GLIP_ASSET_VERSION = "381";
+  const GLIP_ASSET_VERSION = "382";
   const GLIP_BASE_URL = "https://toniopaceict.github.io/mylearningspace";
 
   const GLIP_PAGE_CHECK_CLASS = "glip-page-checking";
@@ -35,6 +35,7 @@
     loadScriptOnce(versionedAssetUrl("/js/school-config.js"), function () {
       loadScriptOnce(versionedAssetUrl("/js/performance-monitor-client.js"), function () {
     loadScriptOnce(versionedAssetUrl("/js/roles.js"), function () {
+      loadScriptOnce(versionedAssetUrl("/js/teaching-role-context.js"), function () {
       loadScriptOnce(versionedAssetUrl("/js/role-guard.js"), function () {
         loadScriptOnce(versionedAssetUrl("/js/next-activity-engine.js"), function () {
         loadScriptOnce(versionedAssetUrl("/js/menu-config.js"), function () {
@@ -50,6 +51,7 @@
           });
         });
         });
+      });
       });
     });
   });

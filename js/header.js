@@ -175,69 +175,16 @@ function buildRoleFooterLinks(existingSettingsItems) {
     return [];
   }
 
-  const hasAnyAssignment = permissions.some(function (permission) {
-    return isTrueValue(permission.active);
-  });
-
-  if (!hasAnyAssignment) {
-    return [];
-  }
-
   /*
-   * Links shown to all teaching staff.
+   * Teaching-role navigation is defined centrally. This keeps the
+   * Subject Teacher and Lead Teacher workflows aligned while preserving
+   * their different capabilities.
    */
-  links.push({
-    text: "⌂ Subjects",
-    url: `/mylearningspace/schools/${school}/subjects-home.html`
-  });
-  links.push({
-    text: "▧ Class Resources",
-    url: `/mylearningspace/schools/management/class-resources.html`
-  });
-
-  /*
-   * Lead teacher menu.
-   */
-  if (role === "lead_teacher") {
-    links.push(
-      {
-        text: "▤ Topic Management",
-        url: `/mylearningspace/schools/management/topic-management.html`
-      },
-      {
-        text: "▣ Work Folder Management",
-        url: `/mylearningspace/schools/management/work-folder-management.html`
-      },
-      {
-        text: "◔ Progress",
-        url: "#"
-      },
-      {
-        spacer: true
-      }
-    );
-
-    return links;
+  if (window.GLIPTeachingRole) {
+    return window.GLIPTeachingRole.getNavigationItems();
   }
 
-/*
- * Subject teacher menu.
- */
-links.push(
-  {
-    text: "▣ Work Folder Management",
-    url: `/mylearningspace/schools/management/work-folder-management.html`
-  },
-  {
-    text: "◔ Progress",
-    url: "#"
-  },
-  {
-    spacer: true
-  }
-);
-
-return links;
+  return [];
 }
 
 
@@ -249,11 +196,9 @@ return links;
   
 
 function getTeacherPermissions() {
-  try {
-    return JSON.parse(sessionStorage.getItem("glipTeacherPermissions") || "[]");
-  } catch {
-    return [];
-  }
+  return window.GLIPTeachingRole
+    ? window.GLIPTeachingRole.getPermissions({ includeInactive: true })
+    : [];
 }
 
 function normaliseLevel(level) {
@@ -262,19 +207,9 @@ function normaliseLevel(level) {
 }
 
 function teacherHasSubjectLevelPermission(subject, level) {
-  if (isAdmin()) return true;
-
-  if (!subject || !level) return false;
-
-  const permissions = getTeacherPermissions();
-
-  return permissions.some(function (permission) {
-    return (
-      String(permission.subject_id || "").trim() === String(subject).trim() &&
-      normaliseLevel(permission.level) === normaliseLevel(level) &&
-      isTrueValue(permission.active)
-    );
-  });
+  return window.GLIPTeachingRole
+    ? window.GLIPTeachingRole.hasSubjectLevelPermission(subject, level)
+    : isAdmin();
 }
 
 
