@@ -16,7 +16,7 @@ DO NOT EDIT:
 • Accessibility attributes
 • Shared page structure
 
-Progress is stored using the immutable activityId. Subject, topic, level and activity titles are read from Google Sheets. The GLIP navigation menu remains the main guide between activities.
+Progress is stored using the immutable activity ID resolved automatically from the HTML filename. Subject, topic, level and activity titles are read from Google Sheets. The GLIP navigation menu remains the main guide between activities.
 =========================================================
 -->
 <!doctype html>
@@ -35,30 +35,19 @@ Progress is stored using the immutable activityId. Subject, topic, level and act
 
       NEW PRACTICE CHECKLIST
 
-      1. Rename the HTML file.
-      2. Update activityId.
-      3. Update the required file links and button text.
-      4. Update the upload settings, when submission is required.
-      5. Update the scenario and task instructions.
+      1. Rename the HTML file so that it matches the Activity Code
+         in the Activities sheet, followed by .html.
+      2. Update the required file links and button text.
+      3. Update the upload settings, when submission is required.
+      4. Update the scenario and task instructions.
 
-      Do not enter subject, topic, level or activity titles.
-      GLIP reads these values from Google Sheets.
+      Do not enter activity IDs, subject, topic, level or activity titles.
+      GLIP resolves the activity from the filename and reads its metadata
+      from Google Sheets.
       =====================================================
       */
 
       window.PRACTICE_CONFIG = {
-        // -------------------------------------------------
-        // ACTIVITY IDENTITY
-        //
-        // activityId is the only spreadsheet identifier
-        // entered in the practice file.
-        //
-        // GLIP uses it to find the matching activity and then
-        // reads the subject name, topic name, activity title,
-        // curriculum and level from Google Sheets.
-        // -------------------------------------------------
-        activityId: "word_l4_t2_practice1",
-
         // -------------------------------------------------
         // REQUIRED FILES
         //
@@ -102,10 +91,11 @@ Progress is stored using the immutable activityId. Subject, topic, level and act
           helpSection: "activity",
           pageKind: "practice",
 
-          // This is the only relational value stored in the
-          // HTML page. All other activity metadata is supplied
-          // by topic-page-context.js from Google Sheets.
-          activityId: practice.activityId,
+          // The activity is resolved automatically by matching
+          // this HTML filename to activity_code in Google Sheets.
+          // topic-page-context.js replaces this blank value with
+          // the immutable numeric activity ID.
+          activityId: "",
 
           // Practice-specific resources
           fileLink1: practice.fileLink1,
@@ -117,7 +107,11 @@ Progress is stored using the immutable activityId. Subject, topic, level and act
 
           // Practice submission
           uploadFolderId: practice.uploadFolderId,
-          uploadAssignment: practice.activityId,
+
+          // Filled automatically by topic-page-context.js after
+          // the filename has been matched to the activity record.
+          uploadAssignment: "",
+
           uploadMaxFileSizeMB: practice.uploadMaxFileSizeMB,
 
           webAppUrl:
