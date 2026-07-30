@@ -45,7 +45,7 @@ Help file:
       grid-template-areas:
         "topic topic topic type type type"
         "id id code code title title"
-        "sort sort visible visible active active";
+        "sort visible visible active active submission";
       gap: 0.75rem;
       align-items: start;
       margin-top: 1rem;
@@ -64,6 +64,7 @@ Help file:
     #activitySortOrder { grid-area: sort; }
     #activityVisible { grid-area: visible; }
     #activityActive { grid-area: active; }
+    #activityRequiresSubmission { grid-area: submission; }
 
     .activity-add-actions {
       display: flex;
@@ -284,6 +285,10 @@ Help file:
 <option value="true">Active</option>
 <option value="false">Inactive</option>
 </select>
+<select class="tracker-input" id="activityRequiresSubmission">
+<option value="false">Submission not required</option>
+<option value="true">Submission required</option>
+</select>
 </div>
 <div class="activity-add-actions">
 <button class="glip-btn" id="saveActivityBtn" type="button">
@@ -337,6 +342,7 @@ Help file:
 <option value="visible">Visibility</option>
 <option value="sort_order">Sort</option>
 <option value="active">Status</option>
+<option value="requires_submission">Submission</option>
 </select>
 </div>
 <button class="glip-btn glip-btn-secondary activity-search-clear" id="clearActivitySearch" type="button">
@@ -360,11 +366,12 @@ Help file:
 <th data-label="Visibility" data-sort-field="visible">Visibility ↕</th>
 <th data-label="Sort" data-sort-field="sort_order">Sort ↕</th>
 <th data-label="Status" data-sort-field="active">Status ↕</th>
+<th data-label="Submission" data-sort-field="requires_submission">Submission ↕</th>
 </tr>
 </thead>
 <tbody id="activitiesTableBody">
 <tr>
-<td colspan="10">Loading activities...</td>
+<td colspan="11">Loading activities...</td>
 </tr>
 </tbody>
 </table>

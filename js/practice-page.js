@@ -68,7 +68,7 @@
     setText("savePdfBtn", config.pdfButtonText || "Download Practice Sheet");
     setText("siteFooter", config.footerText);
 
-    let uploadCompleted = false;
+    let uploadCompleted = config.requiresSubmission !== true;
 
     window.MARK_COMPLETE_CONFIG = {
       webAppUrl: config.webAppUrl || "",
@@ -189,6 +189,22 @@
     }
 
     uploadPracticeBtn?.addEventListener("click", uploadPracticeFile);
+
+    window.addEventListener("glipActivitySubmitted", function () {
+      uploadCompleted = true;
+      if (window.TonioMarkComplete) {
+        window.TonioMarkComplete.updateButtonState(true);
+      }
+    });
+
+    document.addEventListener("glipTopicContextRefreshed", function () {
+      if (window.PAGE_CONFIG && window.PAGE_CONFIG.requiresSubmission !== true) {
+        uploadCompleted = true;
+      }
+      if (window.TonioMarkComplete) {
+        window.TonioMarkComplete.updateButtonState(true);
+      }
+    });
   }
 
   document.addEventListener("DOMContentLoaded", function () {

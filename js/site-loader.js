@@ -202,6 +202,10 @@ const managementScriptsByPage = {
 
     scripts.push("/js/accessibility.js");
 
+    if (["lesson", "practice", "quiz", "fillblank", "reflection"].indexOf(pageKind) !== -1) {
+      scripts.push("/js/activity-upload.js");
+    }
+
     if (pageKind === "lesson" || pageKind === "practice" || pageKind === "fillblank") {
       scripts.push("/js/mark-complete.js");
       scripts.push("/js/lesson-page.js");
