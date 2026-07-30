@@ -454,8 +454,18 @@ function buildHelpUrl(helpSection) {
   return url.toString();
 }
 
-  function addGlipUserBar() {
-const userType = sessionStorage.getItem("glipUserType");
+function addGlipUserBar() {
+  /*
+   * The topic context may refresh after the page has loaded.
+   * Remove any previously rendered user bar before rebuilding it.
+   */
+  document
+    .querySelectorAll(".glip-user-bar")
+    .forEach(function (existingBar) {
+      existingBar.remove();
+    });
+
+  const userType = sessionStorage.getItem("glipUserType");
 
 const studentName =
   sessionStorage.getItem("glipStudentFullName") ||
@@ -504,8 +514,9 @@ if (classLabel) {
     const headerPlaceholder = document.getElementById("header-placeholder");
     if (!headerPlaceholder) return;
 
-    const bar = document.createElement("div");
-    bar.className = "glip-user-bar is-visible";
+const bar = document.createElement("div");
+bar.id = "glipUserBar";
+bar.className = "glip-user-bar is-visible";
     
 const helpSection = getHelpSectionForCurrentPage();
 
