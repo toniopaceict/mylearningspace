@@ -485,7 +485,7 @@ function getTopicStatus(topic) {
             const sessionTopics = window.GLIPLearningSession.getTopics({
               curriculum_id: CURRICULUM_ID, subject_id: SUBJECT, level: LEVEL
             });
-            if (Array.isArray(sessionTopics)) {
+            if (Array.isArray(sessionTopics) && sessionTopics.length > 0) {
               setTopicsCache(sessionTopics);
               return sessionTopics;
             }
@@ -542,7 +542,7 @@ function getTopicStatus(topic) {
           ? Promise.resolve(cachedProgress)
           : fetchProgress();
 
-        if (cachedTopics) {
+        if (Array.isArray(cachedTopics) && cachedTopics.length > 0) {
           renderTopics(cachedTopics);
           progressPromise.then(function () {
             applyTopicBadges(cachedTopics.map(normaliseTopic));
