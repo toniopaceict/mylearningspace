@@ -270,7 +270,10 @@
         level: initial.level_code,
         userType: sessionStorage.getItem("glipRole") || sessionStorage.getItem("glipUserType") || "student",
         teacher_id: sessionStorage.getItem("glipTeacherId") || "",
-        student_id: sessionStorage.getItem("glipStudentId") || ""
+        student_id: sessionStorage.getItem("glipStudentId") || "",
+        // The page may render cached session data immediately, but this
+        // background request must read the authoritative live sheet model.
+        fresh: true
       })
     })
       .then(function (response) {
@@ -336,10 +339,11 @@
     }
 
     if (cached) {
+      // Preserve the instant cached first paint, then always verify it against
+      // Apps Script. This also refreshes menus after activities are added,
+      // edited or removed during the current login session.
       install(cached);
-      if (!learningSessionTopic) {
-        setTimeout(refreshInBackground, 0);
-      }
+      setTimeout(refreshInBackground, 0);
       return Promise.resolve(cached);
     }
 

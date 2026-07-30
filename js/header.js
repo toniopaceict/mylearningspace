@@ -42,6 +42,13 @@ function getSchoolFromUrl() {
     requireGlipLogin(pageContext);
   });
 
+  // Topic pages render cached menu data immediately. When the authoritative
+  // topic context arrives, rebuild the header so added, reordered, hidden or
+  // removed activities appear without a hard refresh.
+  document.addEventListener("glipTopicContextRefreshed", function () {
+    initHeader();
+  });
+
   function initHeader() {
     const placeholder = document.getElementById("header-placeholder");
     if (!placeholder) return;
