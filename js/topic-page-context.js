@@ -104,16 +104,31 @@
       .toLowerCase()
       .replace(/_/g, "-");
 
+    const activityCode = text(activity.activity_code || activity.code);
+    const suppliedFileName = text(
+      activity.file_name || activity.page_file || activity.filename
+    );
+
     return {
       activity_id: text(activity.activity_id),
-      activity_code: text(activity.activity_code || activity.code),
+      activity_code: activityCode,
       activity_title: text(activity.activity_title || activity.title),
       activity_type_code: typeCode,
       sort_order: Number(activity.sort_order) || 0,
       visible: activity.visible !== false,
       active: activity.active !== false,
-      file_name: text(activity.file_name || activity.page_file || activity.filename)
+
+      // Newer activity rows may provide file_name explicitly.
+      // Older/current rows use activity_code as the HTML filename stem.
+      file_name: suppliedFileName || (activityCode ? activityCode + ".html" : "")
     };
+  }
+
+  function fileStem(fileName) {
+    return text(fileName)
+      .toLowerCase()
+      .replace(/[?#].*$/, "")
+      .replace(/\.html?$/, "");
   }
 
   function normaliseResponse(data, initial) {
@@ -210,13 +225,25 @@
     const configuredActivityId = text(config.activityId || topicData.activity_id);
     const pageFile = text(topicData.page_file).toLowerCase();
 
+    const currentPageStem = fileStem(pageFile);
+
     const activity = (topicData.activities || []).find(function (item) {
       if (configuredActivityId && text(item.activity_id) === configuredActivityId) {
         return true;
       }
 
-      return pageFile &&
-        text(item.file_name).toLowerCase() === pageFile;
+      const itemFile = text(item.file_name).toLowerCase();
+      const itemFileStem = fileStem(itemFile);
+      const activityCode = fileStem(item.activity_code);
+
+      return Boolean(
+        pageFile &&
+        (
+          itemFile === pageFile ||
+          (currentPageStem && itemFileStem === currentPageStem) ||
+          (currentPageStem && activityCode === currentPageStem)
+        )
+      );
     }) || null;
 
     config.subjectId = topicData.subject_id || "";
@@ -241,6 +268,13 @@
     } else if (config.mainTitle && config.topline) {
       config.pageTitle =
         config.mainTitle + " – " + config.topline + " – GLIP";
+    }
+
+    // Practice uploads use the same immutable identifier as progress.
+    // Once the page filename has resolved the activity, keep submission
+    // metadata aligned automatically.
+    if (config.pageKind === "practice") {
+      config.uploadAssignment = config.activityId;
     }
 
     topicData.activity_id = config.activityId;
@@ -270,10 +304,7 @@
         level: initial.level_code,
         userType: sessionStorage.getItem("glipRole") || sessionStorage.getItem("glipUserType") || "student",
         teacher_id: sessionStorage.getItem("glipTeacherId") || "",
-        student_id: sessionStorage.getItem("glipStudentId") || "",
-        // The page may render cached session data immediately, but this
-        // background request must read the authoritative live sheet model.
-        fresh: true
+        student_id: sessionStorage.getItem("glipStudentId") || ""
       })
     })
       .then(function (response) {
@@ -339,11 +370,10 @@
     }
 
     if (cached) {
-      // Preserve the instant cached first paint, then always verify it against
-      // Apps Script. This also refreshes menus after activities are added,
-      // edited or removed during the current login session.
       install(cached);
-      setTimeout(refreshInBackground, 0);
+      if (!learningSessionTopic) {
+        setTimeout(refreshInBackground, 0);
+      }
       return Promise.resolve(cached);
     }
 
