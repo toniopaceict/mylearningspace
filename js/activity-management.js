@@ -224,42 +224,11 @@
 
   function updateGeneratedActivityId() {
     const activityId = document.getElementById("activityId");
-    const topicSelect = document.getElementById("activityTopic");
-    const typeSelect = document.getElementById("activityType");
+    if (!activityId) return;
 
-    if (!activityId || !topicSelect || !typeSelect) return;
-
-    const topicOption = topicSelect.options[topicSelect.selectedIndex];
-    const typeOption = typeSelect.options[typeSelect.selectedIndex];
-
-    if (!topicSelect.value || !typeSelect.value || !topicOption || !typeOption) {
-      activityId.value = "";
-      return;
-    }
-
-    const subjectToken = normaliseCodeToken(topicOption.dataset.subject);
-    const levelToken = makeNumberedToken("l", topicOption.dataset.level);
-    const topicToken = makeNumberedToken("t", topicOption.dataset.topicCode);
-    const typeToken = normaliseActivityTypeToken(typeOption.dataset.code);
-
-    if (!subjectToken || !levelToken || !topicToken || !typeToken) {
-      activityId.value = "";
-      return;
-    }
-
-    const prefix = [subjectToken, levelToken, topicToken, typeToken].join("_");
-    let highestNumber = 0;
-
-    activities.forEach(function (activity) {
-      const id = String(activity.activity_id || "").trim().toLowerCase();
-      const match = id.match(new RegExp("^" + escapeRegExp(prefix) + "(\\d+)$"));
-
-      if (match) {
-        highestNumber = Math.max(highestNumber, Number(match[1]) || 0);
-      }
-    });
-
-    activityId.value = prefix + (highestNumber + 1);
+    // The authoritative numeric primary key is assigned by Apps Script.
+    // The browser deliberately does not calculate or reserve an ID.
+    activityId.value = "Assigned when saved";
   }
 
   function normaliseCodeToken(value) {
@@ -334,13 +303,12 @@
   }
 
   function addActivity() {
-    const activityId = document.getElementById("activityId").value.trim();
+    const temporaryActivityId = "pending-activity-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8);
     const topicSelect = document.getElementById("activityTopic");
     const typeSelect = document.getElementById("activityType");
 
     const payload = {
       action: "addActivityOwner",
-      activity_id: activityId,
       activity_code: normaliseActivityCode(document.getElementById("activityCode").value),
       topic_id: topicSelect.value,
       activity_type_id: typeSelect.value,
@@ -357,11 +325,6 @@
 
     if (!payload.activity_type_id) {
       setMessage("Select an activity type.", "error");
-      return;
-    }
-
-    if (!payload.activity_id) {
-      setMessage("The Activity ID could not be generated.", "error");
       return;
     }
 
@@ -406,7 +369,7 @@
     });
 
     const optimisticActivity = {
-      activity_id: payload.activity_id,
+      activity_id: temporaryActivityId,
       activity_code: payload.activity_code,
       topic_id: payload.topic_id,
       activity_type_id: payload.activity_type_id,
@@ -434,14 +397,22 @@
       request: function () { return post(payload); },
       failureMessage: "Could not save activity.",
       onSuccess: function (result) {
-        const row = activities.find(function (item) { return String(item.activity_id) === String(payload.activity_id); });
-        if (row) GLIPOptimisticUpdate.markSaved(row);
+        const row = activities.find(function (item) {
+          return String(item.activity_id) === String(temporaryActivityId);
+        });
+
+        if (row) {
+          row.activity_id = String(result.activity_id || "").trim() || temporaryActivityId;
+          GLIPOptimisticUpdate.markSaved(row);
+          render();
+        }
+
         setMessage(result.message || "Activity saved.", "success");
       },
       resync: resyncActivitiesSilently,
       rollback: function () {
         activities = activities.filter(function (activity) {
-          return String(activity.activity_id) !== String(payload.activity_id);
+          return String(activity.activity_id) !== String(temporaryActivityId);
         });
         render();
       },
@@ -460,6 +431,8 @@
     const visible = document.getElementById("activityVisible");
     const active = document.getElementById("activityActive");
 
+    const activityId = document.getElementById("activityId");
+    if (activityId) activityId.value = "Assigned when saved";
     if (topic) topic.value = "";
     if (type) type.value = "";
     if (code) code.value = "";
