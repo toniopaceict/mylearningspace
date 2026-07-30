@@ -315,8 +315,7 @@
       activity_title: document.getElementById("activityTitle").value.trim(),
       sort_order: document.getElementById("activitySortOrder").value,
       visible: document.getElementById("activityVisible").value === "true",
-      active: document.getElementById("activityActive").value === "true",
-      requires_submission: document.getElementById("activityRequiresSubmission").value === "true"
+      active: document.getElementById("activityActive").value === "true"
     };
 
     if (!payload.topic_id) {
@@ -378,7 +377,6 @@
       sort_order: payload.sort_order,
       visible: payload.visible,
       active: payload.active,
-      requires_submission: payload.requires_submission,
       topic_name: topic ? topic.topic_name : "",
       topic_code: topic ? topic.topic_code : "",
       level_name: assignment ? assignment.level_name : "",
@@ -432,7 +430,6 @@
     const sortOrder = document.getElementById("activitySortOrder");
     const visible = document.getElementById("activityVisible");
     const active = document.getElementById("activityActive");
-    const requiresSubmission = document.getElementById("activityRequiresSubmission");
 
     const activityId = document.getElementById("activityId");
     if (activityId) activityId.value = "Assigned when saved";
@@ -445,7 +442,6 @@
     if (sortOrder) sortOrder.value = "";
     if (visible) visible.value = "true";
     if (active) active.value = "true";
-    if (requiresSubmission) requiresSubmission.value = "false";
 
     updateGeneratedActivityId();
     if (clearMessage !== false) setMessage("", "info");
@@ -516,8 +512,7 @@
         activity_title: value("activity_title"),
         sort_order: value("sort_order"),
         visible: value("visible") === "true",
-        active: value("active") === "true",
-        requires_submission: value("requires_submission") === "true"
+        active: value("active") === "true"
       };
     });
 
@@ -701,8 +696,7 @@
           getDisplayValue(activity, "activity_title"),
           getDisplayValue(activity, "visible"),
           getDisplayValue(activity, "sort_order"),
-          getDisplayValue(activity, "active"),
-          getDisplayValue(activity, "requires_submission")
+          getDisplayValue(activity, "active")
         ].some(function (value) {
           return value.toLowerCase().includes(query);
         });
@@ -754,8 +748,6 @@
         return String(activity.sort_order == null ? "" : activity.sort_order);
       case "active":
         return activity.active ? "Active" : "Inactive";
-      case "requires_submission":
-        return activity.requires_submission ? "Required" : "Not required";
       default:
         return "";
     }
@@ -777,7 +769,7 @@
 
     body.innerHTML = rows.length
       ? rows.map(editMode ? renderEdit : renderView).join("")
-      : '<tr><td colspan="11">No activities found.</td></tr>';
+      : '<tr><td colspan="10">No activities found.</td></tr>';
 
     if (editMode) bindEditChangeTracking();
   }
@@ -804,7 +796,7 @@
         let originalValue = original[fieldName];
         let currentValue = field.value;
 
-        if (fieldName === "visible" || fieldName === "active" || fieldName === "requires_submission") {
+        if (fieldName === "visible" || fieldName === "active") {
           originalValue = originalValue ? "true" : "false";
         }
 
@@ -829,7 +821,6 @@
       "<td>" + (activity.visible ? "Visible" : "Hidden") + "</td>" +
       "<td>" + esc(activity.sort_order) + "</td>" +
       "<td>" + (activity.active ? "Active" : "Inactive") + "</td>" +
-      "<td>" + (activity.requires_submission ? "Required" : "Not required") + "</td>" +
       "</tr>"
     );
   }
@@ -887,10 +878,6 @@
       '<td><select class="tracker-input" data-field="active">' +
       '<option value="true" ' + (activity.active ? "selected" : "") + ">Active</option>" +
       '<option value="false" ' + (!activity.active ? "selected" : "") + ">Inactive</option>" +
-      "</select></td>" +
-      '<td><select class="tracker-input" data-field="requires_submission">' +
-      '<option value="false" ' + (!activity.requires_submission ? "selected" : "") + ">Not required</option>" +
-      '<option value="true" ' + (activity.requires_submission ? "selected" : "") + ">Required</option>" +
       "</select></td>" +
       "</tr>"
     );

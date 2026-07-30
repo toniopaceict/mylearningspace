@@ -117,7 +117,6 @@
       sort_order: Number(activity.sort_order) || 0,
       visible: activity.visible !== false,
       active: activity.active !== false,
-      requires_submission: activity.requires_submission === true || String(activity.requires_submission).toLowerCase() === "true",
 
       // Newer activity rows may provide file_name explicitly.
       // Older/current rows use activity_code as the HTML filename stem.
@@ -271,10 +270,12 @@
         config.mainTitle + " – " + config.topline + " – GLIP";
     }
 
-    // Submission behaviour is metadata-driven for every activity type.
-    // The HTML page stores neither a submission flag nor a Drive folder ID.
-    config.requiresSubmission = Boolean(activity && activity.requires_submission);
-    config.uploadAssignment = config.activityId;
+    // Practice uploads use the same immutable identifier as progress.
+    // Once the page filename has resolved the activity, keep submission
+    // metadata aligned automatically.
+    if (config.pageKind === "practice") {
+      config.uploadAssignment = config.activityId;
+    }
 
     topicData.activity_id = config.activityId;
     topicData.activity_title = config.subTitle;

@@ -3,7 +3,7 @@
  
   
   
-  const GLIP_ASSET_VERSION = "387";
+  const GLIP_ASSET_VERSION = "386";
   const GLIP_BASE_URL = "https://toniopaceict.github.io/mylearningspace";
 
   const GLIP_PAGE_CHECK_CLASS = "glip-page-checking";
@@ -201,10 +201,6 @@ const managementScriptsByPage = {
     const scripts = [];
 
     scripts.push("/js/accessibility.js");
-
-    if (["lesson", "practice", "quiz", "fillblank", "reflection"].indexOf(pageKind) !== -1) {
-      scripts.push("/js/activity-upload.js");
-    }
 
     if (pageKind === "lesson" || pageKind === "practice" || pageKind === "fillblank") {
       scripts.push("/js/mark-complete.js");
