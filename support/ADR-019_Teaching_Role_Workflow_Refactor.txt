@@ -1,0 +1,32 @@
+ADR-019: Teaching-role workflow refactor
+
+Status: Accepted
+Asset version: 382
+
+Decision
+--------
+Subject Teacher and Lead Teacher behaviour is now coordinated by
+js/teaching-role-context.js.
+
+The shared module owns:
+- teaching-role detection
+- normalised teacher permissions
+- active-assignment detection
+- capability checks
+- subject-and-level permission checks
+- the common teaching-role navigation
+- teaching-page access guards
+
+Role differences are expressed as capabilities rather than repeated role-name
+checks. Lead Teachers can manage topics. Subject Teachers cannot. Both roles can
+view subjects and class resources, manage their assigned folder links and access
+the future Progress area.
+
+Management and owner workflows remain unchanged. Owner and Admin access to Topic
+Management continues through the existing administrator route.
+
+Reason
+------
+The previous implementation repeated teacher-role and permission logic in the
+header, Subjects page and individual teaching pages. Centralising that logic
+reduces drift and makes future teaching-role changes safer.
