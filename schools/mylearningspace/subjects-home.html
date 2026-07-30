@@ -29,18 +29,8 @@ function getLevelFromUrl() {
     return "level-" + getLevelNumber(sessionLevel);
   }
 
-  const permissionsRaw = sessionStorage.getItem("glipTeacherPermissions");
-
-  if (permissionsRaw) {
-    try {
-      const permissions = JSON.parse(permissionsRaw);
-
-      if (Array.isArray(permissions) && permissions.length > 0) {
-        return "level-" + getLevelNumber(permissions[0].level);
-      }
-    } catch {
-      // Ignore invalid teacher permissions.
-    }
+  if (window.GLIPTeachingRole) {
+    return window.GLIPTeachingRole.getPrimaryLevel();
   }
 
   return "";
@@ -132,8 +122,9 @@ function isAdminUser() {
 
       
 function isTeacherUser() {
-  const userType = sessionStorage.getItem("glipUserType") || "";
-  return userType === "lead_teacher" || userType === "subject_teacher";
+  return window.GLIPTeachingRole
+    ? window.GLIPTeachingRole.isTeachingRole()
+    : false;
 }
 
 function setLevelTitle() {
@@ -235,15 +226,9 @@ function setSubjectCache(subjects) {
       }
 
 function getTeacherPermissions() {
-  try {
-    const permissions = JSON.parse(
-      sessionStorage.getItem("glipTeacherPermissions") || "[]"
-    );
-
-    return Array.isArray(permissions) ? permissions : [];
-  } catch {
-    return [];
-  }
+  return window.GLIPTeachingRole
+    ? window.GLIPTeachingRole.getPermissions({ includeInactive: true })
+    : [];
 }
 
 function normaliseLevel(level) {
