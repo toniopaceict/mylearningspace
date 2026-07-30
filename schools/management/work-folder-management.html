@@ -19,8 +19,11 @@ Help file:
 
   <script>
     window.PAGE_CONFIG = {
-        helpSection: "work-folder-management",      pageKind: "management",
-      pageTitle: "GLIP – Class Folder Management"
+      helpSection: "work-folder-management",
+      pageKind: "management",
+      pageTitle: "GLIP – Class Folder Management",
+      teachingArea: true,
+      requiredTeachingCapability: "manage_work_folders"
     };
 
     window.PAGE_MENU_CONTEXT = {
@@ -142,9 +145,10 @@ Help file:
 
 <script>
   document.addEventListener("glipReady", function () {
-    if (!isTeachingStaff()) {
-      redirectToSchoolLogin();
-    }
+    const teaching = window.GLIPTeachingRole;
+    if (!teaching || !teaching.requireCapability(
+      teaching.CAPABILITIES.MANAGE_WORK_FOLDERS
+    )) return;
   });
 </script>
 

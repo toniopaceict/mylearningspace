@@ -19,8 +19,11 @@ Help file:
 
   <script>
     window.PAGE_CONFIG = {
-        helpSection: "topic-management",      pageKind: "management",
-      pageTitle: "GLIP – Topic Management"
+      helpSection: "topic-management",
+      pageKind: "management",
+      pageTitle: "GLIP – Topic Management",
+      teachingArea: true,
+      requiredTeachingCapability: "manage_topics"
     };
 
     window.PAGE_MENU_CONTEXT = {
@@ -183,7 +186,12 @@ Help file:
 
   <script>
     document.addEventListener("glipReady", function () {
-      requireRole("owner", "admin", "lead_teacher");
+      if (isAdmin()) return;
+
+      const teaching = window.GLIPTeachingRole;
+      if (!teaching || !teaching.requireCapability(
+        teaching.CAPABILITIES.MANAGE_TOPICS
+      )) return;
     });
   </script>
 </body>
