@@ -89,12 +89,6 @@ Progress is stored using the immutable activity ID resolved automatically from t
           helpSection: "activity",
           pageKind: "lesson",
 
-          // The activity is resolved automatically by matching
-          // this HTML filename to activity_code in Google Sheets.
-          // topic-page-context.js replaces this blank value with
-          // the immutable numeric activity ID.
-          activityId: "",
-
           // Lesson-specific resources
           fileLink: lesson.fileLink,
           fileButtonText: lesson.fileButtonText,
@@ -116,6 +110,7 @@ Progress is stored using the immutable activity ID resolved automatically from t
     • progress saving
     • speech support
     • lesson initialisation
+    • optional file submission controlled by requires_submission
     -->
     <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
   </head>
@@ -331,7 +326,7 @@ Progress is stored using the immutable activity ID resolved automatically from t
         ===================================================
         SECTION 5: SAVE PROGRESS
 
-        Progress is saved using activityId.
+        Progress is saved using the activity resolved automatically from the HTML filename.
 
         'Partly Completed'
         Saves the activity as In Progress.

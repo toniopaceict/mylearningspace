@@ -38,8 +38,11 @@ Progress is stored using the immutable activity ID resolved automatically from t
       1. Rename the HTML file so that it matches the Activity Code
          in the Activities sheet, followed by .html.
       2. Update the required file links and button text.
-      3. Update the upload settings, when submission is required.
-      4. Update the scenario and task instructions.
+      3. Update the scenario and task instructions.
+
+      Submission is controlled in Activity Management through
+      requires_submission. The Work Folder is resolved automatically
+      from the learner's Teaching Assignment.
 
       Do not enter activity IDs, subject, topic, level or activity titles.
       GLIP resolves the activity from the filename and reads its metadata
@@ -62,15 +65,6 @@ Progress is stored using the immutable activity ID resolved automatically from t
 
         fileLink3: "",
         fileButtonText3: "Download File 3",
-
-        // -------------------------------------------------
-        // WORK SUBMISSION
-        //
-        // Leave uploadFolderId empty when this practice does
-        // not require the learner to submit a file.
-        // -------------------------------------------------
-        uploadFolderId: "",
-        uploadMaxFileSizeMB: 10,
       };
 
       /*
@@ -91,12 +85,6 @@ Progress is stored using the immutable activity ID resolved automatically from t
           helpSection: "activity",
           pageKind: "practice",
 
-          // The activity is resolved automatically by matching
-          // this HTML filename to activity_code in Google Sheets.
-          // topic-page-context.js replaces this blank value with
-          // the immutable numeric activity ID.
-          activityId: "",
-
           // Practice-specific resources
           fileLink1: practice.fileLink1,
           fileButtonText1: practice.fileButtonText1,
@@ -104,15 +92,6 @@ Progress is stored using the immutable activity ID resolved automatically from t
           fileButtonText2: practice.fileButtonText2,
           fileLink3: practice.fileLink3,
           fileButtonText3: practice.fileButtonText3,
-
-          // Practice submission
-          uploadFolderId: practice.uploadFolderId,
-
-          // Filled automatically by topic-page-context.js after
-          // the filename has been matched to the activity record.
-          uploadAssignment: "",
-
-          uploadMaxFileSizeMB: practice.uploadMaxFileSizeMB,
 
           webAppUrl:
             typeof window.getGlipWebAppUrl === "function"
@@ -131,7 +110,7 @@ Progress is stored using the immutable activity ID resolved automatically from t
     • activity context
     • progress saving
     • speech support
-    • practice submission
+    • optional file submission controlled by requires_submission
     -->
     <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
   </head>
@@ -415,87 +394,9 @@ Progress is stored using the immutable activity ID resolved automatically from t
 
         <!--
         ===================================================
-        SECTION 4: SUBMIT WORK
+        SECTION 4: SAVE PROGRESS
 
-        This fieldset is hidden automatically when no
-        uploadFolderId is configured.
-        ===================================================
-        -->
-        <fieldset
-          class="tracker-box no-print readable-section"
-          id="submitWorkSection"
-        >
-          <legend>Submit Your Work</legend>
-
-          <button
-            type="button"
-            class="speak-btn"
-            onclick="speakSection(this)"
-            aria-label="Read the submission instructions aloud"
-          >
-            🔊
-          </button>
-
-          <p class="q" data-read>
-            Select your completed file and submit it below.
-          </p>
-
-          <div class="results-upload-row">
-            <label class="visually-hidden" for="studentName">
-              Your name and surname
-            </label>
-            <input
-              type="text"
-              id="studentName"
-              class="tracker-input upload-name-input"
-              placeholder="Your name and surname"
-              autocomplete="name"
-            />
-
-            <label class="tracker-input upload-file-input upload-file-wrapper">
-              <span class="upload-file-button">Choose file</span>
-              <span id="practiceFileName" class="upload-file-name">
-                No file chosen
-              </span>
-
-              <input
-                type="file"
-                id="practiceFile"
-                class="upload-file-hidden"
-              />
-            </label>
-
-            <button
-              id="uploadPracticeBtn"
-              type="button"
-              class="glip-btn upload-inline-btn"
-            >
-              Submit
-            </button>
-          </div>
-
-          <div
-            id="uploadProgressBar"
-            class="glip-loading"
-            role="progressbar"
-            aria-label="Submitting practice work"
-          >
-            <div class="glip-loading-fill"></div>
-          </div>
-
-          <p
-            id="uploadMessage"
-            class="tracker-message upload-status"
-            role="status"
-            aria-live="polite"
-          ></p>
-        </fieldset>
-
-        <!--
-        ===================================================
-        SECTION 5: SAVE PROGRESS
-
-        Progress is saved using activityId.
+        Progress is saved using the activity resolved automatically from the HTML filename.
 
         'Partly Completed'
         Saves the activity as In Progress.
@@ -608,34 +509,6 @@ Progress is stored using the immutable activity ID resolved automatically from t
           if (requiredFilesSection) {
             requiredFilesSection.style.display =
               visibleFileCount > 0 ? "" : "none";
-          }
-
-          const submitWorkSection =
-            document.getElementById("submitWorkSection");
-
-          if (submitWorkSection) {
-            submitWorkSection.style.display =
-              practice.uploadFolderId ? "" : "none";
-          }
-
-          const practiceFileInput =
-            document.getElementById("practiceFile");
-          const practiceFileName =
-            document.getElementById("practiceFileName");
-
-          if (
-            practiceFileInput &&
-            practiceFileName &&
-            !practiceFileInput.dataset.fileNameReady
-          ) {
-            practiceFileInput.dataset.fileNameReady = "true";
-
-            practiceFileInput.addEventListener("change", function () {
-              practiceFileName.textContent =
-                practiceFileInput.files.length > 0
-                  ? practiceFileInput.files[0].name
-                  : "No file chosen";
-            });
           }
         }
 
