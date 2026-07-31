@@ -160,9 +160,25 @@
     }
   }
 
+  function bindControls() {
+    const button = document.getElementById("glipSubmissionButton");
+    const fileInput = document.getElementById("glipSubmissionFile");
+
+    if (button && button.dataset.glipUploadBound !== "true") {
+      button.addEventListener("click", uploadFile);
+      button.dataset.glipUploadBound = "true";
+    }
+
+    if (fileInput && fileInput.dataset.glipUploadBound !== "true") {
+      fileInput.addEventListener("change", updateSelectedFileName);
+      fileInput.dataset.glipUploadBound = "true";
+    }
+  }
+
   function refresh() {
     const config = getConfig();
     const section = ensureSection();
+    bindControls();
     const legacyButton = document.getElementById("uploadPracticeBtn");
     const legacyPanel = legacyButton && legacyButton.closest(".task-box, .panel-box, section");
     if (legacyPanel && legacyPanel !== section) legacyPanel.hidden = true;
@@ -173,18 +189,18 @@
     );
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
+  function initialise() {
     ensureSection();
-
-    const button = document.getElementById("glipSubmissionButton");
-    const fileInput = document.getElementById("glipSubmissionFile");
-
-    if (button) button.addEventListener("click", uploadFile);
-    if (fileInput) fileInput.addEventListener("change", updateSelectedFileName);
-
+    bindControls();
     updateSelectedFileName();
     refresh();
-  });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initialise, { once: true });
+  } else {
+    initialise();
+  }
 
   document.addEventListener("glipTopicContextRefreshed", refresh);
   document.addEventListener("glipReady", refresh);
