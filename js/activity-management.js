@@ -5,6 +5,7 @@
   let topics = [];
   let activityTypes = [];
   let editMode = false;
+  let selectedActivityId = "";
   let initialised = false;
   let sortField = "sort_order";
   let sortDirection = "asc";
@@ -74,7 +75,6 @@
     });
 
     setupSorting();
-    applyActivityTableColumnSizing();
     load();
   }
 
@@ -453,18 +453,19 @@
   }
 
   function toggleEdit() {
-    if (!editMode) {
-      editMode = true;
-      updateEditControls();
-      render();
-      return;
-    }
-
-    saveChanges();
+    editMode = !editMode;
+    selectedActivityId = "";
+    updateEditControls();
+    setEditMessage(
+      editMode ? "Select an activity row to edit it." : "",
+      "info"
+    );
+    render();
   }
 
   function cancelEdit() {
     editMode = false;
+    selectedActivityId = "";
     updateEditControls();
     setEditMessage("", "info");
     render();
@@ -477,64 +478,68 @@
     const clearButton = document.getElementById("clearActivitySearch");
 
     if (editButton) {
-      editButton.textContent = editMode ? "Save Changes" : "Edit Activities";
+      editButton.textContent = editMode ? "Finish Editing" : "Edit Activities";
     }
-
-    let cancelButton = document.getElementById("cancelActivitiesEditBtn");
-
-    if (editMode && !cancelButton && editButton) {
-      cancelButton = document.createElement("button");
-      cancelButton.type = "button";
-      cancelButton.id = "cancelActivitiesEditBtn";
-      cancelButton.className = "glip-btn glip-btn-secondary";
-      cancelButton.textContent = "Cancel";
-      cancelButton.addEventListener("click", cancelEdit);
-      editButton.insertAdjacentElement("afterend", cancelButton);
-    }
-
-    if (!editMode && cancelButton) cancelButton.remove();
 
     [search, searchColumn, clearButton].forEach(function (control) {
-      if (control) control.disabled = editMode;
+      if (control) control.disabled = false;
     });
   }
 
+  function openActivityEditor(activityId) {
+    if (!editMode) return;
+    selectedActivityId =
+      String(selectedActivityId) === String(activityId) ? "" : String(activityId);
+    setEditMessage(
+      selectedActivityId ? "" : "Select an activity row to edit it.",
+      "info"
+    );
+    render();
+  }
+
+  function cancelInlineEdit() {
+    selectedActivityId = "";
+    setEditMessage("Select an activity row to edit it.", "info");
+    render();
+  }
+
   function saveChanges() {
-    const rows = Array.from(document.querySelectorAll("[data-activity-row]"));
+    const row = document.querySelector("[data-activity-row]");
+    if (!row) return;
 
-    const updates = rows.map(function (row) {
-      const value = function (field) {
-        return row.querySelector('[data-field="' + field + '"]').value;
-      };
+    const value = function (field) {
+      const control = row.querySelector('[data-field="' + field + '"]');
+      return control ? control.value : "";
+    };
 
-      return {
-        original_activity_id: row.dataset.activityRow,
-        activity_id: value("activity_id"),
-        activity_code: value("activity_code"),
-        topic_id: value("topic_id"),
-        activity_type_id: value("activity_type_id"),
-        activity_title: value("activity_title"),
-        sort_order: value("sort_order"),
-        visible: value("visible") === "true",
-        active: value("active") === "true",
-        requires_submission: value("requires_submission") === "true"
-      };
-    });
+    const update = {
+      original_activity_id: row.dataset.activityRow,
+      activity_id: value("activity_id"),
+      activity_code: value("activity_code"),
+      topic_id: value("topic_id"),
+      activity_type_id: value("activity_type_id"),
+      activity_title: value("activity_title"),
+      sort_order: value("sort_order"),
+      visible: value("visible") === "true",
+      active: value("active") === "true",
+      requires_submission: value("requires_submission") === "true"
+    };
 
     const previousActivities = activities.map(function (activity) {
       return Object.assign({}, activity);
     });
 
-    applyActivityUpdatesLocally(updates); GLIPOptimisticUpdate.markUpdatesPending(activities, updates, "activity_id");
-    editMode = false;
-    updateEditControls();
+    applyActivityUpdatesLocally([update]);
+    GLIPOptimisticUpdate.markUpdatesPending(activities, [update], "activity_id");
+    selectedActivityId = "";
+    setEditMessage("Activity changes saved and progress synchronised.", "success");
     render();
 
     GLIPOptimisticUpdate.run({
       request: function () {
         return post({
           action: "updateActivitiesOwner",
-          activities: updates
+          activities: [update]
         });
       },
       failureMessage: "Could not save changes.",
@@ -606,17 +611,6 @@
 
     render();
     search?.focus();
-  }
-
-  function applyActivityTableColumnSizing() {
-    const table = document.getElementById("activitiesTable");
-    if (!table) return;
-
-    const sortHeading = table.querySelector("thead th:nth-child(8)");
-    if (sortHeading) {
-      sortHeading.style.width = "78px";
-      sortHeading.style.whiteSpace = "nowrap";
-    }
   }
 
   function setupSorting() {
@@ -776,10 +770,32 @@
     if (!body) return;
 
     body.innerHTML = rows.length
-      ? rows.map(editMode ? renderEdit : renderView).join("")
-      : '<tr><td colspan="11">No activities found.</td></tr>';
+      ? rows.map(function (activity) {
+          return renderView(activity) +
+            (editMode && String(activity.activity_id) === String(selectedActivityId)
+              ? renderEdit(activity)
+              : "");
+        }).join("")
+      : '<tr><td colspan="8">No activities found.</td></tr>';
 
-    if (editMode) bindEditChangeTracking();
+    if (editMode) {
+      document.querySelectorAll("[data-activity-view-row]").forEach(function (row) {
+        row.addEventListener("click", function () {
+          openActivityEditor(row.dataset.activityViewRow);
+        });
+        row.addEventListener("keydown", function (event) {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openActivityEditor(row.dataset.activityViewRow);
+          }
+        });
+      });
+    }
+
+    if (selectedActivityId) bindEditChangeTracking();
+
+    document.getElementById("saveInlineActivityBtn")?.addEventListener("click", saveChanges);
+    document.getElementById("cancelInlineActivityBtn")?.addEventListener("click", cancelInlineEdit);
   }
 
   function bindEditChangeTracking() {
@@ -817,17 +833,27 @@
   }
 
   function renderView(activity) {
+    const selectableClass = editMode ? " activity-edit-selectable-row" : "";
+    const selectedClass =
+      editMode && String(activity.activity_id) === String(selectedActivityId)
+        ? " activity-row-selected"
+        : "";
+
     return (
-      '<tr class="' + (!activity.active ? "planning-row" : "") + '">' +
+      '<tr class="' + (!activity.active ? "planning-row" : "") +
+      selectableClass + selectedClass + '"' +
+      (editMode
+        ? ' data-activity-view-row="' + esc(activity.activity_id) +
+          '" tabindex="0" role="button" aria-label="Edit ' +
+          esc(activity.activity_title || activity.activity_code) + '"'
+        : "") +
+      ">" +
       "<td>" + esc(activity.level_name || activity.level_code) + "</td>" +
       "<td>" + esc(activity.subject_name || activity.subject_code) + "</td>" +
       "<td>" + esc(activity.topic_name) + "</td>" +
       "<td>" + esc(activity.activity_type_name || activity.activity_type_code) + "</td>" +
-      "<td>" + esc(activity.activity_id) + "</td>" +
       "<td>" + esc(activity.activity_code) + "</td>" +
       "<td>" + esc(activity.activity_title) + "</td>" +
-      "<td>" + (activity.visible ? "Visible" : "Hidden") + "</td>" +
-      "<td>" + esc(activity.sort_order) + "</td>" +
       "<td>" + (activity.active ? "Active" : "Inactive") + "</td>" +
       "<td>" + (activity.requires_submission ? "Required" : "Not required") + "</td>" +
       "</tr>"
@@ -838,7 +864,10 @@
     const topicOptions = topics
       .map(function (topic) {
         const assignment = topic.assignments && topic.assignments[0];
-        const label = topic.topic_name || topic.topic_code || "Topic";
+        const label =
+          (assignment ? (assignment.level_name || assignment.level_code) + " – " : "") +
+          (assignment ? (assignment.subject_name || assignment.subject_code) + " – " : "") +
+          (topic.topic_name || topic.topic_code || "Topic");
 
         return (
           '<option value="' + esc(topic.topic_id) + '" ' +
@@ -859,39 +888,59 @@
       .join("");
 
     return (
-      '<tr data-activity-row="' + esc(activity.activity_id) + '">' +
-      '<td>' + esc(activity.level_name || activity.level_code) + '</td>' +
-      '<td>' + esc(activity.subject_name || activity.subject_code) + '</td>' +
-      '<td><select class="tracker-input" data-field="topic_id">' +
-      topicOptions +
-      "</select></td>" +
-      '<td><select class="tracker-input" data-field="activity_type_id">' +
-      typeOptions +
-      "</select></td>" +
-      '<td><input class="tracker-input" data-field="activity_id" readonly value="' +
-      esc(activity.activity_id) +
-      '"></td>' +
-      '<td><input class="tracker-input" data-field="activity_code" readonly value="' +
-      esc(activity.activity_code) +
-      '"></td>' +
-      '<td><input class="tracker-input" data-field="activity_title" value="' +
-      esc(activity.activity_title) +
-      '"></td>' +
-      '<td><select class="tracker-input" data-field="visible">' +
+      '<tr class="student-subject-edit-row activity-inline-edit-row">' +
+      '<td colspan="8">' +
+      '<div class="student-subject-inline-panel">' +
+      '<p><strong>Editing activity ' + esc(activity.activity_title || activity.activity_code) + '.</strong></p>' +
+      '<div class="activity-inline-edit-grid" data-activity-row="' + esc(activity.activity_id) + '">' +
+
+      '<label class="activity-inline-field"><span>Activity ID</span>' +
+      '<input class="tracker-input" data-field="activity_id" readonly value="' +
+      esc(activity.activity_id) + '"></label>' +
+
+      '<label class="activity-inline-field activity-inline-topic"><span>Level, subject and topic</span>' +
+      '<select class="tracker-input" data-field="topic_id">' + topicOptions + "</select></label>" +
+
+      '<label class="activity-inline-field"><span>Activity type</span>' +
+      '<select class="tracker-input" data-field="activity_type_id">' + typeOptions + "</select></label>" +
+
+      '<label class="activity-inline-field"><span>Activity Code</span>' +
+      '<input class="tracker-input" data-field="activity_code" readonly value="' +
+      esc(activity.activity_code) + '"></label>' +
+
+      '<label class="activity-inline-field activity-inline-title"><span>Title</span>' +
+      '<input class="tracker-input" data-field="activity_title" value="' +
+      esc(activity.activity_title) + '"></label>' +
+
+      '<label class="activity-inline-field"><span>Visibility</span>' +
+      '<select class="tracker-input" data-field="visible">' +
       '<option value="true" ' + (activity.visible ? "selected" : "") + ">Visible</option>" +
       '<option value="false" ' + (!activity.visible ? "selected" : "") + ">Hidden</option>" +
-      "</select></td>" +
-      '<td><input class="tracker-input" type="number" min="1" data-field="sort_order" value="' +
-      esc(activity.sort_order) +
-      '"></td>' +
-      '<td><select class="tracker-input" data-field="active">' +
+      "</select></label>" +
+
+      '<label class="activity-inline-field"><span>Sort order</span>' +
+      '<input class="tracker-input" type="number" min="1" data-field="sort_order" value="' +
+      esc(activity.sort_order) + '"></label>' +
+
+      '<label class="activity-inline-field"><span>Status</span>' +
+      '<select class="tracker-input" data-field="active">' +
       '<option value="true" ' + (activity.active ? "selected" : "") + ">Active</option>" +
       '<option value="false" ' + (!activity.active ? "selected" : "") + ">Inactive</option>" +
-      "</select></td>" +
-      '<td><select class="tracker-input" data-field="requires_submission">' +
+      "</select></label>" +
+
+      '<label class="activity-inline-field"><span>Submission</span>' +
+      '<select class="tracker-input" data-field="requires_submission">' +
       '<option value="false" ' + (!activity.requires_submission ? "selected" : "") + ">Not required</option>" +
       '<option value="true" ' + (activity.requires_submission ? "selected" : "") + ">Required</option>" +
-      "</select></td>" +
+      "</select></label>" +
+
+      "</div>" +
+      '<div class="student-subject-button-row">' +
+      '<button class="glip-btn" id="saveInlineActivityBtn" type="button">Save Changes</button>' +
+      '<button class="glip-btn glip-btn-secondary" id="cancelInlineActivityBtn" type="button">Cancel</button>' +
+      "</div>" +
+      "</div>" +
+      "</td>" +
       "</tr>"
     );
   }
