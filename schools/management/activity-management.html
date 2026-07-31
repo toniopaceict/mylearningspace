@@ -115,14 +115,13 @@ Help file:
 
     #activitiesTable {
       width: 100%;
-      min-width: 1280px;
       table-layout: fixed;
     }
 
     #activitiesTable th,
     #activitiesTable td {
       vertical-align: middle;
-      overflow-wrap: break-word;
+      overflow-wrap: normal;
       word-break: normal;
     }
 
@@ -131,53 +130,72 @@ Help file:
     }
 
     #activitiesTable th:nth-child(1),
-    #activitiesTable td:nth-child(1) { width: 6%; }
+    #activitiesTable td:nth-child(1) { width: 8%; }
 
     #activitiesTable th:nth-child(2),
-    #activitiesTable td:nth-child(2) { width: 14%; }
+    #activitiesTable td:nth-child(2) { width: 19%; }
 
     #activitiesTable th:nth-child(3),
-    #activitiesTable td:nth-child(3) { width: 11%; }
+    #activitiesTable td:nth-child(3) { width: 13%; }
 
     #activitiesTable th:nth-child(4),
-    #activitiesTable td:nth-child(4) { width: 8%; }
+    #activitiesTable td:nth-child(4) { width: 9%; }
 
     #activitiesTable th:nth-child(5),
-    #activitiesTable td:nth-child(5) { width: 7%; }
+    #activitiesTable td:nth-child(5) { width: 14%; }
 
     #activitiesTable th:nth-child(6),
-    #activitiesTable td:nth-child(6) { width: 12%; }
+    #activitiesTable td:nth-child(6) { width: 16%; }
 
     #activitiesTable th:nth-child(7),
-    #activitiesTable td:nth-child(7) { width: 13%; }
+    #activitiesTable td:nth-child(7) { width: 9%; }
 
     #activitiesTable th:nth-child(8),
-    #activitiesTable td:nth-child(8) { width: 8%; }
+    #activitiesTable td:nth-child(8) { width: 12%; }
 
-    #activitiesTable th:nth-child(9),
-    #activitiesTable td:nth-child(9) { width: 6%; }
+    #activitiesTable td:nth-child(1),
+    #activitiesTable td:nth-child(3),
+    #activitiesTable td:nth-child(4),
+    #activitiesTable td:nth-child(5),
+    #activitiesTable td:nth-child(7),
+    #activitiesTable td:nth-child(8) {
+      white-space: nowrap;
+    }
 
-    #activitiesTable th:nth-child(10),
-    #activitiesTable td:nth-child(10) { width: 7%; }
+    .activity-edit-selectable-row {
+      cursor: pointer;
+    }
 
-    #activitiesTable th:nth-child(11),
-    #activitiesTable td:nth-child(11) { width: 8%; }
+    .activity-edit-selectable-row:hover td {
+      background: #fff8c6;
+    }
 
-    #activitiesTable td .tracker-input {
+    .activity-inline-edit-grid {
+      display: grid;
+      grid-template-columns: 0.7fr 2fr 1fr 1.2fr;
+      gap: 0.75rem;
+      align-items: end;
+    }
+
+    .activity-inline-field {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      gap: 0.35rem;
+      font-weight: 600;
+    }
+
+    .activity-inline-field .tracker-input {
       width: 100%;
       min-width: 0;
-      box-sizing: border-box;
     }
 
-    #activitiesTable textarea.tracker-input {
-      min-height: 48px;
-      line-height: 1.3;
-      resize: vertical;
-      white-space: normal;
+    .activity-inline-topic {
+      grid-column: span 2;
     }
 
-    #activitiesTable td:nth-child(6) {
-      white-space: normal;
+    .activity-inline-title {
+      grid-column: span 2;
     }
 
     .activity-edit-actions {
@@ -238,7 +256,17 @@ Help file:
           "title"
           "sort"
           "visible"
-          "active";
+          "active"
+          "submission";
+      }
+
+      .activity-inline-edit-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .activity-inline-topic,
+      .activity-inline-title {
+        grid-column: auto;
       }
 
       .activity-record-count {
@@ -368,18 +396,15 @@ Help file:
 <th data-label="Subject" data-sort-field="subject">Subject ↕</th>
 <th data-label="Topic" data-sort-field="topic">Topic ↕</th>
 <th data-label="Type" data-sort-field="activity_type">Type ↕</th>
-<th data-label="Activity ID" data-sort-field="activity_id">Activity ID ↕</th>
 <th data-label="Activity Code" data-sort-field="activity_code">Activity Code ↕</th>
 <th data-label="Title" data-sort-field="activity_title">Title ↕</th>
-<th data-label="Visibility" data-sort-field="visible">Visibility ↕</th>
-<th data-label="Sort" data-sort-field="sort_order">Sort ↕</th>
 <th data-label="Status" data-sort-field="active">Status ↕</th>
 <th data-label="Submission" data-sort-field="requires_submission">Submission ↕</th>
 </tr>
 </thead>
 <tbody id="activitiesTableBody">
 <tr>
-<td colspan="11">Loading activities...</td>
+<td colspan="8">Loading activities...</td>
 </tr>
 </tbody>
 </table>
