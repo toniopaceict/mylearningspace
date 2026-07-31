@@ -370,9 +370,12 @@
 
     if (cached) {
       install(cached);
-      if (!learningSessionTopic) {
-        setTimeout(refreshInBackground, 0);
-      }
+
+      // Cached learning-session data may have been created before a new
+      // Activities field was introduced. Always refresh from Apps Script so
+      // metadata such as requires_submission is never decided by stale cache.
+      setTimeout(refreshInBackground, 0);
+
       return Promise.resolve(cached);
     }
 
