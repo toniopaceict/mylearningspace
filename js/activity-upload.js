@@ -13,12 +13,12 @@
     let section = document.getElementById("glipActivitySubmission");
     if (section) return section;
 
-    section = document.createElement("section");
+    section = document.createElement("fieldset");
     section.id = "glipActivitySubmission";
-    section.className = "task-box panel-box";
+    section.className = "task-box readable-section no-print";
     section.hidden = true;
     section.innerHTML =
-      '<h2>Submit your work</h2>' +
+      '<legend>Submit your work</legend>' +
       '<p>Choose the completed file you want to send to your teacher.</p>' +
       '<div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center">' +
       '<input id="glipSubmissionFile" class="tracker-input" type="file">' +
@@ -26,9 +26,11 @@
       '</div>' +
       '<p id="glipSubmissionMessage" class="panel-message" role="status" aria-live="polite"></p>';
 
-    const footer = document.getElementById("siteFooter");
-    if (footer && footer.parentElement) {
-      footer.parentElement.insertBefore(section, footer);
+    // Keep the submission fieldset inside the activity page content wrapper.
+    // This gives it the same width, spacing and alignment as the other activity sections.
+    const mainContent = document.getElementById("mainContent") || document.querySelector(".page-shell .wrap");
+    if (mainContent) {
+      mainContent.appendChild(section);
     } else {
       document.body.appendChild(section);
     }
