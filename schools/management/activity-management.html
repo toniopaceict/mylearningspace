@@ -115,33 +115,38 @@ Help file:
 
     #activitiesTable {
       width: 100%;
-      min-width: 1040px;
+      min-width: 1280px;
       table-layout: fixed;
     }
 
     #activitiesTable th,
     #activitiesTable td {
       vertical-align: middle;
-      overflow-wrap: anywhere;
+      overflow-wrap: break-word;
+      word-break: normal;
+    }
+
+    #activitiesTable th {
+      white-space: normal;
     }
 
     #activitiesTable th:nth-child(1),
     #activitiesTable td:nth-child(1) { width: 6%; }
 
     #activitiesTable th:nth-child(2),
-    #activitiesTable td:nth-child(2) { width: 15%; }
+    #activitiesTable td:nth-child(2) { width: 14%; }
 
     #activitiesTable th:nth-child(3),
-    #activitiesTable td:nth-child(3) { width: 12%; }
+    #activitiesTable td:nth-child(3) { width: 11%; }
 
     #activitiesTable th:nth-child(4),
     #activitiesTable td:nth-child(4) { width: 8%; }
 
     #activitiesTable th:nth-child(5),
-    #activitiesTable td:nth-child(5) { width: 8%; }
+    #activitiesTable td:nth-child(5) { width: 7%; }
 
     #activitiesTable th:nth-child(6),
-    #activitiesTable td:nth-child(6) { width: 14%; }
+    #activitiesTable td:nth-child(6) { width: 12%; }
 
     #activitiesTable th:nth-child(7),
     #activitiesTable td:nth-child(7) { width: 13%; }
@@ -150,10 +155,13 @@ Help file:
     #activitiesTable td:nth-child(8) { width: 8%; }
 
     #activitiesTable th:nth-child(9),
-    #activitiesTable td:nth-child(9) { width: 7%; }
+    #activitiesTable td:nth-child(9) { width: 6%; }
 
     #activitiesTable th:nth-child(10),
-    #activitiesTable td:nth-child(10) { width: 9%; }
+    #activitiesTable td:nth-child(10) { width: 7%; }
+
+    #activitiesTable th:nth-child(11),
+    #activitiesTable td:nth-child(11) { width: 8%; }
 
     #activitiesTable td .tracker-input {
       width: 100%;
