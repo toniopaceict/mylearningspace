@@ -21,13 +21,18 @@
       '<legend>Submit your work</legend>' +
       '<p>Choose the completed file you want to send to your teacher.</p>' +
       '<div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center">' +
-      '<input id="glipSubmissionFile" class="tracker-input" type="file">' +
+      '<input id="glipSubmissionFile" class="tracker-input" type="file" ' +
+      'style="width:400px;max-width:100%;flex:0 1 400px">' +
       '<button id="glipSubmissionButton" class="glip-btn" type="button">Submit file</button>' +
+      '</div>' +
+      '<p style="margin:.65rem 0 0"><strong>Selected file:</strong> ' +
+      '<span id="glipSubmissionFileName">No file selected</span></p>' +
+      '<div id="glipSubmissionProgress" class="glip-progress" aria-hidden="true">' +
+      '<div class="glip-progress-bar"></div>' +
       '</div>' +
       '<p id="glipSubmissionMessage" class="panel-message" role="status" aria-live="polite"></p>';
 
-    // Keep the submission fieldset inside the activity page content wrapper.
-    // This gives it the same width, spacing and alignment as the other activity sections.
+    // Keep the submission fieldset inside the normal activity content wrapper.
     const mainContent = document.getElementById("mainContent") || document.querySelector(".page-shell .wrap");
     if (mainContent) {
       mainContent.appendChild(section);
@@ -43,6 +48,35 @@
     if (!element) return;
     element.textContent = message || "";
     element.className = "panel-message" + (type ? " " + type : "");
+  }
+
+  function setUploading(isUploading) {
+    const button = document.getElementById("glipSubmissionButton");
+    const progress = document.getElementById("glipSubmissionProgress");
+    const fileInput = document.getElementById("glipSubmissionFile");
+
+    if (button) {
+      button.disabled = isUploading;
+      button.textContent = isUploading ? "Submitting..." : "Submit file";
+    }
+
+    if (fileInput) fileInput.disabled = isUploading;
+
+    if (progress) {
+      progress.classList.toggle("show", isUploading);
+      progress.setAttribute("aria-hidden", isUploading ? "false" : "true");
+    }
+  }
+
+  function updateSelectedFileName() {
+    const fileInput = document.getElementById("glipSubmissionFile");
+    const fileName = document.getElementById("glipSubmissionFileName");
+    if (!fileName) return;
+
+    const file = fileInput && fileInput.files ? fileInput.files[0] : null;
+    fileName.textContent = file ? file.name : "No file selected";
+    fileName.title = file ? file.name : "";
+    setMessage("", "info");
   }
 
   function fileToBase64(file) {
@@ -61,7 +95,6 @@
   async function uploadFile() {
     const config = getConfig();
     const fileInput = document.getElementById("glipSubmissionFile");
-    const button = document.getElementById("glipSubmissionButton");
     const file = fileInput && fileInput.files ? fileInput.files[0] : null;
 
     const student = {
@@ -90,8 +123,8 @@
       return;
     }
 
-    button.disabled = true;
-    setMessage("Uploading your file...", "info");
+    setUploading(true);
+    setMessage("Uploading your work. Please wait...", "info");
 
     try {
       const response = await fetch(config.webAppUrl || window.getGlipWebAppUrl(), {
@@ -116,14 +149,14 @@
         throw new Error((result && result.message) || "The file could not be uploaded.");
       }
 
-      setMessage("File submitted successfully.", "success");
+      setMessage("Your work has been submitted successfully.", "success");
       window.dispatchEvent(new CustomEvent("glipActivitySubmitted", {
         detail: { activityId: config.activityId }
       }));
     } catch (error) {
       setMessage(error.message || "The file could not be uploaded.", "error");
     } finally {
-      button.disabled = false;
+      setUploading(false);
     }
   }
 
@@ -142,8 +175,14 @@
 
   document.addEventListener("DOMContentLoaded", function () {
     ensureSection();
+
     const button = document.getElementById("glipSubmissionButton");
+    const fileInput = document.getElementById("glipSubmissionFile");
+
     if (button) button.addEventListener("click", uploadFile);
+    if (fileInput) fileInput.addEventListener("change", updateSelectedFileName);
+
+    updateSelectedFileName();
     refresh();
   });
 
