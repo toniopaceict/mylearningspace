@@ -97,13 +97,25 @@
       });
       if (!result || result.status !== "success") throw new Error(result && result.message || "Upload failed.");
       message(result.message, "success");
-      input.value = ""; updateFileName(); load();
+      input.value = "";
+      setFileNameStatus("Uploaded file:", result.file_name || file.name);
+      await load();
     } catch (error) { message(error.message, "error"); }
     finally { button.disabled = false; button.textContent = "Upload resource"; }
   }
 
   function toBase64(file) { return new Promise(function (resolve, reject) { const reader = new FileReader(); reader.onload = function () { resolve(String(reader.result).split(",")[1] || ""); }; reader.onerror = reject; reader.readAsDataURL(file); }); }
-  function updateFileName() { const file = document.getElementById("classResourceFile")?.files?.[0]; const el = document.getElementById("classResourceFileName"); if (el) el.textContent = file ? file.name : "No file selected"; }
+  function updateFileName() {
+    const file = document.getElementById("classResourceFile")?.files?.[0];
+    setFileNameStatus("Selected file:", file ? file.name : "No file selected");
+  }
+
+  function setFileNameStatus(label, fileName) {
+    const labelEl = document.getElementById("classResourceFileLabel");
+    const nameEl = document.getElementById("classResourceFileName");
+    if (labelEl) labelEl.textContent = label || "Selected file:";
+    if (nameEl) nameEl.textContent = fileName || "No file selected";
+  }
   function loading(show) { const el = document.getElementById("classResourcesLoading"); if (el) el.style.display = show ? "block" : "none"; }
   function message(value, type) { const el = document.getElementById("classResourcesMessage"); if (el) { el.textContent = value || ""; el.className = "panel-message text-center " + (type || ""); } }
   function formatLevel(v) { const m = String(v || "").match(/\d+/); return m ? "Level " + Number(m[0]) : String(v || ""); }
