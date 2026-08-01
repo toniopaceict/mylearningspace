@@ -139,6 +139,7 @@
           topic_id: config.topicId,
           activity_id: config.activityId,
           file_name: file.name,
+          file_size_bytes: file.size,
           mime_type: file.type || "application/octet-stream",
           file_base64: await fileToBase64(file)
         })
@@ -149,7 +150,16 @@
         throw new Error((result && result.message) || "The file could not be uploaded.");
       }
 
-      setMessage("Your work has been submitted successfully.", "success");
+      const stored = result.file || {};
+      const versionText = stored.version ? " Version " + stored.version + "." : "";
+      setMessage(
+        (result.message || "Your work has been submitted successfully.") +
+        (stored.file_name ? " File: " + stored.file_name + "." : "") +
+        versionText,
+        "success"
+      );
+      if (fileInput) fileInput.value = "";
+      updateSelectedFileName();
       window.dispatchEvent(new CustomEvent("glipActivitySubmitted", {
         detail: { activityId: config.activityId }
       }));

@@ -158,10 +158,6 @@ function buildRoleFooterLinks(existingSettingsItems) {
         text: "⌂ Subjects",
         url: `/mylearningspace/schools/${school}/subjects-home.html`
       },
-      {
-        text: "▧ Class Resources",
-        url: `/mylearningspace/schools/management/class-resources.html`
-      }
     );
 
     if (typeof isOwner === "function" && isOwner()) {

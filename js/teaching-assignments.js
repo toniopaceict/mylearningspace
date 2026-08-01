@@ -276,8 +276,7 @@ fields: [
   { value: "level", label: "Level", getValue: function (assignment) { return getLevelLabel(assignment); } },
   { value: "subject_id", label: "Subject", getValue: function (assignment) { return getSubjectName(assignment.subject_id, assignment.level); } },
   { value: "class_id", label: "Class" },
-  { value: "folder_id", label: "Work Folder" },
-  { value: "class_resources_url", label: "Class Resources" },
+  { value: "storage_ready", label: "GLIP Storage", getValue: function () { return "Managed by GLIP"; } },
   { value: "active", label: "Status", getValue: getAssignmentStatusText }
 ],
     onChange: function () {
@@ -451,8 +450,6 @@ function populateSubjectDropdownForLevel(level, select, selectedSubjectId) {
     const level = document.getElementById("newClassTeacherLevel").value.trim();
     const subjectId = document.getElementById("newClassTeacherSubject").value.trim();
     const classId = document.getElementById("newClassTeacherClass").value.trim();
-    const folderId = document.getElementById("newClassTeacherFolderId").value.trim();
-    const classResourcesUrl = document.getElementById("newClassTeacherResourcesUrl").value.trim();
     const active = document.getElementById("newClassTeacherActive").checked;
     if (!teacherId || !level || !subjectId || !classId) { setAddMessage("Teacher, level, subject and class are required.", "error"); return; }
     const normalisedLevel = normaliseLevel(level);
@@ -460,10 +457,10 @@ function populateSubjectDropdownForLevel(level, select, selectedSubjectId) {
     const classInfo = getClassInfoById(classId) || {};
     const subjectInfo = getSubjectInfoByLevel(subjectId, normalisedLevel) || {};
     const temporaryId = "pending-assignment-" + Date.now();
-    currentAssignments.push({ assignment_id: temporaryId, teacher_id: teacherId, teacher_name: teacherInfo.teacher_name, teacher_surname: teacherInfo.teacher_surname, full_name: teacherInfo.full_name || [teacherInfo.teacher_name, teacherInfo.teacher_surname].filter(Boolean).join(" "), teacher_active: teacherInfo.active !== false, level: normalisedLevel, level_active: classInfo.level_active !== false, subject_id: subjectId, subject_name: subjectInfo.subject_name || subjectId, subject_code: subjectInfo.subject_code, curriculum_active: subjectInfo.curriculum_active !== false && subjectInfo.active !== false, class_id: classId, class_active: classInfo.active !== false, folder_id: folderId, class_resources_url: classResourcesUrl, active: active, pending_save: true, pending_state: "saving" });
+    currentAssignments.push({ assignment_id: temporaryId, teacher_id: teacherId, teacher_name: teacherInfo.teacher_name, teacher_surname: teacherInfo.teacher_surname, full_name: teacherInfo.full_name || [teacherInfo.teacher_name, teacherInfo.teacher_surname].filter(Boolean).join(" "), teacher_active: teacherInfo.active !== false, level: normalisedLevel, level_active: classInfo.level_active !== false, subject_id: subjectId, subject_name: subjectInfo.subject_name || subjectId, subject_code: subjectInfo.subject_code, curriculum_active: subjectInfo.curriculum_active !== false && subjectInfo.active !== false, class_id: classId, class_active: classInfo.active !== false, active: active, pending_save: true, pending_state: "saving" });
     renderAssignments(currentAssignments); clearAddForm();
     GLIPOptimisticUpdate.run({
-      request: function () { return postToGlip({ action: "addClassTeacherAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), role: getCurrentRole(), teacher_id: teacherId, level: normalisedLevel, subject_id: subjectId, class_id: classId, folder_id: folderId, class_resources_url: classResourcesUrl, active: active }); },
+      request: function () { return postToGlip({ action: "addClassTeacherAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), role: getCurrentRole(), teacher_id: teacherId, level: normalisedLevel, subject_id: subjectId, class_id: classId, active: active }); },
       failureMessage: "Could not save assignment.",
       onSuccess: function (result) { const row = currentAssignments.find(function (item) { return String(item.assignment_id) === temporaryId; }); if (row) { row.assignment_id = result.class_teacher_id || row.assignment_id; GLIPOptimisticUpdate.markSaved(row); } setAddMessage(result.message || "Assignment saved.", "success"); },
       resync: resyncAssignmentsSilently,
@@ -578,11 +575,11 @@ function formatAssignmentClassCell(assignment) {
   );
 }
   
-function formatFolderLink(url, label) {
-    const value = String(url || "").trim();
-    if (!value) return '<span class="muted-text">Not assigned</span>';
-    return `<a href="${escapeHtml(value)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>`;
-  }
+function formatStorageStatus(assignment) {
+  return assignment && assignment.storage_ready === false
+    ? "Preparing..."
+    : "Managed by GLIP";
+}
 
 function renderAssignments(assignments) {
     const tbody = document.getElementById("classTeachersTableBody");
@@ -594,7 +591,7 @@ const filteredAssignments =
     if (!filteredAssignments.length) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7">No teaching assignments found.</td>
+          <td colspan="6">No teaching assignments found.</td>
         </tr>
       `;
       return;
@@ -613,12 +610,7 @@ const filteredAssignments =
     <td>${formatAssignmentLevelCell(assignment)}</td>
     <td>${formatAssignmentSubjectCell(assignment)}</td>
     <td>${formatAssignmentClassCell(assignment)}</td>
-    <td class="work-folder-cell" title="${escapeHtml(assignment.folder_id || "")}">
-      ${formatFolderLink(assignment.folder_id, "Open Work Folder")}
-    </td>
-    <td class="work-folder-cell" title="${escapeHtml(assignment.class_resources_url || "")}">
-      ${formatFolderLink(assignment.class_resources_url, "Open Class Resources")}
-    </td>
+    <td>${formatStorageStatus(assignment)}</td>
     <td>${getAssignmentStatusText(assignment)}</td>
   </tr>
 `;
@@ -671,25 +663,7 @@ function renderAssignmentEditRow(assignment) {
         </select>
       </td>
 
-      <td>
-        <input
-          type="text"
-          class="tracker-input work-folder-input"
-          data-assignment-field="folder_id"
-          value="${escapeHtml(assignment.folder_id || "")}"
-          placeholder="Work folder URL"
-        />
-      </td>
-
-      <td>
-        <input
-          type="url"
-          class="tracker-input work-folder-input"
-          data-assignment-field="class_resources_url"
-          value="${escapeHtml(assignment.class_resources_url || "")}"
-          placeholder="Class resources URL"
-        />
-      </td>
+      <td>Managed by GLIP</td>
 
       <td>
         <select class="tracker-input" data-assignment-field="active">
@@ -757,8 +731,6 @@ function renderAssignmentEditRow(assignment) {
       existing.curriculum_active = subjectInfo ? subjectInfo.curriculum_active !== false && subjectInfo.active !== false : existing.curriculum_active;
       existing.class_id = update.class_id;
       existing.class_active = classInfo ? classInfo.active !== false : existing.class_active;
-      existing.folder_id = update.folder_id;
-      existing.class_resources_url = update.class_resources_url;
       existing.active = update.active;
     });
   }
@@ -1019,16 +991,7 @@ if (activeCheckbox) {
   activeCheckbox.checked = true;
 }
 
-const folderInput = document.getElementById("newClassTeacherFolderId");
 
-if (folderInput) {
-  folderInput.value = "";
-}
-
-const resourcesInput = document.getElementById("newClassTeacherResourcesUrl");
-if (resourcesInput) {
-  resourcesInput.value = "";
-}
     
   }
 

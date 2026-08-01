@@ -168,8 +168,13 @@
 
     if (hasCapability(CAPABILITIES.MANAGE_WORK_FOLDERS)) {
       items.push({
-        text: "▣ Work Folder Management",
+        text: "▣ My GLIP Storage",
         url: "/mylearningspace/schools/management/work-folder-management.html"
+      });
+
+      items.push({
+        text: "▨ Student Submissions",
+        url: "/mylearningspace/schools/management/student-submissions.html"
       });
     }
 
