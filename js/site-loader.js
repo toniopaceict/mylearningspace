@@ -3,7 +3,7 @@
  
   
   
-  const GLIP_ASSET_VERSION = "394";
+  const GLIP_ASSET_VERSION = "395";
   const GLIP_BASE_URL = "https://toniopaceict.github.io/mylearningspace";
 
   const GLIP_PAGE_CHECK_CLASS = "glip-page-checking";
@@ -183,17 +183,21 @@ const managementScriptsByPage = {
 
 "work-folder-management.html": [
   "/js/storage-download.js",
+  "/js/storage-page-cache.js",
   "/js/table-filter.js",
   "/js/work-folder-management.js"
 ],
 
 "class-resources.html": [
   "/js/storage-download.js",
+  "/js/storage-page-cache.js",
+  "/js/admin-csv-tools.js",
   "/js/class-resources.js"
 ],
 
 "student-submissions.html": [
   "/js/storage-download.js",
+  "/js/storage-page-cache.js",
   "/js/student-submissions.js"
 ]
 };

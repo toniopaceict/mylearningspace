@@ -9,7 +9,10 @@
     if (typeof window.getGlipWebAppUrl !== "function") return;
     assignmentId = new URLSearchParams(location.search).get("assignment") || "";
     document.getElementById("downloadSubmissionsFolderBtn")?.addEventListener("click", downloadFolder);
+    const cached = window.GLIPStoragePageCache?.get("listTeacherSubmissions");
+    if (cached && cached.status === "success") applyResult(cached);
     load();
+    window.GLIPStoragePageCache?.preloadOthers("listTeacherSubmissions");
   }
 
   function load() {
@@ -20,10 +23,22 @@
       class_teacher_id: assignmentId
     }).then(function (result) {
       if (!result || result.status !== "success") throw new Error(result && result.message || "Could not load submissions.");
-      submissions = result.submissions || [];
-      render();
+      window.GLIPStoragePageCache?.set("listTeacherSubmissions", result);
+      applyResult(result);
     }).catch(function (error) { message(error.message, "error"); })
       .finally(function () { showLoading(false); });
+  }
+
+  function applyResult(result) {
+    submissions = (result.submissions || []).filter(function (row) {
+      return !assignmentId || String(row.class_teacher_id) === String(assignmentId);
+    });
+    const usage = document.getElementById("studentSubmissionsStorageUsage");
+    if (usage && result.storage) {
+      usage.textContent = "Storage used: " + (Number(result.storage.used_bytes || 0) / 1024 / 1024).toFixed(1) +
+        " MB of " + (Number(result.storage.limit_bytes || 0) / 1024 / 1024).toFixed(0) + " MB";
+    }
+    render();
   }
 
   function render() {
@@ -31,7 +46,7 @@
     const table = document.getElementById("studentSubmissionsTable");
     body.innerHTML = submissions.length ? submissions.map(function (row) {
       return '<tr><td>' + esc(row.class_label) + '</td><td>' + esc(row.activity_title) + '</td><td>' + esc(row.student_name) +
-        '</td><td>' + esc(row.file_name) + '</td><td>' + row.version + '</td><td>' + formatDate(row.submitted_at) +
+        '</td><td class="student-work-file">' + esc(row.file_name) + '</td><td>' + row.version + '</td><td>' + formatDate(row.submitted_at) +
         '</td><td><button class="glip-btn" type="button" data-download="' + esc(row.file_id) + '">Download</button></td></tr>';
     }).join("") : '<tr><td colspan="7" class="text-center">No submissions have been received.</td></tr>';
     table.style.visibility = "visible";

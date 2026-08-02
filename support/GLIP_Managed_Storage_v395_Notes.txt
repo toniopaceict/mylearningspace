@@ -1,0 +1,21 @@
+GLIP Managed Storage v395
+
+One small suggestion – folder and file naming
+
+New managed-storage folders use human-readable names:
+- Teacher folder: Surname, Name
+- Class folder: the class code where available (for example 4.1_26)
+- Subject folder: the subject name without a Subject_ prefix
+
+Existing folders are not renamed. Their stored Drive IDs remain authoritative.
+
+Student submission filenames continue to be generated automatically as:
+Surname_Name_Class_ActivityTitle.ext
+Resubmissions use _v2, _v3 and so on.
+
+Class-resource workflow refinements
+- one file may be uploaded to several selected classes
+- storage usage appears on Resources, My GLIP Storage and Student Work
+- Resources, My GLIP Storage and Student Work silently preload one another
+- resource deletion uses the shared GLIP confirmation modal
+- file sizes remain recorded internally for quota calculations but are not shown in the resource table

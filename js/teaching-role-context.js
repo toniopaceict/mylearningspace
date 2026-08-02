@@ -155,7 +155,7 @@
     });
 
     items.push({
-      text: "▧ Class Resources",
+      text: "▧ Resources",
       url: "/mylearningspace/schools/management/class-resources.html"
     });
 
@@ -173,7 +173,7 @@
       });
 
       items.push({
-        text: "▨ Student Submissions",
+        text: "▨ Student Work",
         url: "/mylearningspace/schools/management/student-submissions.html"
       });
     }

@@ -13,7 +13,14 @@
     document.getElementById("downloadAllStorageBtn")?.addEventListener("click", function () {
       downloadFolder("", "all");
     });
+    const cached = window.GLIPStoragePageCache?.get("getTeacherStorageDashboard");
+    if (cached && cached.status === "success") {
+      assignments = cached.assignments || [];
+      renderUsage(cached.storage || {});
+      render();
+    }
     load();
+    window.GLIPStoragePageCache?.preloadOthers("getTeacherStorageDashboard");
   }
 
   function post(data) {
@@ -27,6 +34,7 @@
       teacher_id: sessionStorage.getItem("glipTeacherId") || ""
     }).then(function (result) {
       if (!result || result.status !== "success") throw new Error(result && result.message || "Could not load GLIP storage.");
+      window.GLIPStoragePageCache?.set("getTeacherStorageDashboard", result);
       assignments = result.assignments || [];
       renderUsage(result.storage || {});
       render();
@@ -54,8 +62,8 @@
         '<td>' + esc(item.class_label) + '</td>' +
         '<td>' + (item.storage_ready ? 'Ready' : 'Preparing') + '</td>' +
         '<td><div class="tracker-row" style="justify-content:flex-start">' +
-          '<a class="glip-btn" href="class-resources.html?assignment=' + encodeURIComponent(item.class_teacher_id) + '">Class Resources</a>' +
-          '<a class="glip-btn" href="student-submissions.html?assignment=' + encodeURIComponent(item.class_teacher_id) + '">Student Submissions</a>' +
+          '<a class="glip-btn" href="class-resources.html?assignment=' + encodeURIComponent(item.class_teacher_id) + '">Resources</a>' +
+          '<a class="glip-btn" href="student-submissions.html?assignment=' + encodeURIComponent(item.class_teacher_id) + '">Student Work</a>' +
           '<button class="glip-btn glip-btn-secondary" type="button" data-download-assignment="' + esc(item.class_teacher_id) + '">Download folder</button>' +
         '</div></td></tr>';
     }).join("") : '<tr><td colspan="5" class="text-center">No active teaching assignments were found.</td></tr>';
