@@ -1,0 +1,11 @@
+GLIP v397 – Stabilisation and Performance Release
+
+Key changes
+- Restored Drive hierarchy: Teacher / Class / Subject / Class Resources + Student Submissions.
+- Resource listing avoids Drive folder validation when saved folder IDs already exist.
+- Storage-page preloads are delayed, sequential and teacher-only to prevent competing Apps Script requests.
+- Resource requests are deduplicated in the browser.
+- Student Resources view hides the class filter and teacher bulk controls.
+- Upload messages reset between uploads and follow the actual upload/table-refresh states.
+- Student Subject Management displays Level 4 rather than concatenated values such as Level 426.
+- Asset version 397.

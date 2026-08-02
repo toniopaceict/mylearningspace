@@ -893,8 +893,8 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
 }
 
   function formatLevel(level) {
-    const digits = String(level || "").replace(/\D/g, "");
-    return digits ? "Level " + Number(digits) : String(level || "");
+    const match = String(level || "").match(/\d+/);
+    return match ? "Level " + Number(match[0]) : String(level || "");
   }
 
   function normaliseLevel(level) {

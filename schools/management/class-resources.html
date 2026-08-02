@@ -25,10 +25,13 @@
     .resource-assignment-option input { margin-top: 4px; }
     .resource-upload-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; }
     .resource-upload-controls input[type="file"] { width: min(520px, 100%); }
-    .resource-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin: 14px 0; }
+    .resource-toolbar { display: grid; grid-template-columns: minmax(260px, 520px) auto; gap: 12px; align-items: end; justify-content: start; margin: 14px 0; }
     .resource-toolbar label { display: flex; flex-direction: column; gap: 4px; }
-    .resource-toolbar .resource-search { flex: 1 1 320px; }
-    .resource-toolbar .resource-filter { flex: 0 1 280px; }
+    .resource-toolbar .resource-search { width: min(520px, 100%); }
+    .resource-toolbar .resource-filter { width: 230px; }
+    .resource-filter-group { display: flex; align-items: end; gap: 8px; }
+    .resource-filter-group .glip-btn { margin: 0; }
+    @media (max-width: 760px) { .resource-toolbar { grid-template-columns: 1fr; } .resource-filter-group { flex-wrap: wrap; } }
     .resource-file-cell { overflow-wrap: anywhere; word-break: break-word; }
     .resource-actions { display: flex; gap: 8px; align-items: center; flex-wrap: nowrap; }
     .resource-actions .glip-btn { min-width: 0; padding-left: 12px; padding-right: 12px; }
@@ -72,21 +75,21 @@
       <fieldset class="task-box panel-box topics-box">
         <legend>Available Resources</legend>
         <div class="panel-header">
-          <p class="q panel-top-text">View, download or delete the resources shared with your classes.</p>
+          <p id="availableResourcesIntro" class="q panel-top-text">View, download or delete the resources shared with your classes.</p>
           <p id="classResourcesStorageUsage" class="meta storage-usage"></p>
         </div>
         <div class="resource-toolbar resource-toolbar-compact">
           <label class="resource-search">Search
             <input id="classResourceSearch" class="tracker-input" type="search" placeholder="Search files, subjects or classes">
           </label>
-          <div class="resource-filter-group">
+          <div id="studentResourceFilterGroup" class="resource-filter-group">
             <label class="resource-filter">Class
               <select id="classResourceFilter" class="tracker-input"><option value="">All classes</option></select>
             </label>
             <button id="clearClassResourceFilters" type="button" class="glip-btn glip-btn-secondary">Clear</button>
           </div>
         </div>
-        <div class="resource-bulk-toolbar">
+        <div id="teacherResourceBulkToolbar" class="resource-bulk-toolbar">
           <button id="selectAllVisibleResources" type="button" class="glip-btn glip-btn-secondary">Select all</button>
           <button id="clearSelectedResources" type="button" class="glip-btn glip-btn-secondary">Clear selection</button>
           <button id="downloadSelectedResources" type="button" class="glip-btn" disabled>Download selected</button>
@@ -100,7 +103,8 @@
         <p id="classResourcesMessage" class="panel-message text-center"></p>
         <div class="topics-table-wrap">
           <table id="classResourcesTable" class="topics-table management-table" style="visibility:hidden">
-            <thead><tr><th class="resource-select-column">Select</th><th class="resource-level-column">Level</th><th class="resource-subject-column">Subject</th><th class="resource-class-column">Class</th><th class="resource-file-column">File</th></tr></thead>
+            <thead id="teacherResourceHeader"><tr><th class="resource-select-column">Select</th><th class="resource-level-column">Level</th><th class="resource-subject-column">Subject</th><th class="resource-class-column">Class</th><th class="resource-file-column">File</th></tr></thead>
+            <thead id="studentResourceHeader" hidden><tr><th class="resource-level-column">Level</th><th class="resource-subject-column">Subject</th><th class="resource-class-column">Class</th><th class="resource-file-column">File</th><th>Download</th></tr></thead>
             <tbody id="classResourcesBody"></tbody>
           </table>
         </div>
