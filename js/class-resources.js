@@ -2,6 +2,8 @@
   "use strict";
   let started = false;
   let dataState = { resources: [], assignments: [], can_upload: false, storage: null };
+  let visibleRows = [];
+  const selectedResources = new Set();
 
   document.addEventListener("glipReady", init);
   document.addEventListener("DOMContentLoaded", init);
@@ -9,16 +11,20 @@
   function init() {
     if (started || typeof window.getGlipWebAppUrl !== "function") return;
     started = true;
-    document.getElementById("uploadClassResourceBtn")?.addEventListener("click", upload);
-    document.getElementById("classResourceFile")?.addEventListener("change", updateFileName);
-    document.getElementById("selectAllResourceAssignments")?.addEventListener("click", function () { setAllAssignments(true); });
-    document.getElementById("clearResourceAssignments")?.addEventListener("click", function () { setAllAssignments(false); });
-    document.getElementById("classResourceSearch")?.addEventListener("input", render);
-    document.getElementById("classResourceFilter")?.addEventListener("change", render);
-    document.getElementById("clearClassResourceFilters")?.addEventListener("click", clearFilters);
+    byId("uploadClassResourceBtn")?.addEventListener("click", upload);
+    byId("classResourceFile")?.addEventListener("change", updateFileName);
+    byId("selectAllResourceAssignments")?.addEventListener("click", function () { setAllAssignments(true); });
+    byId("clearResourceAssignments")?.addEventListener("click", function () { setAllAssignments(false); });
+    byId("classResourceSearch")?.addEventListener("input", render);
+    byId("classResourceFilter")?.addEventListener("change", render);
+    byId("clearClassResourceFilters")?.addEventListener("click", clearFilters);
+    byId("selectAllVisibleResources")?.addEventListener("click", selectAllVisible);
+    byId("clearSelectedResources")?.addEventListener("click", clearSelected);
+    byId("downloadSelectedResources")?.addEventListener("click", downloadSelected);
+    byId("deleteSelectedResources")?.addEventListener("click", confirmDeleteSelected);
 
     const cached = window.GLIPStoragePageCache?.get("listMyClassResources");
-    if (cached) applyResult(cached, false);
+    if (cached) applyResult(cached);
     load(true);
     window.GLIPStoragePageCache?.preloadOthers("listMyClassResources");
   }
@@ -32,179 +38,149 @@
     }).then(function (result) {
       if (!result || result.status !== "success") throw new Error(result && result.message || "Could not load resources.");
       window.GLIPStoragePageCache?.set("listMyClassResources", result);
-      applyResult(result, true);
+      applyResult(result);
       return result;
-    }).catch(function (error) { tableMessage(error.message, "error"); })
-      .finally(function () { loading(false); });
+    }).finally(function () { loading(false); });
   }
 
   function applyResult(result) {
     dataState = result;
-    populateAssignments();
-    populateFilter();
-    renderUsage(result.storage || {});
-    render();
+    populateAssignments(); populateFilter(); renderUsage(result.storage || {}); render();
   }
 
   function populateAssignments() {
-    const list = document.getElementById("resourceAssignmentList");
-    const panel = document.getElementById("teacherResourceUploadPanel");
+    const list = byId("resourceAssignmentList"), panel = byId("teacherResourceUploadPanel");
     if (!list || !panel) return;
     panel.hidden = !dataState.can_upload;
     const query = new URLSearchParams(location.search).get("assignment") || "";
     list.innerHTML = (dataState.assignments || []).map(function (item) {
       const checked = query && String(item.class_teacher_id) === query ? " checked" : "";
       return '<label class="resource-assignment-option"><input type="checkbox" value="' + esc(item.class_teacher_id) + '"' + checked + '>' +
-        '<span>' + esc(formatLevel(item.level) + " – " + item.class_label + " – " + item.subject_name) + '</span></label>';
+        '<span>' + esc(formatLevel(item.level) + " – " + formatClassLabel(item.class_label) + " – " + item.subject_name) + '</span></label>';
     }).join("") || '<p class="meta">No active teaching assignments are available.</p>';
   }
 
   function populateFilter() {
-    const select = document.getElementById("classResourceFilter");
-    if (!select) return;
-    const current = select.value;
-    const options = {};
+    const select = byId("classResourceFilter"); if (!select) return;
+    const current = select.value, options = {};
     (dataState.resources || []).forEach(function (row) {
-      options[String(row.class_teacher_id)] = formatLevel(row.level) + " – " + row.class_label + " – " + row.subject_name;
+      options[String(row.class_teacher_id)] = formatLevel(row.level) + " – " + formatClassLabel(row.class_label) + " – " + row.subject_name;
     });
-    select.innerHTML = '<option value="">All classes</option>' + Object.keys(options).sort(function (a, b) {
-      return options[a].localeCompare(options[b], "en-GB");
-    }).map(function (id) { return '<option value="' + esc(id) + '">' + esc(options[id]) + '</option>'; }).join("");
+    select.innerHTML = '<option value="">All classes</option>' + Object.keys(options).sort(function(a,b){return options[a].localeCompare(options[b],"en-GB");}).map(function(id){return '<option value="'+esc(id)+'">'+esc(options[id])+'</option>';}).join("");
     if (options[current]) select.value = current;
   }
 
   function renderUsage(storage) {
-    const el = document.getElementById("classResourcesStorageUsage");
-    if (!el || !storage) return;
-    el.textContent = "Storage used: " + formatMegabytes(storage.used_bytes) + " MB of " + formatMegabytes(storage.limit_bytes, 0) + " MB";
+    const el = byId("classResourcesStorageUsage"); if (!el || !storage) return;
+    el.textContent = "Storage used: " + mb(storage.used_bytes) + " MB of " + mb(storage.limit_bytes, 0) + " MB";
+  }
+
+  function filteredRows() {
+    const query = String(byId("classResourceSearch")?.value || "").trim().toLowerCase();
+    const assignment = byId("classResourceFilter")?.value || "";
+    return (dataState.resources || []).filter(function(row){
+      if (assignment && String(row.class_teacher_id) !== assignment) return false;
+      if (!query) return true;
+      return [row.file_name,row.subject_name,row.class_label,formatLevel(row.level)].some(function(v){return String(v||"").toLowerCase().includes(query);});
+    });
   }
 
   function render() {
-    const body = document.getElementById("classResourcesBody");
-    const table = document.getElementById("classResourcesTable");
-    if (!body || !table) return;
-    const query = String(document.getElementById("classResourceSearch")?.value || "").trim().toLowerCase();
-    const assignment = document.getElementById("classResourceFilter")?.value || "";
-    const rows = (dataState.resources || []).filter(function (row) {
-      if (assignment && String(row.class_teacher_id) !== assignment) return false;
-      if (!query) return true;
-      return [row.file_name, row.subject_name, row.class_label, formatLevel(row.level)].some(function (value) {
-        return String(value || "").toLowerCase().includes(query);
-      });
-    });
-
-    body.innerHTML = rows.length ? rows.map(function (row) {
-      return '<tr><td>' + esc(formatLevel(row.level)) + '</td><td>' + esc(row.subject_name) +
-        '</td><td>' + esc(row.class_label) + '</td><td class="resource-file-cell">' + esc(row.file_name) +
-        '</td><td><div class="resource-actions"><button class="glip-btn" type="button" data-download="' + esc(row.file_id) + '" title="Download">Download</button>' +
-        (dataState.can_upload ? '<button class="glip-btn glip-btn-danger" type="button" data-delete="' + esc(row.resource_id) + '" data-name="' + esc(row.file_name) + '" title="Delete">Delete</button>' : '') + '</div></td></tr>';
+    const body = byId("classResourcesBody"), table = byId("classResourcesTable"); if (!body || !table) return;
+    visibleRows = filteredRows();
+    body.innerHTML = visibleRows.length ? visibleRows.map(function(row){
+      const checked = selectedResources.has(String(row.resource_id)) ? " checked" : "";
+      return '<tr data-resource-row="'+esc(row.resource_id)+'"><td class="resource-select-column"><input type="checkbox" class="resource-row-select" value="'+esc(row.resource_id)+'"'+checked+' aria-label="Select '+esc(row.file_name)+'"></td>'+
+        '<td>'+esc(formatLevel(row.level))+'</td><td>'+esc(row.subject_name)+'</td><td>'+esc(formatClassLabel(row.class_label))+'</td><td class="resource-file-cell">'+esc(row.file_name)+'</td></tr>';
     }).join("") : '<tr><td colspan="5" class="text-center">No resources match the current selection.</td></tr>';
     table.style.visibility = "visible";
-
-    body.querySelectorAll("[data-download]").forEach(function (button) {
-      button.addEventListener("click", function () {
-        tableMessage("Preparing file...", "info");
-        window.GLIPStorageDownload.downloadFile(button.dataset.download)
-          .then(function () { tableMessage("File downloaded.", "success"); })
-          .catch(function (error) { tableMessage(error.message, "error"); });
-      });
-    });
-    body.querySelectorAll("[data-delete]").forEach(function (button) {
-      button.addEventListener("click", function () { confirmDelete(button); });
-    });
+    body.querySelectorAll(".resource-row-select").forEach(function(input){input.addEventListener("change",function(){ if(input.checked) selectedResources.add(input.value); else selectedResources.delete(input.value); updateBulkControls(); });});
+    updateBulkControls();
   }
 
-  function confirmDelete(button) {
-    const performDelete = function () {
-      tableMessage("Deleting resource...", "info");
-      window.GLIPStorageDownload.post({
-        action: "deleteClassResource",
-        teacher_id: sessionStorage.getItem("glipTeacherId") || "",
-        resource_id: button.dataset.delete
-      }).then(function (result) {
-        if (!result || result.status !== "success") throw new Error(result && result.message || "Could not delete the resource.");
-        tableMessage(result.message, "success");
-        window.GLIPStoragePageCache?.clear();
-        return load(false);
-      }).then(function () { window.GLIPStoragePageCache?.preloadOthers("listMyClassResources"); })
-        .catch(function (error) { tableMessage(error.message, "error"); });
-    };
+  function selectAllVisible(){ visibleRows.forEach(function(r){selectedResources.add(String(r.resource_id));}); render(); }
+  function clearSelected(){ selectedResources.clear(); render(); }
+  function updateBulkControls(){
+    const count = selectedResources.size;
+    ["downloadSelectedResources","deleteSelectedResources"].forEach(function(id){const el=byId(id); if(el) el.disabled=!count;});
+    const label=byId("selectedResourceCount"); if(label) label.textContent=count+" selected";
+  }
 
-    if (typeof window.showGlipConfirmModal === "function") {
-      window.showGlipConfirmModal({
-        title: "Delete resource",
-        bodyHtml: "<p>Delete <strong>" + esc(button.dataset.name) + "</strong>?</p><p>This file will no longer be available to students.</p>",
-        noConfirmationInput: true,
-        dangerous: true,
-        extraButtonText: "Delete",
-        extraButtonAction: performDelete
-      });
+  function selectedRows(){return (dataState.resources||[]).filter(function(r){return selectedResources.has(String(r.resource_id));});}
+
+  function downloadSelected(){
+    const rows=selectedRows(); if(!rows.length) return;
+    tableMessage("Preparing selected resources...","info");
+    if(rows.length===1){
+      window.GLIPStorageDownload.downloadFile(rows[0].file_id).then(function(){tableMessage("File downloaded.","success");}).catch(function(e){tableMessage(e.message,"error");});
       return;
     }
-    performDelete();
+    window.GLIPStorageDownload.post({action:"downloadSelectedClassResources",teacher_id:teacherId(),resource_ids:rows.map(function(r){return r.resource_id;})})
+      .then(function(result){window.GLIPStorageDownload.downloadBase64(result);tableMessage("Selected resources downloaded.","success");})
+      .catch(function(e){tableMessage(e.message,"error");});
   }
 
-  async function upload() {
-    const assignmentIds = Array.from(document.querySelectorAll("#resourceAssignmentList input[type=checkbox]:checked"))
-      .map(function (input) { return input.value; });
-    const input = document.getElementById("classResourceFile");
-    const file = input && input.files ? input.files[0] : null;
-    if (!assignmentIds.length) { uploadMessage("Select at least one class before uploading.", "error"); return; }
-    if (!file) { uploadMessage("Choose a file before uploading.", "error"); return; }
-    if (file.size > 10 * 1024 * 1024) { uploadMessage("The file is too large. The maximum size is 10 MB.", "error"); return; }
+  function confirmDeleteSelected(){
+    const rows=selectedRows(); if(!rows.length) return;
+    const doDelete=function(){deleteSelected(rows);};
+    if(typeof window.showGlipConfirmModal==="function"){
+      window.showGlipConfirmModal({title:"Delete resources",bodyHtml:"<p>Delete <strong>"+rows.length+" selected resource"+(rows.length===1?"":"s")+"</strong>?</p><p>The files will no longer be available to students.</p>",noConfirmationInput:true,dangerous:true,extraButtonText:"Delete",extraButtonAction:doDelete});
+    } else doDelete();
+  }
 
-    const button = document.getElementById("uploadClassResourceBtn");
+  function deleteSelected(rows){
+    const ids=rows.map(function(r){return String(r.resource_id);});
+    const previous=(dataState.resources||[]).slice();
+    dataState.resources=(dataState.resources||[]).filter(function(r){return ids.indexOf(String(r.resource_id))===-1;});
+    ids.forEach(function(id){selectedResources.delete(id);});
+    render(); tableMessage("Deleting selected resources...","info");
+    window.GLIPStorageDownload.post({action:"deleteClassResources",teacher_id:teacherId(),resource_ids:ids})
+      .then(function(result){if(!result||result.status!=="success")throw new Error(result&&result.message||"Could not delete resources."); invalidateStorageCaches(); tableMessage(result.message||"Resources deleted.","success"); return load(false);})
+      .then(function(){window.GLIPStoragePageCache?.preloadOthers("listMyClassResources");})
+      .catch(function(error){dataState.resources=previous;render();tableMessage(error.message,"error");});
+  }
+
+  async function upload(){
+    const assignmentIds=Array.from(document.querySelectorAll("#resourceAssignmentList input[type=checkbox]:checked")).map(function(i){return i.value;});
+    const input=byId("classResourceFile"), file=input&&input.files?input.files[0]:null;
+    if(!assignmentIds.length){uploadMessage("Select at least one class before uploading.","error");return;}
+    if(!file){uploadMessage("Choose a file before uploading.","error");return;}
+    if(file.size>10*1024*1024){uploadMessage("The file is too large. The maximum size is 10 MB.","error");return;}
     setUploading(true);
-    try {
-      const result = await window.GLIPStorageDownload.post({
-        action: "uploadClassResources",
-        teacher_id: sessionStorage.getItem("glipTeacherId") || "",
-        class_teacher_ids: assignmentIds,
-        file_name: file.name,
-        file_size_bytes: file.size,
-        mime_type: file.type || "application/octet-stream",
-        file_base64: await toBase64(file)
-      });
-      if (!result || result.status !== "success") throw new Error(result && result.message || "Upload failed.");
-      uploadMessage(result.message, "success");
-      input.value = "";
-      setFileNameStatus("Uploaded file:", result.file_name || file.name);
-      window.GLIPStoragePageCache?.clear();
+    try{
+      const result=await window.GLIPStorageDownload.post({action:"uploadClassResources",teacher_id:teacherId(),class_teacher_ids:assignmentIds,file_name:file.name,file_size_bytes:file.size,mime_type:file.type||"application/octet-stream",file_base64:await toBase64(file)});
+      if(!result||result.status!=="success")throw new Error(result&&result.message||"Upload failed.");
+      uploadMessage(result.message||"Resource uploaded successfully.","success");
+      input.value=""; hideFileStatus();
+      setUploadStage("Updating the resources table...");
+      invalidateStorageCaches();
       await load(false);
+      uploadMessage("Resources table updated.","success");
+      setUploadStage("");
       window.GLIPStoragePageCache?.preloadOthers("listMyClassResources");
-    } catch (error) {
-      uploadMessage(error.message, "error");
-    } finally {
-      setUploading(false);
-    }
+    }catch(error){uploadMessage(error.message,"error");}
+    finally{setUploading(false);}
   }
 
-  function setUploading(isUploading) {
-    const button = document.getElementById("uploadClassResourceBtn");
-    const progress = document.getElementById("classResourceUploadProgress");
-    if (button) { button.disabled = isUploading; button.textContent = isUploading ? "Uploading..." : "Upload resource"; }
-    if (progress) progress.classList.toggle("show", isUploading);
+  function updateFileName(){
+    const input=byId("classResourceFile"), file=input&&input.files?input.files[0]:null, status=byId("classResourceFileStatus"), name=byId("classResourceFileName");
+    if(!status||!name)return;
+    if(file){status.hidden=false;name.textContent=file.name;}else{status.hidden=true;name.textContent="";}
   }
-
-  function setAllAssignments(checked) {
-    document.querySelectorAll("#resourceAssignmentList input[type=checkbox]").forEach(function (input) { input.checked = checked; });
-  }
-
-  function clearFilters() {
-    const search = document.getElementById("classResourceSearch");
-    const filter = document.getElementById("classResourceFilter");
-    if (search) search.value = "";
-    if (filter) filter.value = "";
-    render();
-  }
-
-  function toBase64(file) { return new Promise(function (resolve, reject) { const reader = new FileReader(); reader.onload = function () { resolve(String(reader.result).split(",")[1] || ""); }; reader.onerror = reject; reader.readAsDataURL(file); }); }
-  function updateFileName() { const file = document.getElementById("classResourceFile")?.files?.[0]; setFileNameStatus("Selected file:", file ? file.name : "No file selected"); }
-  function setFileNameStatus(label, fileName) { const labelEl = document.getElementById("classResourceFileLabel"); const nameEl = document.getElementById("classResourceFileName"); if (labelEl) labelEl.textContent = label || "Selected file:"; if (nameEl) nameEl.textContent = fileName || "No file selected"; }
-  function loading(show) { const el = document.getElementById("classResourcesLoading"); if (el) el.style.display = show ? "block" : "none"; }
-  function uploadMessage(value, type) { const el = document.getElementById("classResourceUploadMessage"); if (el) { el.textContent = value || ""; el.className = "panel-message text-center " + (type || ""); } }
-  function tableMessage(value, type) { const el = document.getElementById("classResourcesMessage"); if (el) { el.textContent = value || ""; el.className = "panel-message text-center " + (type || ""); } }
-  function formatLevel(v) { const m = String(v || "").match(/\d+/); return m ? "Level " + Number(m[0]) : String(v || ""); }
-  function formatMegabytes(bytes, decimals) { const n = Number(bytes || 0) / 1024 / 1024; return n.toFixed(decimals == null ? 1 : decimals); }
-  function esc(v) { return String(v || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&#039;"); }
+  function hideFileStatus(){const status=byId("classResourceFileStatus"),name=byId("classResourceFileName");if(status)status.hidden=true;if(name)name.textContent="";}
+  function setUploadStage(text){const el=byId("classResourceUploadStage");if(el){el.textContent=text||"";el.hidden=!text;}}
+  function setUploading(value){const b=byId("uploadClassResourceBtn"),p=byId("classResourceUploadProgress");if(b){b.disabled=value;b.textContent=value?"Uploading...":"Upload resource";}if(p)p.classList.toggle("show",value||!!byId("classResourceUploadStage")?.textContent);}
+  function setAllAssignments(v){document.querySelectorAll("#resourceAssignmentList input[type=checkbox]").forEach(function(i){i.checked=v;});}
+  function clearFilters(){if(byId("classResourceSearch"))byId("classResourceSearch").value="";if(byId("classResourceFilter"))byId("classResourceFilter").value="";render();}
+  function invalidateStorageCaches(){window.GLIPStoragePageCache?.clear(["listMyClassResources","getTeacherStorageDashboard","listTeacherSubmissions"]);}
+  function toBase64(file){return new Promise(function(resolve,reject){const r=new FileReader();r.onload=function(){resolve(String(r.result).split(",")[1]||"");};r.onerror=reject;r.readAsDataURL(file);});}
+  function uploadMessage(v,t){const el=byId("classResourceUploadMessage");if(el){el.textContent=v||"";el.className="panel-message text-center "+(t||"");}}
+  function tableMessage(v,t){const el=byId("classResourcesMessage");if(el){el.textContent=v||"";el.className="panel-message text-center "+(t||"");}}
+  function loading(v){const el=byId("classResourcesLoading");if(el)el.style.display=v?"block":"none";}
+  function teacherId(){return sessionStorage.getItem("glipTeacherId")||"";}
+  function formatLevel(v){const m=String(v||"").match(/\d+/);return m?"Level "+Number(m[0]):String(v||"");}
+  function formatClassLabel(v){return String(v||"").replace(/_(\d{2,4})$/, "-$1");}
+  function mb(v,d){return (Number(v||0)/1024/1024).toFixed(d===undefined?1:d);}
+  function byId(id){return document.getElementById(id);}
+  function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 })();

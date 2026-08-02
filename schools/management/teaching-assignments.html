@@ -64,7 +64,7 @@ Help file:
 <option value="">Select level first</option>
 </select>
 </div>
-<p class="glip-planning-note text-center">GLIP creates the Class Resources and Student Submissions storage automatically.</p>
+
 <div class="tracker-row">
 <label class="form-check">
 <input checked="" id="newClassTeacherActive" type="checkbox"/>
@@ -76,6 +76,7 @@ Help file:
             Save Assignment
           </button>
 </div>
+<div id="saveClassTeacherProgress" class="glip-progress" role="progressbar" aria-label="Creating teaching assignment"><div class="glip-progress-bar"></div></div>
 <p class="panel-message text-center" id="addClassTeacherMessage"></p>
 <div class="page-loading-box text-center" id="classTeachersLoadingProgress" style="display: none">
 <div class="glip-progress show topics-progress">
@@ -115,9 +116,6 @@ Help file:
     </th>
 <th data-label="Class" data-sort-field="class_id">
       Class ↕
-    </th>
-<th data-label="Storage" data-sort-field="storage_ready">
-      GLIP Storage ↕
     </th>
 <th class="assignment-status-column" data-label="Status" data-sort-field="active">
       Status ↕

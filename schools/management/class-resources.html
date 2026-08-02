@@ -63,9 +63,10 @@
           <input id="classResourceFile" type="file" class="tracker-input">
           <button id="uploadClassResourceBtn" type="button" class="glip-btn">Upload resource</button>
         </div>
-        <p class="meta text-center"><strong id="classResourceFileLabel">Selected file:</strong> <span id="classResourceFileName">No file selected</span></p>
+        <p id="classResourceFileStatus" class="meta text-center" hidden><strong>Selected file:</strong> <span id="classResourceFileName"></span></p>
         <div id="classResourceUploadProgress" class="glip-progress" role="progressbar" aria-label="Uploading class resource"><div class="glip-progress-bar"></div></div>
         <p id="classResourceUploadMessage" class="panel-message text-center"></p>
+        <p id="classResourceUploadStage" class="meta text-center" hidden></p>
       </fieldset>
 
       <fieldset class="task-box panel-box topics-box">
@@ -74,14 +75,23 @@
           <p class="q panel-top-text">View, download or delete the resources shared with your classes.</p>
           <p id="classResourcesStorageUsage" class="meta storage-usage"></p>
         </div>
-        <div class="resource-toolbar">
+        <div class="resource-toolbar resource-toolbar-compact">
           <label class="resource-search">Search
             <input id="classResourceSearch" class="tracker-input" type="search" placeholder="Search files, subjects or classes">
           </label>
-          <label class="resource-filter">Class
-            <select id="classResourceFilter" class="tracker-input"><option value="">All classes</option></select>
-          </label>
-          <button id="clearClassResourceFilters" type="button" class="glip-btn glip-btn-secondary">Clear</button>
+          <div class="resource-filter-group">
+            <label class="resource-filter">Class
+              <select id="classResourceFilter" class="tracker-input"><option value="">All classes</option></select>
+            </label>
+            <button id="clearClassResourceFilters" type="button" class="glip-btn glip-btn-secondary">Clear</button>
+          </div>
+        </div>
+        <div class="resource-bulk-toolbar">
+          <button id="selectAllVisibleResources" type="button" class="glip-btn glip-btn-secondary">Select all</button>
+          <button id="clearSelectedResources" type="button" class="glip-btn glip-btn-secondary">Clear selection</button>
+          <button id="downloadSelectedResources" type="button" class="glip-btn" disabled>Download selected</button>
+          <button id="deleteSelectedResources" type="button" class="glip-btn glip-btn-danger" disabled>Delete selected</button>
+          <span id="selectedResourceCount" class="meta">0 selected</span>
         </div>
         <div id="classResourcesLoading" class="page-loading-box text-center">
           <div class="glip-progress show"><div class="glip-progress-bar"></div></div>
@@ -90,7 +100,7 @@
         <p id="classResourcesMessage" class="panel-message text-center"></p>
         <div class="topics-table-wrap">
           <table id="classResourcesTable" class="topics-table management-table" style="visibility:hidden">
-            <thead><tr><th>Level</th><th>Subject</th><th>Class</th><th>File</th><th>Actions</th></tr></thead>
+            <thead><tr><th class="resource-select-column">Select</th><th class="resource-level-column">Level</th><th class="resource-subject-column">Subject</th><th class="resource-class-column">Class</th><th class="resource-file-column">File</th></tr></thead>
             <tbody id="classResourcesBody"></tbody>
           </table>
         </div>

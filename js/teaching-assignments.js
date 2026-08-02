@@ -276,7 +276,6 @@ fields: [
   { value: "level", label: "Level", getValue: function (assignment) { return getLevelLabel(assignment); } },
   { value: "subject_id", label: "Subject", getValue: function (assignment) { return getSubjectName(assignment.subject_id, assignment.level); } },
   { value: "class_id", label: "Class" },
-  { value: "storage_ready", label: "GLIP Storage", getValue: function () { return "Managed by GLIP"; } },
   { value: "active", label: "Status", getValue: getAssignmentStatusText }
 ],
     onChange: function () {
@@ -312,7 +311,7 @@ fields: [
 
       tbody.innerHTML = `
         <tr>
-          <td colspan="6">Could not load assignments.</td>
+          <td colspan="5">Could not load assignments.</td>
         </tr>
       `;
     });
@@ -445,6 +444,15 @@ function populateSubjectDropdownForLevel(level, select, selectedSubjectId) {
     select.disabled = classesForLevel.length === 0;
   }
 
+  function setAddAssignmentSaving(isSaving) {
+    const button = document.getElementById("saveClassTeacherBtn");
+    const progress = document.getElementById("saveClassTeacherProgress");
+    const controls = document.querySelectorAll("#addClassTeacherPanel select, #addClassTeacherPanel input, #addClassTeacherPanel button");
+    controls.forEach(function (control) { control.disabled = isSaving; });
+    if (button) { button.disabled = isSaving; button.textContent = isSaving ? "Creating storage..." : "Save Assignment"; }
+    if (progress) progress.classList.toggle("show", isSaving);
+  }
+
   function saveClassTeacherAssignment() {
     const teacherId = document.getElementById("newClassTeacherTeacher").value.trim();
     const level = document.getElementById("newClassTeacherLevel").value.trim();
@@ -457,15 +465,16 @@ function populateSubjectDropdownForLevel(level, select, selectedSubjectId) {
     const classInfo = getClassInfoById(classId) || {};
     const subjectInfo = getSubjectInfoByLevel(subjectId, normalisedLevel) || {};
     const temporaryId = "pending-assignment-" + Date.now();
+    setAddAssignmentSaving(true);
     currentAssignments.push({ assignment_id: temporaryId, teacher_id: teacherId, teacher_name: teacherInfo.teacher_name, teacher_surname: teacherInfo.teacher_surname, full_name: teacherInfo.full_name || [teacherInfo.teacher_name, teacherInfo.teacher_surname].filter(Boolean).join(" "), teacher_active: teacherInfo.active !== false, level: normalisedLevel, level_active: classInfo.level_active !== false, subject_id: subjectId, subject_name: subjectInfo.subject_name || subjectId, subject_code: subjectInfo.subject_code, curriculum_active: subjectInfo.curriculum_active !== false && subjectInfo.active !== false, class_id: classId, class_active: classInfo.active !== false, active: active, pending_save: true, pending_state: "saving" });
     renderAssignments(currentAssignments); clearAddForm();
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "addClassTeacherAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), role: getCurrentRole(), teacher_id: teacherId, level: normalisedLevel, subject_id: subjectId, class_id: classId, active: active }); },
       failureMessage: "Could not save assignment.",
-      onSuccess: function (result) { const row = currentAssignments.find(function (item) { return String(item.assignment_id) === temporaryId; }); if (row) { row.assignment_id = result.class_teacher_id || row.assignment_id; GLIPOptimisticUpdate.markSaved(row); } setAddMessage(result.message || "Assignment saved.", "success"); },
+      onSuccess: function (result) { const row = currentAssignments.find(function (item) { return String(item.assignment_id) === temporaryId; }); if (row) { row.assignment_id = result.class_teacher_id || row.assignment_id; GLIPOptimisticUpdate.markSaved(row); } setAddMessage(result.message || "Assignment saved.", "success"); setAddAssignmentSaving(false); },
       resync: resyncAssignmentsSilently,
       rollback: function () { currentAssignments = currentAssignments.filter(function (item) { return String(item.assignment_id) !== temporaryId; }); renderAssignments(currentAssignments); },
-      onFailure: function (error) { setAddMessage(error.message || "Could not save assignment. The temporary row was removed.", "error"); }
+      onFailure: function (error) { setAddMessage(error.message || "Could not save assignment. The temporary row was removed.", "error"); setAddAssignmentSaving(false); }
     });
   }
 
@@ -575,12 +584,6 @@ function formatAssignmentClassCell(assignment) {
   );
 }
   
-function formatStorageStatus(assignment) {
-  return assignment && assignment.storage_ready === false
-    ? "Preparing..."
-    : "Managed by GLIP";
-}
-
 function renderAssignments(assignments) {
     const tbody = document.getElementById("classTeachersTableBody");
     if (!tbody) return;
@@ -591,7 +594,7 @@ const filteredAssignments =
     if (!filteredAssignments.length) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="6">No teaching assignments found.</td>
+          <td colspan="5">No teaching assignments found.</td>
         </tr>
       `;
       return;
@@ -610,7 +613,6 @@ const filteredAssignments =
     <td>${formatAssignmentLevelCell(assignment)}</td>
     <td>${formatAssignmentSubjectCell(assignment)}</td>
     <td>${formatAssignmentClassCell(assignment)}</td>
-    <td>${formatStorageStatus(assignment)}</td>
     <td>${getAssignmentStatusText(assignment)}</td>
   </tr>
 `;
@@ -662,8 +664,6 @@ function renderAssignmentEditRow(assignment) {
           )}
         </select>
       </td>
-
-      <td>Managed by GLIP</td>
 
       <td>
         <select class="tracker-input" data-assignment-field="active">

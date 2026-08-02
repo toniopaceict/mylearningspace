@@ -1,0 +1,12 @@
+GLIP v396 implementation
+
+Key changes:
+- New Drive structure: Teacher / Class / Subject - Resources and Subject - Student Work.
+- TeachingAssignments uses resources_folder_id and student_work_folder_id. Legacy columns are no longer created.
+- Root and assignment folders self-heal when stored folders are missing or in the Bin.
+- Teaching Assignment creation shows a progress bar and disables controls while folders are created.
+- Storage column removed from Teaching Assignments table; Subject widened.
+- Resources page has multi-class upload, staged refresh messages, hidden empty filename status, bulk selection/download/delete, compact filters, improved widths and class labels.
+- Resource deletion is optimistic and invalidates all storage caches.
+
+Deployment: Apps Script first, then GitHub. Create a new web-app deployment version. Hard refresh after GitHub Pages publishes.
