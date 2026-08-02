@@ -701,18 +701,34 @@
     }, "cache_warm", "admin_login_background", target, jobId), jobId,
       { priority: 8, minIdleMs: BACKGROUND_WARM_IDLE_MS })
       .then(function (result) {
-        if (!result || result.status !== "success" || !window.GLIP_CACHE) return result;
-        const byLevel = result.subjects_by_level || {};
-        pendingLevels.forEach(function (level) {
-          const key = subjectCacheKeyForLevel(level);
-          if (key) window.GLIP_CACHE.writeLocal(key, Array.isArray(byLevel[level]) ? byLevel[level] : []);
-        });
+        if (!result || result.status !== "success") {
+          // Permission and validation failures are permanent for this login
+          // session. Mark all requested levels as handled so the background
+          // queue cannot retry the same failed request indefinitely.
+          if (result && (result.permanent === true || /access is required/i.test(String(result.message || "")))) {
+            return {
+              status: "permanent_failure",
+              permanent: true,
+              message: result.message || "Background warming is not available for this role.",
+              completed_levels: pendingLevels.slice()
+            };
+          }
+          return result;
+        }
+
+        if (window.GLIP_CACHE) {
+          const byLevel = result.subjects_by_level || {};
+          pendingLevels.forEach(function (level) {
+            const key = subjectCacheKeyForLevel(level);
+            if (key) window.GLIP_CACHE.writeLocal(key, Array.isArray(byLevel[level]) ? byLevel[level] : []);
+          });
+        }
         result.completed_levels = pendingLevels.slice();
         return result;
       })
       .catch(function (error) {
         console.warn("Admin Subjects Home bundle warming failed:", error);
-        return null;
+        return { status: "temporary_failure", completed_levels: [] };
       })
       .finally(function () { releaseWarmJob(jobId); });
   }
@@ -754,13 +770,21 @@
           return waitForBackgroundPermission()
             .then(function () { return warmAdminSubjectBundle(apiUrl, levels); })
             .then(function (result) {
-              if (!result || result.status !== "success") return;
-              const completed = Array.isArray(result.completed_levels) ? result.completed_levels : levels;
+              if (!result) return;
+
+              const successful = result.status === "success";
+              const permanentFailure = result.status === "permanent_failure" || result.permanent === true;
+              if (!successful && !permanentFailure) return;
+
+              const completed = Array.isArray(result.completed_levels)
+                ? result.completed_levels
+                : levels;
               const latest = readAdminBackgroundQueue();
               if (!latest) return;
               latest.subjectLevels = (latest.subjectLevels || []).filter(function (item) {
                 return completed.indexOf(item) === -1;
               });
+              if (permanentFailure) latest.warmSubjectsHome = false;
               writeAdminBackgroundQueue(latest);
             })
             .then(function () { return sleep(WARMING_GAP_MS); })
