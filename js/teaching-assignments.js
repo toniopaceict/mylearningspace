@@ -85,7 +85,7 @@
     "listLevelsAdmin",
     "listClassesAdmin",
     "getAllSubjectsAdmin",
-    "listClassTeachersAdmin"
+    "listTeachingAssignmentViewAdmin"
   ]);
 
   function postToGlip(data, retryCount) {
@@ -293,7 +293,7 @@ fields: [
     setLoadingState(true);
 
     postToGlip({
-      action: "listClassTeachersAdmin",
+      action: "listTeachingAssignmentViewAdmin",
       admin_teacher_id: sessionStorage.getItem("glipTeacherId"),
       role: getCurrentRole()
     }).then(function (result) {
@@ -696,7 +696,7 @@ function renderAssignmentEditRow(assignment) {
 
   function resyncAssignmentsSilently() {
     postToGlip({
-      action: "listClassTeachersAdmin",
+      action: "listTeachingAssignmentViewAdmin",
       admin_teacher_id: sessionStorage.getItem("glipTeacherId"),
       role: getCurrentRole()
     }).then(function (result) {
@@ -1196,6 +1196,6 @@ if (activeCheckbox) {
     if (event.detail.action === "listTeachersAdmin") loadTeachers().then(populateAddDropdowns);
     if (event.detail.action === "listClassesAdmin") loadClasses().then(populateAddDropdowns);
     if (event.detail.action === "getAllSubjectsAdmin") loadSubjects().then(populateAddDropdowns);
-    if (event.detail.action === "listClassTeachersAdmin" && !classTeachersEditMode) loadAssignments();
+    if (event.detail.action === "listTeachingAssignmentViewAdmin" && !classTeachersEditMode) loadAssignments();
   });
 })();

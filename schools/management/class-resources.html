@@ -25,9 +25,9 @@
     .resource-assignment-option input { margin-top: 4px; }
     .resource-upload-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; }
     .resource-upload-controls input[type="file"] { width: min(520px, 100%); }
-    .resource-toolbar { display: grid; grid-template-columns: minmax(260px, 520px) auto; gap: 12px; align-items: end; justify-content: start; margin: 14px 0; }
+    .resource-toolbar { display: grid; grid-template-columns: minmax(220px, 300px) auto; gap: 24px; align-items: end; justify-content: start; margin: 14px 0; }
     .resource-toolbar label { display: flex; flex-direction: column; gap: 4px; }
-    .resource-toolbar .resource-search { width: min(520px, 100%); }
+    .resource-toolbar .resource-search { width: min(300px, 100%); }
     .resource-toolbar .resource-filter { width: 230px; }
     .resource-filter-group { display: flex; align-items: end; gap: 8px; }
     .resource-filter-group .glip-btn { margin: 0; }
@@ -100,6 +100,8 @@
           <div class="glip-progress show"><div class="glip-progress-bar"></div></div>
           <p>Loading resources...</p>
         </div>
+        <div id="classResourcesDeleteProgress" class="glip-progress" role="progressbar" aria-label="Deleting class resources"><div class="glip-progress-bar"></div></div>
+        <p id="classResourcesDeleteStage" class="meta text-center" hidden></p>
         <p id="classResourcesMessage" class="panel-message text-center"></p>
         <div class="topics-table-wrap">
           <table id="classResourcesTable" class="topics-table management-table" style="visibility:hidden">

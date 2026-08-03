@@ -29,9 +29,7 @@
     applyRoleLayout();
     const cached = window.GLIPStoragePageCache?.get("listMyClassResources");
     if (cached) applyResult(cached);
-    load(true).finally(function () {
-      window.GLIPStoragePageCache?.preloadOthers("listMyClassResources");
-    });
+    load(true);
   }
 
   function load(showSpinner) {
@@ -151,11 +149,25 @@
     const previous=(dataState.resources||[]).slice();
     dataState.resources=(dataState.resources||[]).filter(function(r){return ids.indexOf(String(r.resource_id))===-1;});
     ids.forEach(function(id){selectedResources.delete(id);});
-    render(); tableMessage("Deleting selected resources...","info");
+    setDeleting(true, ids.length);
+    render();
     window.GLIPStorageDownload.post({action:"deleteClassResources",teacher_id:teacherId(),resource_ids:ids})
-      .then(function(result){if(!result||result.status!=="success")throw new Error(result&&result.message||"Could not delete resources."); invalidateStorageCaches(); tableMessage(result.message||"Resources deleted.","success"); return load(false);})
-      .then(function(){window.GLIPStoragePageCache?.preloadOthers("listMyClassResources");})
-      .catch(function(error){dataState.resources=previous;render();tableMessage(error.message,"error");});
+      .then(function(result){
+        if(!result||result.status!=="success")throw new Error(result&&result.message||"Could not delete resources.");
+        invalidateResourceCaches();
+        if(result.storage){dataState.storage=result.storage;renderUsage(result.storage);}
+        tableMessage((result.message||"Resources deleted.")+" Updating the resources table...","success");
+        return load(false);
+      })
+      .then(function(){
+        tableMessage(ids.length===1?"Resource deleted and table updated.":ids.length+" resources deleted and table updated.","success");
+      })
+      .catch(function(error){
+        dataState.resources=previous;
+        render();
+        tableMessage(error.message,"error");
+      })
+      .finally(function(){setDeleting(false,0);});
   }
 
   async function upload(){
@@ -172,12 +184,12 @@
       uploadMessage(result.message||"Resource uploaded successfully.","success");
       input.value=""; hideFileStatus();
       setUploadStage("Updating the resources table...");
-      invalidateStorageCaches();
+      invalidateResourceCaches();
+      if(result.storage){dataState.storage=result.storage;renderUsage(result.storage);}
       await load(false);
       uploadMessage("Resources table updated.","success");
       setUploadStage("");
       setAllAssignments(false);
-      window.GLIPStoragePageCache?.preloadOthers("listMyClassResources");
     }catch(error){uploadMessage(error.message,"error");}
     finally{setUploading(false);}
   }
@@ -207,7 +219,22 @@
   function setUploading(value){const b=byId("uploadClassResourceBtn"),p=byId("classResourceUploadProgress");if(b){b.disabled=value;b.textContent=value?"Uploading...":"Upload resource";}if(p)p.classList.toggle("show",value||!!byId("classResourceUploadStage")?.textContent);}
   function setAllAssignments(v){document.querySelectorAll("#resourceAssignmentList input[type=checkbox]").forEach(function(i){i.checked=v;});}
   function clearFilters(){if(byId("classResourceSearch"))byId("classResourceSearch").value="";if(!isStudent()&&byId("classResourceFilter"))byId("classResourceFilter").value="";render();}
-  function invalidateStorageCaches(){window.GLIPStoragePageCache?.clear(["listMyClassResources","getTeacherStorageDashboard","listTeacherSubmissions"]);}
+  function invalidateResourceCaches(){window.GLIPStoragePageCache?.clear(["listMyClassResources","getTeacherStorageDashboard"]);}
+
+  function setDeleting(value,count){
+    const progress=byId("classResourcesDeleteProgress");
+    const label=byId("classResourcesDeleteStage");
+    document.querySelectorAll("#teacherResourceBulkToolbar button, #classResourcesBody input[type=checkbox]").forEach(function(el){
+      if(value){el.disabled=true;}
+      else if(el.id==="downloadSelectedResources"||el.id==="deleteSelectedResources"){el.disabled=!selectedResources.size;}
+      else{el.disabled=false;}
+    });
+    if(progress)progress.classList.toggle("show",value);
+    if(label){
+      label.hidden=!value;
+      label.textContent=value?("Deleting "+count+" resource"+(count===1?"":"s")+"..."):"";
+    }
+  }
   function toBase64(file){return new Promise(function(resolve,reject){const r=new FileReader();r.onload=function(){resolve(String(r.result).split(",")[1]||"");};r.onerror=reject;r.readAsDataURL(file);});}
   function uploadMessage(v,t){const el=byId("classResourceUploadMessage");if(el){el.textContent=v||"";el.className="panel-message text-center "+(t||"");}}
   function tableMessage(v,t){const el=byId("classResourcesMessage");if(el){el.textContent=v||"";el.className="panel-message text-center "+(t||"");}}
