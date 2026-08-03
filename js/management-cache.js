@@ -127,6 +127,7 @@
   };
 
   const WARMING_DELAY_MS = 150;
+  const TEACHING_ASSIGNMENT_POST_SAVE_IDLE_MS = 6000;
   const WARMING_GAP_MS = 75;
   const ADMIN_BACKGROUND_QUEUE_KEY = "glipAdminBackgroundWarmQueue";
   const WARM_JOB_PREFIX = "glipWarmJob_" + STORAGE_VERSION + "_";
@@ -869,12 +870,23 @@
             markDatasetsStale(datasets, true);
             if (data.management_versions) writeVersions(data.management_versions);
 
-            // Warm the invalidated datasets after the save response has been
-            // processed. Navigation therefore remains fast even when the user
-            // opens a related management page several moments later.
-            window.setTimeout(function () {
-              warmDatasets(datasets, apiUrl);
-            }, 0);
+            // Teaching Assignment writes previously warmed three related
+            // datasets immediately. Each warm could rebuild the relational
+            // snapshot and compete with the owner's next action. Warm only the
+            // page the user is currently viewing, and only after a genuine idle
+            // period. Student Subjects and Work Folders remain invalidated and
+            // will load authoritatively when their pages are opened.
+            if (action === "addClassTeacherAdmin" || action === "updateClassTeachersAdmin") {
+              enqueueBackgroundTask(
+                "post_save_primary:listClassTeachersAdmin",
+                function () { return warmAction("listClassTeachersAdmin", apiUrl, "post_save_warm"); },
+                { priority: 8, minIdleMs: TEACHING_ASSIGNMENT_POST_SAVE_IDLE_MS }
+              );
+            } else {
+              window.setTimeout(function () {
+                warmDatasets(datasets, apiUrl);
+              }, 0);
+            }
           }
           return response;
         })

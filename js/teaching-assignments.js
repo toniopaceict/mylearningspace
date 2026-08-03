@@ -758,7 +758,18 @@ function renderAssignmentEditRow(assignment) {
         if (fieldName === "can_view_progress" || fieldName === "can_override" || fieldName === "active") assignment[fieldName] = field.value === "true";
         else if (fieldName === "level") assignment[fieldName] = normaliseLevel(field.value);
         else assignment[fieldName] = field.value.trim();
-      }); assignmentsToSave.push(assignment);
+      });
+
+      // Send the resolved curriculum ID as well as the visible subject/level.
+      // This allows Apps Script to use a lightweight row-only update when the
+      // teaching context has not changed, without rebuilding the full
+      // relational snapshot merely to toggle Active.
+      const subjectInfo = getSubjectInfoByLevel(assignment.subject_id, assignment.level);
+      if (subjectInfo && subjectInfo.curriculum_id !== undefined && subjectInfo.curriculum_id !== null) {
+        assignment.curriculum_id = String(subjectInfo.curriculum_id);
+      }
+
+      assignmentsToSave.push(assignment);
     });
     const previousAssignments = currentAssignments.map(function (item) { return Object.assign({}, item); });
     applyAssignmentUpdatesLocally(assignmentsToSave); GLIPOptimisticUpdate.markUpdatesPending(currentAssignments, assignmentsToSave, "assignment_id"); classTeachersEditMode = false; updateEditButton(); renderAssignments(currentAssignments);
