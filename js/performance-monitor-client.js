@@ -10,6 +10,83 @@
   const BATCH_SIZE = 20;
   let flushing = false;
   const nativeFetch = window.fetch.bind(window);
+  const PAGE_INSTANCE_ID = "page-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+  const pendingTransactions = new Map();
+  let fallbackIndicator = null;
+
+  function isWriteAction(action) {
+    return /^(add|update|save|delete|deactivate|clear|import|upload|apply|archive|restore|send)/i.test(String(action || ""));
+  }
+
+  function visibleProgressExists() {
+    return Array.from(document.querySelectorAll(".glip-progress")).some(function (el) {
+      const style = window.getComputedStyle(el);
+      return style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity || 1) !== 0;
+    });
+  }
+
+  function ensureFallbackIndicator() {
+    if (fallbackIndicator && document.body.contains(fallbackIndicator)) return fallbackIndicator;
+    const box = document.createElement("div");
+    box.id = "glipCommitProgress";
+    box.setAttribute("role", "status");
+    box.setAttribute("aria-live", "polite");
+    box.style.cssText = "display:none;position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:9999;min-width:280px;max-width:90vw;background:#fff;border:1px solid #c7ced8;border-radius:8px;padding:10px 14px;box-shadow:0 4px 18px rgba(0,0,0,.18);";
+    box.innerHTML = '<div class="glip-commit-text" style="margin-bottom:7px;text-align:center;font-weight:600;">Saving...</div><div class="glip-progress show"><div class="glip-progress-bar"></div></div>';
+    document.body.appendChild(box);
+    fallbackIndicator = box;
+    return box;
+  }
+
+  function beginTransactionUi(transactionId, action) {
+    pendingTransactions.set(transactionId, { action: action, started: Date.now() });
+    setTimeout(function () {
+      if (!pendingTransactions.has(transactionId) || visibleProgressExists()) return;
+      const box = ensureFallbackIndicator();
+      const text = box.querySelector(".glip-commit-text");
+      if (text) text.textContent = /delete/i.test(action) ? "Deleting..." : /upload/i.test(action) ? "Uploading..." : "Saving...";
+      box.style.display = "block";
+    }, 0);
+  }
+
+  function endTransactionUi(transactionId) {
+    pendingTransactions.delete(transactionId);
+    if (!pendingTransactions.size && fallbackIndicator) fallbackIndicator.style.display = "none";
+  }
+
+  window.addEventListener("beforeunload", function (event) {
+    if (!pendingTransactions.size) return;
+    event.preventDefault();
+    event.returnValue = "Changes are still being saved.";
+  });
+
+  function transactionStatusUrl(url) { return url; }
+
+  async function recoverTransaction(url, payload, transactionId) {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await new Promise(function (resolve) { setTimeout(resolve, 1200 + attempt * 900); });
+      try {
+        const response = await nativeFetch(transactionStatusUrl(url), {
+          method: "POST",
+          body: JSON.stringify({
+            action: "getTransactionStatus",
+            school_id: payload.school_id,
+            transaction_id: transactionId,
+            client_session_id: payload.client_session_id,
+            page_instance_id: payload.page_instance_id
+          })
+        });
+        const result = await response.json();
+        if (result && result.status === "success" && result.transaction_state === "committed" && result.result) {
+          return new Response(JSON.stringify(result.result), { status: 200, headers: { "Content-Type": "application/json" } });
+        }
+        if (result && result.transaction_state === "failed" && result.result) {
+          return new Response(JSON.stringify(result.result), { status: 200, headers: { "Content-Type": "application/json" } });
+        }
+      } catch (_) {}
+    }
+    return null;
+  }
 
   function safeJson(text, fallback) {
     try { return JSON.parse(text); } catch (_) { return fallback; }
@@ -195,6 +272,14 @@
     const school = getSchool(payload);
     payload.request_id = requestId;
     payload.school_id = payload.school_id || school;
+    const writeRequest = isWriteAction(payload.action);
+    const transactionId = writeRequest ? (payload.transaction_id || uuid("txn")) : "";
+    if (writeRequest) {
+      payload.transaction_id = transactionId;
+      payload.client_session_id = sessionId;
+      payload.page_instance_id = PAGE_INSTANCE_ID;
+      beginTransactionUi(transactionId, payload.action);
+    }
 
     const amended = Object.assign({}, init, { body: JSON.stringify(payload) });
     const started = performance.now();
@@ -215,6 +300,17 @@
       } catch (_) {
         status = "failure";
         httpResult = "invalid_json";
+      }
+
+      if (writeRequest && parsed) {
+        const sameTransaction = String(parsed.transaction_id || "") === String(transactionId);
+        const sameSession = !parsed.client_session_id || String(parsed.client_session_id) === String(sessionId);
+        const sameRequest = !parsed.request_id || String(parsed.request_id) === String(requestId);
+        if (!sameTransaction || !sameSession || !sameRequest) {
+          status = "failure";
+          errorMessage = "The save response did not match the originating transaction.";
+        }
+        if (parsed.committed === true || parsed.status !== "success") endTransactionUi(transactionId);
       }
 
       const role = getRole(payload, parsed);
@@ -253,10 +349,21 @@
         diagnostic_details: server.diagnostic_details || "",
         request_initiator: requestInitiator(payload),
         target_dataset: targetDataset(payload),
-        warm_job_id: String(payload.performance_warm_job_id || "")
+        warm_job_id: String(payload.performance_warm_job_id || ""),
+        transaction_id: transactionId,
+        page_instance_id: PAGE_INSTANCE_ID,
+        committed: parsed && parsed.committed === true ? "true" : ""
       });
       return response;
     } catch (error) {
+      if (writeRequest) {
+        const recovered = await recoverTransaction(input, payload, transactionId);
+        if (recovered) {
+          endTransactionUi(transactionId);
+          return recovered;
+        }
+        endTransactionUi(transactionId);
+      }
       const role = getRole(payload, null);
       enqueue({
         event_id: uuid("event"),
@@ -292,7 +399,10 @@
         diagnostic_details: "",
         request_initiator: requestInitiator(payload),
         target_dataset: targetDataset(payload),
-        warm_job_id: String(payload.performance_warm_job_id || "")
+        warm_job_id: String(payload.performance_warm_job_id || ""),
+        transaction_id: transactionId,
+        page_instance_id: PAGE_INSTANCE_ID,
+        committed: parsed && parsed.committed === true ? "true" : ""
       });
       throw error;
     }
@@ -301,7 +411,9 @@
   window.GLIPPerformance = {
     flush: flush,
     queueEvent: enqueue,
-    beginNewSession: beginNewSession
+    beginNewSession: beginNewSession,
+    pendingTransactions: pendingTransactions,
+    pageInstanceId: PAGE_INSTANCE_ID
   };
 
   window.addEventListener("online", flush);

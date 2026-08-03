@@ -126,17 +126,9 @@
         return;
       }
     }
-    const previous = items.map(function (x) { return Object.assign({}, x); });
-    updates.forEach(function (u) { const x = items.find(function (i) { return String(i.subject_id) === String(u.subject_id); }); if (x) x.active = u.active; });
-editMode = false;
-saving = true;
-updateButtons();
-render();
-
-setMessage(
-  "Subject availability updated. Saving in the background...",
-  "success"
-);
+    saving = true;
+    updateButtons();
+    setMessage("Saving subject availability...", "info");
 
 post({
   action: SAVE_ACTION,
@@ -149,8 +141,14 @@ post({
     );
   }
 
+  updates.forEach(function (u) {
+    const x = items.find(function (i) { return String(i.subject_id) === String(u.subject_id); });
+    if (x) x.active = u.active;
+  });
+  editMode = false;
   saving = false;
   updateButtons();
+  render();
 
   writeCurrentBrowserCache(result.management_versions);
 
@@ -159,10 +157,8 @@ post({
     "success"
   );
 }).catch(function (error) {
-  items = previous;
   saving = false;
   updateButtons();
-  render();
 
   setMessage(
     error.message ||

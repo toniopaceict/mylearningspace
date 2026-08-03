@@ -46,28 +46,27 @@
   function run(options) {
     options = options || {};
     if (typeof options.request !== "function") {
-      return Promise.reject(new Error("GLIP optimistic update requires a request function."));
+      return Promise.reject(new Error("GLIP commit-first update requires a request function."));
     }
-    try {
-      if (typeof options.apply === "function") options.apply();
-    } catch (error) {
-      return Promise.reject(error);
-    }
+
+    // Commit-first rule: do not change the visible record until Apps Script
+    // confirms that the essential Sheet/Drive transaction is committed.
     return Promise.resolve()
       .then(options.request)
       .then(function (result) {
         const isSuccess = typeof options.isSuccess === "function" ? options.isSuccess(result) : defaultIsSuccess(result);
-        if (!isSuccess) throw toError(result, options.failureMessage);
+        const committed = !result || result.committed === undefined ? isSuccess : result.committed === true;
+        if (!isSuccess || !committed) throw toError(result, options.failureMessage);
+
+        if (typeof options.apply === "function") options.apply(result);
         if (typeof options.onSuccess === "function") options.onSuccess(result);
         scheduleResync(options.resync, options.resyncWarning);
         return result;
       })
       .catch(function (error) {
-        try {
-          if (typeof options.rollback === "function") options.rollback(error);
-        } catch (rollbackError) {
-          console.error("GLIP optimistic-update rollback failed.", rollbackError);
-        }
+        // No rollback is required because the browser state was not changed
+        // before commitment. Existing rollback handlers are deliberately not
+        // called, preventing an old snapshot from overwriting newer UI state.
         if (typeof options.onFailure === "function") options.onFailure(error);
         return null;
       });

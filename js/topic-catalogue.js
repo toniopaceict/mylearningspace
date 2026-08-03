@@ -500,30 +500,9 @@ const bodyHtml = affected.length === 1
   }
 
   function applyAndSaveUpdates(updates) {
-    const previousItems = items.map(function (item) {
-      return Object.assign({}, item);
-    });
-
-    updates.forEach(function (update) {
-      const item = items.find(function (candidate) {
-        return String(candidate.topic_id) === String(update.topic_id);
-      });
-
-      if (item) {
-        item.active = update.active;
-      }
-    });
-
-    editMode = false;
     saving = true;
-
     updateButtons();
-    render();
-
-    setMessage(
-      "Topic availability updated. Saving in the background...",
-      "success"
-    );
+    setMessage("Saving topic availability...", "info");
 
     post({
       action: SAVE_ACTION,
@@ -537,8 +516,16 @@ const bodyHtml = affected.length === 1
           );
         }
 
+        updates.forEach(function (update) {
+          const item = items.find(function (candidate) {
+            return String(candidate.topic_id) === String(update.topic_id);
+          });
+          if (item) item.active = update.active;
+        });
+        editMode = false;
         saving = false;
         updateButtons();
+        render();
 
         writeCurrentBrowserCache(result.management_versions);
 
@@ -548,11 +535,8 @@ const bodyHtml = affected.length === 1
         );
       })
       .catch(function (error) {
-        items = previousItems;
         saving = false;
-
         updateButtons();
-        render();
 
         setMessage(
           error.message ||
