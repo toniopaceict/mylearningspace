@@ -73,7 +73,9 @@
         tableKey: "class_teachers",
         tableName: "TeachingAssignments",
         messageElementId: "classTeacherManagementMessage",
-        refresh: loadAssignments
+        refresh: loadAssignments,
+        hideClear: true,
+        hideImport: true
       });
     }
   }
@@ -466,7 +468,7 @@ function populateSubjectDropdownForLevel(level, select, selectedSubjectId) {
     const subjectInfo = getSubjectInfoByLevel(subjectId, normalisedLevel) || {};
     const temporaryId = "pending-assignment-" + Date.now();
     setAddAssignmentSaving(true);
-    currentAssignments.push({ assignment_id: temporaryId, teacher_id: teacherId, teacher_name: teacherInfo.teacher_name, teacher_surname: teacherInfo.teacher_surname, full_name: teacherInfo.full_name || [teacherInfo.teacher_name, teacherInfo.teacher_surname].filter(Boolean).join(" "), teacher_active: teacherInfo.active !== false, level: normalisedLevel, level_active: classInfo.level_active !== false, subject_id: subjectId, subject_name: subjectInfo.subject_name || subjectId, subject_code: subjectInfo.subject_code, curriculum_active: subjectInfo.curriculum_active !== false && subjectInfo.active !== false, class_id: classId, class_active: classInfo.active !== false, active: active, pending_save: true, pending_state: "saving" });
+    currentAssignments.push({ assignment_id: temporaryId, teacher_id: teacherId, teacher_name: teacherInfo.teacher_name, teacher_surname: teacherInfo.teacher_surname, full_name: teacherInfo.full_name || [teacherInfo.teacher_name, teacherInfo.teacher_surname].filter(Boolean).join(" "), teacher_active: teacherInfo.active !== false, level: normalisedLevel, level_active: classInfo.level_active !== false, subject_id: subjectId, subject_name: subjectInfo.subject_name || subjectId, subject_code: subjectInfo.subject_code, curriculum_active: subjectInfo.curriculum_active !== false && subjectInfo.active !== false, class_id: classId, class_active: classInfo.active !== false, active: active, archived: false, status: active ? "active" : "inactive", pending_save: true, pending_state: "saving" });
     renderAssignments(currentAssignments); clearAddForm();
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "addClassTeacherAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), role: getCurrentRole(), teacher_id: teacherId, level: normalisedLevel, subject_id: subjectId, class_id: classId, active: active }); },
@@ -503,7 +505,7 @@ function populateSubjectDropdownForLevel(level, select, selectedSubjectId) {
 
     editBtn.textContent = classTeachersEditMode
       ? "Save Changes"
-      : "Edit Assignments";
+      : "Edit Status";
 
     let cancelBtn = document.getElementById("cancelClassTeachersEditBtn");
 
@@ -537,6 +539,10 @@ function populateSubjectDropdownForLevel(level, select, selectedSubjectId) {
   }
 
 function getAssignmentStatusText(assignment) {
+  if (assignment && (assignment.archived === true || String(assignment.status || "").toLowerCase() === "archived")) {
+    return "Archived";
+  }
+
   if (!isTrue(assignment.active)) {
     return "Inactive";
   }
@@ -608,7 +614,7 @@ const filteredAssignments =
       }
 
      return `
-  <tr class="${hasAssignmentPlanningWarning(assignment) || !isTrue(assignment.active) ? "planning-row" : ""}">
+  <tr class="${hasAssignmentPlanningWarning(assignment) || !isTrue(assignment.active) || assignment.archived === true ? "planning-row" : ""}">
     <td>${formatAssignmentTeacherCell(assignment)}</td>
     <td>${formatAssignmentLevelCell(assignment)}</td>
     <td>${formatAssignmentSubjectCell(assignment)}</td>
@@ -627,68 +633,32 @@ const filteredAssignments =
   }
 
 function renderAssignmentEditRow(assignment) {
+  const status = assignment.archived === true
+    ? "archived"
+    : (isTrue(assignment.active) ? "active" : "inactive");
+  const canArchive = getCurrentRole() === "owner" || getCurrentRole() === "admin";
+
   return `
     <tr
-  class="${hasAssignmentPlanningWarning(assignment) || !isTrue(assignment.active) ? "planning-row" : ""}"
-  data-assignment-row="${escapeHtml(assignment.assignment_id)}"
->
+      class="${hasAssignmentPlanningWarning(assignment) || status !== "active" ? "planning-row" : ""}"
+      data-assignment-row="${escapeHtml(assignment.assignment_id)}"
+    >
+      <td>${formatAssignmentTeacherCell(assignment)}</td>
+      <td>${formatAssignmentLevelCell(assignment)}</td>
+      <td>${formatAssignmentSubjectCell(assignment)}</td>
+      <td>${formatAssignmentClassCell(assignment)}</td>
       <td>
-        ${escapeHtml(getTeacherNameById(assignment.teacher_id))}
-        <input
-          type="hidden"
-          data-assignment-field="teacher_id"
-          value="${escapeHtml(assignment.teacher_id)}"
-        />
-      </td>
-
-      <td>
-        <select class="tracker-input" data-assignment-field="level">
-          ${renderLevelOptions(assignment.level)}
-        </select>
-      </td>
-
-      <td>
-        <select class="tracker-input" data-assignment-field="subject_id">
-          ${renderSubjectOptionsForLevel(
-            assignment.level,
-            assignment.subject_id
-          )}
-        </select>
-      </td>
-
-      <td>
-        <select class="tracker-input" data-assignment-field="class_id">
-          ${renderClassOptionsForLevel(
-            assignment.level,
-            assignment.class_id
-          )}
-        </select>
-      </td>
-
-      <td>
-        <select class="tracker-input" data-assignment-field="active">
-          <option value="true" ${isTrue(assignment.active) ? "selected" : ""}>Active</option>
-          <option value="false" ${!isTrue(assignment.active) ? "selected" : ""}>Inactive</option>
+        <select class="tracker-input" data-assignment-field="status">
+          <option value="active" ${status === "active" ? "selected" : ""}>Active</option>
+          <option value="inactive" ${status === "inactive" ? "selected" : ""}>Inactive</option>
+          ${canArchive ? `<option value="archived" ${status === "archived" ? "selected" : ""}>Archived</option>` : ""}
         </select>
       </td>
     </tr>
   `;
 }
 
-  
-
-  function handleEditFieldChange(event) {
-    const field = event.target;
-
-    if (field.dataset.assignmentField === "level") {
-      const row = field.closest("[data-assignment-row]");
-      const subjectSelect = row.querySelector('[data-assignment-field="subject_id"]');
-      const classSelect = row.querySelector('[data-assignment-field="class_id"]');
-
-      subjectSelect.innerHTML = renderSubjectOptionsForLevel(field.value, "");
-      classSelect.innerHTML = renderClassOptionsForLevel(field.value, "");
-    }
-
+  function handleEditFieldChange() {
     markChangedFields();
   }
 
@@ -717,21 +687,10 @@ function renderAssignmentEditRow(assignment) {
       const existing = currentAssignments.find(function (assignment) {
         return String(assignment.assignment_id) === String(update.assignment_id);
       });
-
       if (!existing) return;
-
-      const classInfo = getClassInfoById(update.class_id);
-      const subjectInfo = getSubjectInfoByLevel(update.subject_id, update.level);
-
-      existing.teacher_id = update.teacher_id;
-      existing.teacher_active = getTeacherActiveById(update.teacher_id);
-      existing.level = update.level;
-      existing.level_active = classInfo ? classInfo.level_active : existing.level_active;
-      existing.subject_id = update.subject_id;
-      existing.curriculum_active = subjectInfo ? subjectInfo.curriculum_active !== false && subjectInfo.active !== false : existing.curriculum_active;
-      existing.class_id = update.class_id;
-      existing.class_active = classInfo ? classInfo.active !== false : existing.class_active;
-      existing.active = update.active;
+      existing.status = update.status;
+      existing.archived = update.status === "archived";
+      existing.active = update.status === "active";
     });
   }
 
@@ -750,36 +709,49 @@ function renderAssignmentEditRow(assignment) {
   }
 
   function saveClassTeacherChanges() {
-    const rows = document.querySelectorAll("[data-assignment-row]"); const assignmentsToSave = [];
+    const rows = document.querySelectorAll("[data-assignment-row]");
+    const assignmentsToSave = [];
+
     rows.forEach(function (row) {
-      const assignment = { assignment_id: row.dataset.assignmentRow };
-      row.querySelectorAll("[data-assignment-field]").forEach(function (field) {
-        const fieldName = field.dataset.assignmentField;
-        if (fieldName === "can_view_progress" || fieldName === "can_override" || fieldName === "active") assignment[fieldName] = field.value === "true";
-        else if (fieldName === "level") assignment[fieldName] = normaliseLevel(field.value);
-        else assignment[fieldName] = field.value.trim();
+      const statusField = row.querySelector('[data-assignment-field="status"]');
+      if (!statusField) return;
+      assignmentsToSave.push({
+        assignment_id: row.dataset.assignmentRow,
+        status: statusField.value
       });
-
-      // Send the resolved curriculum ID as well as the visible subject/level.
-      // This allows Apps Script to use a lightweight row-only update when the
-      // teaching context has not changed, without rebuilding the full
-      // relational snapshot merely to toggle Active.
-      const subjectInfo = getSubjectInfoByLevel(assignment.subject_id, assignment.level);
-      if (subjectInfo && subjectInfo.curriculum_id !== undefined && subjectInfo.curriculum_id !== null) {
-        assignment.curriculum_id = String(subjectInfo.curriculum_id);
-      }
-
-      assignmentsToSave.push(assignment);
     });
-    const previousAssignments = currentAssignments.map(function (item) { return Object.assign({}, item); });
-    applyAssignmentUpdatesLocally(assignmentsToSave); GLIPOptimisticUpdate.markUpdatesPending(currentAssignments, assignmentsToSave, "assignment_id"); classTeachersEditMode = false; updateEditButton(); renderAssignments(currentAssignments);
+
+    const previousAssignments = currentAssignments.map(function (item) {
+      return Object.assign({}, item);
+    });
+
+    applyAssignmentUpdatesLocally(assignmentsToSave);
+    GLIPOptimisticUpdate.markUpdatesPending(currentAssignments, assignmentsToSave, "assignment_id");
+    classTeachersEditMode = false;
+    updateEditButton();
+    renderAssignments(currentAssignments);
+
     GLIPOptimisticUpdate.run({
-      request: function () { return postToGlip({ action: "updateClassTeachersAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), role: getCurrentRole(), assignments: assignmentsToSave }); },
-      failureMessage: "Could not save assignment changes.",
-      onSuccess: function (result) { setMessage(result.message || "Assignment changes saved.", "success"); },
+      request: function () {
+        return postToGlip({
+          action: "updateClassTeachersAdmin",
+          admin_teacher_id: sessionStorage.getItem("glipTeacherId"),
+          role: getCurrentRole(),
+          assignments: assignmentsToSave
+        });
+      },
+      failureMessage: "Could not save assignment statuses.",
+      onSuccess: function (result) {
+        setMessage(result.message || "Assignment statuses saved.", "success");
+      },
       resync: resyncAssignmentsSilently,
-      rollback: function () { currentAssignments = previousAssignments; renderAssignments(currentAssignments); },
-      onFailure: function (error) { setMessage(error.message || "Could not save assignment changes. The previous values were restored.", "error"); }
+      rollback: function () {
+        currentAssignments = previousAssignments;
+        renderAssignments(currentAssignments);
+      },
+      onFailure: function (error) {
+        setMessage(error.message || "Could not save assignment statuses. The previous values were restored.", "error");
+      }
     });
   }
 
@@ -1031,7 +1003,7 @@ if (activeCheckbox) {
         ? "Saving..."
         : classTeachersEditMode
           ? "Save Changes"
-          : "Edit Assignments";
+          : "Edit Status";
     }
 
     if (cancelBtn) {

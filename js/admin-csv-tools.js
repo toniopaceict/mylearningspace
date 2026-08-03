@@ -363,7 +363,9 @@ window.showGlipConfirmModal = showGlipConfirmModal;
   );
 
 wrapper.appendChild(exportBtn);
-wrapper.appendChild(importBtn);
+if (!options.hideImport) {
+  wrapper.appendChild(importBtn);
+}
 
 if (!options.hideClear) {
   wrapper.appendChild(clearBtn);
@@ -394,12 +396,12 @@ wrapper.appendChild(fileInput);
       });
     });
 
-    importBtn.addEventListener("click", function () {
+    if (!options.hideImport) importBtn.addEventListener("click", function () {
       fileInput.value = "";
       fileInput.click();
     });
 
-    fileInput.addEventListener("change", function () {
+    if (!options.hideImport) fileInput.addEventListener("change", function () {
       const file = fileInput.files && fileInput.files[0];
       if (!file) return;
 
