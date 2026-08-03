@@ -280,23 +280,9 @@ function saveLevel() {
 
   const temporaryId = "pending-level-" + Date.now();
 
-  levels.push({
-    level_id: temporaryId,
-    level_code: levelCode,
-    level_name: levelName,
-    sort_order: sortOrder,
-    active: active,
-    pending_save: true
-  });
-
+  const confirmedLevel = { level_id: temporaryId, level_code: levelCode, level_name: levelName, sort_order: sortOrder, active: active };
   pendingLevelSaves += 1;
   updateEditButton();
-  renderLevels();
-
-  document.getElementById("newLevelCode").value = "";
-  document.getElementById("newLevelName").value = "";
-  document.getElementById("newLevelSortOrder").value = "";
-  document.getElementById("newLevelActive").value = "true";
 
   GLIPOptimisticUpdate.run({
     request: function () {
@@ -312,17 +298,17 @@ function saveLevel() {
     },
 
     failureMessage: "Could not save level.",
+    apply: function (result) {
+      confirmedLevel.level_id = result.level_id || confirmedLevel.level_id;
+      levels.push(confirmedLevel);
+      document.getElementById("newLevelCode").value = "";
+      document.getElementById("newLevelName").value = "";
+      document.getElementById("newLevelSortOrder").value = "";
+      document.getElementById("newLevelActive").value = "true";
+      renderLevels();
+    },
 
     onSuccess: function (result) {
-      const temporaryLevel = levels.find(function (level) {
-        return String(level.level_id) === temporaryId;
-      });
-
-      if (temporaryLevel) {
-        temporaryLevel.level_id = result.level_id;
-        GLIPOptimisticUpdate.markSaved(temporaryLevel);
-      }
-
       pendingLevelSaves = Math.max(0, pendingLevelSaves - 1);
       updateEditButton();
       renderLevels();
@@ -452,13 +438,10 @@ btn.title = hasPendingSaves
       updates.push(item);
     });
 
-    const previousLevels = levels.map(function (level) { return Object.assign({}, level); });
-    applyLevelUpdatesLocally(updates); GLIPOptimisticUpdate.markUpdatesPending(levels, updates, "level_id");
-    editMode = false; updateEditButton(); renderLevels();
-
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "updateLevelsAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), levels: updates }); },
       failureMessage: "Could not save level changes.",
+      apply: function () { applyLevelUpdatesLocally(updates); editMode = false; updateEditButton(); renderLevels(); },
       onSuccess: function (result) { setMessage(result.message || "Level changes saved.", "success"); },
       resync: resyncLevelsSilently,
       rollback: function () { levels = previousLevels; renderLevels(); },

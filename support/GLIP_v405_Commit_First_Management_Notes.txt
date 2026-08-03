@@ -1,0 +1,7 @@
+GLIP v405 - Commit-first management update
+
+- Shared transaction progress now appears immediately for write operations.
+- Hidden progress bars no longer suppress the fallback saving indicator.
+- Management add/edit interfaces update only after Apps Script confirms committed=true.
+- Silent authoritative reconciliation remains outside the critical save stage.
+- Recent v398-v403 cache, storage and login performance improvements are retained.

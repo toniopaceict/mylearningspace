@@ -410,12 +410,8 @@ function loadLevelsDropdown() {
       pending_save: true
     };
 
-    currentClasses.push(optimisticClass);
-    pendingClassSaves += 1;
-
+        pendingClassSaves += 1;
     updateEditClassesButton();
-    renderClasses(currentClasses);
-    clearAddClassForm();
 
     GLIPOptimisticUpdate.run({
       request: function () {
@@ -431,6 +427,7 @@ function loadLevelsDropdown() {
       },
 
       failureMessage: "Could not save class.",
+      apply: function () { currentClasses.push(optimisticClass); clearAddClassForm(); renderClasses(currentClasses); },
 
       onSuccess: function (result) {
         const temporaryClass = currentClasses.find(function (item) {
@@ -806,11 +803,10 @@ return `
       classes.push(item);
     });
     if (!classes.length) { setMessage("No class changes to save.", "info"); return; }
-    const previousClasses = currentClasses.map(function (item) { return Object.assign({}, item); });
-    GLIPOptimisticUpdate.markUpdatesPending(currentClasses, classes.map(function (item) { return { class_id: item.original_class_id }; }), "class_id"); applyClassUpdatesLocally(classes); classesEditMode = false; updateEditClassesButton(); renderClasses(currentClasses);
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "updateClassesAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), classes: classes }); },
       failureMessage: "Could not save class changes.",
+      apply: function () { applyClassUpdatesLocally(classes); classesEditMode = false; updateEditClassesButton(); renderClasses(currentClasses); },
       onSuccess: function (result) { setMessage(result.message || "Class changes saved.", "success"); },
       resync: resyncClassesSilently,
       rollback: function () { currentClasses = previousClasses; renderClasses(currentClasses); },

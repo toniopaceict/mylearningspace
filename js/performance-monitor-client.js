@@ -21,7 +21,7 @@
   function visibleProgressExists() {
     return Array.from(document.querySelectorAll(".glip-progress")).some(function (el) {
       const style = window.getComputedStyle(el);
-      return style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity || 1) !== 0;
+      return el.getClientRects().length > 0 && style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity || 1) !== 0;
     });
   }
 
@@ -40,13 +40,12 @@
 
   function beginTransactionUi(transactionId, action) {
     pendingTransactions.set(transactionId, { action: action, started: Date.now() });
-    setTimeout(function () {
-      if (!pendingTransactions.has(transactionId) || visibleProgressExists()) return;
+    if (!visibleProgressExists()) {
       const box = ensureFallbackIndicator();
       const text = box.querySelector(".glip-commit-text");
       if (text) text.textContent = /delete/i.test(action) ? "Deleting..." : /upload/i.test(action) ? "Uploading..." : "Saving...";
       box.style.display = "block";
-    }, 0);
+    }
   }
 
   function endTransactionUi(transactionId) {

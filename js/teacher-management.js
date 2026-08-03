@@ -269,6 +269,7 @@ function saveTeacher() {
     },
 
     failureMessage: "Could not add teacher.",
+    apply: function () { currentTeachers.push(temporaryTeacher); clearAddTeacherForm(); renderTeachers(currentTeachers); },
 
     onSuccess: function (result) {
       const temporaryTeacher = currentTeachers.find(function (teacher) {
@@ -746,11 +747,10 @@ function resyncTeachersSilently() {
 
       teachersToSave.push(teacher);
     });
-    const previousTeachers = currentTeachers.map(function (item) { return Object.assign({}, item); });
-    applyTeacherUpdatesLocally(teachersToSave); GLIPOptimisticUpdate.markUpdatesPending(currentTeachers, teachersToSave, "teacher_id"); teachersEditMode = false; updateEditTeachersButton(); renderTeachers(currentTeachers);
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "updateTeachersAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), teachers: teachersToSave }); },
       failureMessage: "Could not save teacher changes.",
+      apply: function () { applyTeacherUpdatesLocally(teachersToSave); teachersEditMode = false; updateEditTeachersButton(); renderTeachers(currentTeachers); },
       onSuccess: function (result) { setMessage(result.message || "Teacher changes saved.", "success"); },
       resync: resyncTeachersSilently,
       rollback: function () { currentTeachers = previousTeachers; renderTeachers(currentTeachers); },

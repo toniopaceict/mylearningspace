@@ -232,17 +232,10 @@
       active: true
     });
 
-    const previousAssignments = assignments.map(function (item) { return Object.assign({}, item); });
-    applyStudentSubjectAssignmentsLocally(studentId, assignmentsToSave);
-    selectedStudentId = ""; selectedRowKey = ""; renderStudentSubjectTable();
-    if (studentSelect) studentSelect.value = "";
-    if (levelSelect) levelSelect.value = "";
-    populateAddSubjectDropdown("", subjectSelect);
-    if (accessSelect) accessSelect.value = "current";
-
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "saveStudentSubjectsAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), student_id: studentId, assignments_to_save: assignmentsToSave }); },
       failureMessage: "Could not save assignment.",
+      apply: function () { applyStudentSubjectAssignmentsLocally(studentId, assignmentsToSave); selectedStudentId = ""; selectedRowKey = ""; renderStudentSubjectTable(); if (studentSelect) studentSelect.value = ""; if (levelSelect) levelSelect.value = ""; populateAddSubjectDropdown("", subjectSelect); if (accessSelect) accessSelect.value = "current"; },
       onSuccess: function (result) {
         setStudentSubjectMessage(messageEl, result.message || "Assignment saved successfully.", "success");
         showSuccessMessage();
@@ -727,13 +720,10 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
 
     const messageEl = document.getElementById("studentSubjectMessage-" + studentId);
 
-    const previousAssignments = assignments.map(function (item) { return Object.assign({}, item); });
-    applyStudentSubjectAssignmentsLocally(studentId, assignmentsToSave);
-    selectedStudentId = ""; selectedRowKey = ""; renderStudentSubjectTable();
-
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "saveStudentSubjectsAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), student_id: studentId, assignments_to_save: assignmentsToSave }); },
       failureMessage: "Could not save assignments.",
+      apply: function () { applyStudentSubjectAssignmentsLocally(studentId, assignmentsToSave); selectedStudentId = ""; selectedRowKey = ""; renderStudentSubjectTable(); },
       onSuccess: function (result) { setStudentSubjectMessage(messageEl, result.message || "Assignments saved successfully.", "success"); },
       resync: resyncStudentSubjectsSilently,
       rollback: function () { assignments = previousAssignments; renderStudentSubjectTable(); },

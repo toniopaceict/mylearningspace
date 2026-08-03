@@ -391,13 +391,11 @@
       pending_state: "saving"
     };
 
-    activities.push(optimisticActivity);
-    render();
-    resetAddActivityForm(false);
 
     GLIPOptimisticUpdate.run({
       request: function () { return post(payload); },
       failureMessage: "Could not save activity.",
+      apply: function (result) { optimisticActivity.activity_id = String(result.activity_id || "").trim() || temporaryActivityId; activities.push(optimisticActivity); resetAddActivityForm(false); render(); },
       onSuccess: function (result) {
         const row = activities.find(function (item) {
           return String(item.activity_id) === String(temporaryActivityId);
@@ -525,16 +523,6 @@
       requires_submission: value("requires_submission") === "true"
     };
 
-    const previousActivities = activities.map(function (activity) {
-      return Object.assign({}, activity);
-    });
-
-    applyActivityUpdatesLocally([update]);
-    GLIPOptimisticUpdate.markUpdatesPending(activities, [update], "activity_id");
-    selectedActivityId = "";
-    setEditMessage("Activity changes saved and progress synchronised.", "success");
-    render();
-
     GLIPOptimisticUpdate.run({
       request: function () {
         return post({
@@ -543,6 +531,7 @@
         });
       },
       failureMessage: "Could not save changes.",
+      apply: function () { applyActivityUpdatesLocally([update]); selectedActivityId = ""; render(); },
       onSuccess: function (result) {
         setEditMessage(result.message || "Activity changes saved.", "success");
       },

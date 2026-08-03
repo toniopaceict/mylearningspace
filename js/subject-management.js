@@ -155,12 +155,12 @@ function saveCurriculumItem() {
   const temporaryId = "pending-curriculum-" + Date.now();
   const levelInfo = levels.find(function (item) { return normaliseLevel(item.level_code) === normaliseLevel(level); }) || {};
   const subjectInfo = subjects.find(function (item) { return String(item.subject_code) === String(subject) || String(item.subject_id) === String(subject); }) || {};
-  currentCurriculum.push({ curriculum_id: temporaryId, level: level, level_active: levelInfo.active !== false, subject_id: subjectInfo.subject_id || subject, subject_code: subjectInfo.subject_code || subject, subject_name: subjectInfo.subject_name || subject, subject_active: subjectInfo.active !== false, visible: visible, sort_order: sortOrder, active: active, pending_save: true, pending_state: "saving" });
-  renderCurriculum(currentCurriculum); clearAddForm();
+  const confirmedCurriculum = { curriculum_id: temporaryId, level: level, level_active: levelInfo.active !== false, subject_id: subjectInfo.subject_id || subject, subject_code: subjectInfo.subject_code || subject, subject_name: subjectInfo.subject_name || subject, subject_active: subjectInfo.active !== false, visible: visible, sort_order: sortOrder, active: active };
 
   GLIPOptimisticUpdate.run({
     request: function () { return postToGlip({ action: "addCurriculumAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), level: level, subject_id: subject, visible: visible, sort_order: sortOrder, active: active }); },
     failureMessage: "Could not save subject assignment.",
+    apply: function (result) { confirmedCurriculum.curriculum_id = result.curriculum_id || confirmedCurriculum.curriculum_id; currentCurriculum.push(confirmedCurriculum); clearAddForm(); renderCurriculum(currentCurriculum); },
     onSuccess: function (result) { const row = currentCurriculum.find(function (item) { return item.curriculum_id === temporaryId; }); if (row) { row.curriculum_id = result.curriculum_id || row.curriculum_id; GLIPOptimisticUpdate.markSaved(row); } setAddMessage(result.message || "Subject assignment saved.", "success"); },
     resync: resyncCurriculumSilently,
     rollback: function () { currentCurriculum = currentCurriculum.filter(function (item) { return item.curriculum_id !== temporaryId; }); renderCurriculum(currentCurriculum); },
@@ -377,9 +377,6 @@ function renderEditRow(item) {
 
       itemsToSave.push(item);
     });
-
-    const previousCurriculum = currentCurriculum.map(function (item) { return Object.assign({}, item); });
-    applyCurriculumUpdatesLocally(itemsToSave); GLIPOptimisticUpdate.markUpdatesPending(currentCurriculum, itemsToSave, "curriculum_id"); curriculumEditMode = false; updateEditButton(); renderCurriculum(currentCurriculum);
 
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "updateCurriculumAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), teacher_id: sessionStorage.getItem("glipTeacherId"), role: sessionStorage.getItem("glipUserType"), curriculum: itemsToSave }); },

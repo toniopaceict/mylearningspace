@@ -317,13 +317,9 @@
       pending_save: true
     });
 
-    currentStudents.push(optimisticStudent);
-    pendingStudentSaves += 1;
-
+        pendingStudentSaves += 1;
     updateEditStudentsButton();
     setStudentSavingState(true);
-    renderStudents(currentStudents);
-    clearAddStudentForm();
 
     GLIPOptimisticUpdate.run({
       request: function () {
@@ -341,6 +337,7 @@
       },
 
       failureMessage: "Could not add student.",
+      apply: function () { currentStudents.push(optimisticStudent); clearAddStudentForm(); renderStudents(currentStudents); },
 
       onSuccess: function (result) {
         const temporaryStudent = currentStudents.find(function (student) {
@@ -961,11 +958,10 @@ class="teacher-selectable-row ${studentNeedsAttention(student) ? "planning-row" 
       });
       studentsToSave.push(student);
     });
-    const previousStudents = currentStudents.map(function (item) { return Object.assign({}, item); });
-    applyStudentUpdatesLocally(studentsToSave); GLIPOptimisticUpdate.markUpdatesPending(currentStudents, studentsToSave, "student_id"); studentsEditMode = false; updateEditStudentsButton(); renderStudents(currentStudents);
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "updateStudentsAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), students: studentsToSave }); },
       failureMessage: "Could not save student changes.",
+      apply: function () { applyStudentUpdatesLocally(studentsToSave); studentsEditMode = false; updateEditStudentsButton(); renderStudents(currentStudents); },
       onSuccess: function (result) { setMessage(result.message || "Student changes saved.", "success"); },
       resync: resyncStudentsSilently,
       rollback: function () { currentStudents = previousStudents; renderStudents(currentStudents); },

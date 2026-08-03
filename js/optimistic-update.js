@@ -132,7 +132,7 @@
 
   function markSaved(row) {
     if (!row) return row;
-    row.pending_save = true;
+    row.pending_save = false;
     row.pending_state = "saved";
     return row;
   }

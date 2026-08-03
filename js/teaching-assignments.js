@@ -468,11 +468,11 @@ function populateSubjectDropdownForLevel(level, select, selectedSubjectId) {
     const subjectInfo = getSubjectInfoByLevel(subjectId, normalisedLevel) || {};
     const temporaryId = "pending-assignment-" + Date.now();
     setAddAssignmentSaving(true);
-    currentAssignments.push({ assignment_id: temporaryId, teacher_id: teacherId, teacher_name: teacherInfo.teacher_name, teacher_surname: teacherInfo.teacher_surname, full_name: teacherInfo.full_name || [teacherInfo.teacher_name, teacherInfo.teacher_surname].filter(Boolean).join(" "), teacher_active: teacherInfo.active !== false, level: normalisedLevel, level_active: classInfo.level_active !== false, subject_id: subjectId, subject_name: subjectInfo.subject_name || subjectId, subject_code: subjectInfo.subject_code, curriculum_active: subjectInfo.curriculum_active !== false && subjectInfo.active !== false, class_id: classId, class_active: classInfo.active !== false, active: active, archived: false, status: active ? "active" : "inactive", pending_save: true, pending_state: "saving" });
-    renderAssignments(currentAssignments); clearAddForm();
+    const confirmedAssignment = { assignment_id: temporaryId, teacher_id: teacherId, teacher_name: teacherInfo.teacher_name, teacher_surname: teacherInfo.teacher_surname, full_name: teacherInfo.full_name || [teacherInfo.teacher_name, teacherInfo.teacher_surname].filter(Boolean).join(" "), teacher_active: teacherInfo.active !== false, level: normalisedLevel, level_active: classInfo.level_active !== false, subject_id: subjectId, subject_name: subjectInfo.subject_name || subjectId, subject_code: subjectInfo.subject_code, curriculum_active: subjectInfo.curriculum_active !== false && subjectInfo.active !== false, class_id: classId, class_active: classInfo.active !== false, active: active, archived: false, status: active ? "active" : "inactive" };
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "addClassTeacherAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), role: getCurrentRole(), teacher_id: teacherId, level: normalisedLevel, subject_id: subjectId, class_id: classId, active: active }); },
       failureMessage: "Could not save assignment.",
+      apply: function (result) { confirmedAssignment.assignment_id = result.class_teacher_id || confirmedAssignment.assignment_id; currentAssignments.push(confirmedAssignment); clearAddForm(); renderAssignments(currentAssignments); },
       onSuccess: function (result) { const row = currentAssignments.find(function (item) { return String(item.assignment_id) === temporaryId; }); if (row) { row.assignment_id = result.class_teacher_id || row.assignment_id; GLIPOptimisticUpdate.markSaved(row); } setAddMessage(result.message || "Assignment saved.", "success"); setAddAssignmentSaving(false); },
       resync: resyncAssignmentsSilently,
       rollback: function () { currentAssignments = currentAssignments.filter(function (item) { return String(item.assignment_id) !== temporaryId; }); renderAssignments(currentAssignments); },
@@ -721,16 +721,6 @@ function renderAssignmentEditRow(assignment) {
       });
     });
 
-    const previousAssignments = currentAssignments.map(function (item) {
-      return Object.assign({}, item);
-    });
-
-    applyAssignmentUpdatesLocally(assignmentsToSave);
-    GLIPOptimisticUpdate.markUpdatesPending(currentAssignments, assignmentsToSave, "assignment_id");
-    classTeachersEditMode = false;
-    updateEditButton();
-    renderAssignments(currentAssignments);
-
     GLIPOptimisticUpdate.run({
       request: function () {
         return postToGlip({
@@ -741,6 +731,7 @@ function renderAssignmentEditRow(assignment) {
         });
       },
       failureMessage: "Could not save assignment statuses.",
+      apply: function () { applyAssignmentUpdatesLocally(assignmentsToSave); classTeachersEditMode = false; updateEditButton(); renderAssignments(currentAssignments); },
       onSuccess: function (result) {
         setMessage(result.message || "Assignment statuses saved.", "success");
       },
