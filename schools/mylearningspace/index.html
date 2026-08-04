@@ -661,6 +661,32 @@ const subjectsResult = await postToGlip({
           : "Management data will load when needed.");
       }
 
+      let preLoginWarmPromise = null;
+      let preLoginWarmStarted = false;
+
+      function startPreLoginWarm() {
+        if (preLoginWarmStarted) return preLoginWarmPromise;
+        preLoginWarmStarted = true;
+        preLoginWarmPromise = postToGlip({
+          action: "warmPreLoginBootstrap",
+          school_id: SCHOOL,
+          performance_category: "cache_warm",
+          performance_initiator: "pre_login_warm",
+          performance_target: "relational_snapshot",
+          performance_skip_routine_log: true
+        }).catch(function (error) {
+          console.warn("Pre-login warming was not completed:", error);
+          return null;
+        });
+        return preLoginWarmPromise;
+      }
+
+      document.addEventListener("glipReady", function () {
+        // Yield briefly so the login form paints first, then use the time while
+        // the user enters their code to warm school-wide data.
+        setTimeout(startPreLoginWarm, 100);
+      }, { once: true });
+
       async function login() {
         const codeInput = document.getElementById("codeInput");
         const loginBtn = document.getElementById("loginBtn");
@@ -678,6 +704,9 @@ const subjectsResult = await postToGlip({
         resetLogDelay();
         showLoginProgress();
         addLoginLog("Checking your code...");
+        // Ensure warming has at least been started. Login does not wait for the
+        // browser promise; Apps Script shares the same snapshot/cache lock.
+        startPreLoginWarm();
 
         try {
           const result = await postToGlip({

@@ -1,0 +1,8 @@
+GLIP v411
+
+- Starts anonymous, school-wide relational snapshot warming when index.html opens.
+- Login reuses the warmed snapshot; user-specific and Drive datasets remain post-authentication/lazy.
+- Adds detailed shared management finalisation diagnostics.
+- Uses the shared model for Level Management listing.
+- Centralises spreadsheet tab resolution through SHEETS, getGlipSheet_ and requireGlipSheet_.
+- Retains v409 transaction reliability and v410 incremental snapshot patching.
