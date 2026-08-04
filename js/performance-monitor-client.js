@@ -72,9 +72,9 @@
 
   function transactionStatusUrl(url) { return url; }
 
-  async function recoverTransaction(url, payload, transactionId) {
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      await new Promise(function (resolve) { setTimeout(resolve, 1200 + attempt * 900); });
+  async function recoverTransaction(url, payload, transactionId, requestId, sessionId) {
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      await new Promise(function (resolve) { setTimeout(resolve, 900 + attempt * 800); });
       try {
         const response = await nativeFetch(transactionStatusUrl(url), {
           method: "POST",
@@ -82,16 +82,22 @@
             action: "getTransactionStatus",
             school_id: payload.school_id,
             transaction_id: transactionId,
-            client_session_id: payload.client_session_id,
+            request_id: requestId,
+            client_session_id: sessionId,
             page_instance_id: payload.page_instance_id
           })
         });
-        const result = await response.json();
-        if (result && result.status === "success" && result.transaction_state === "committed" && result.result) {
-          return new Response(JSON.stringify(result.result), { status: 200, headers: { "Content-Type": "application/json" } });
-        }
-        if (result && result.transaction_state === "failed" && result.result) {
-          return new Response(JSON.stringify(result.result), { status: 200, headers: { "Content-Type": "application/json" } });
+        const statusPayload = await response.json();
+        if (!statusPayload || statusPayload.status !== "success") continue;
+        if (String(statusPayload.transaction_id || "") !== String(transactionId)) continue;
+        if ((statusPayload.transaction_state === "committed" || statusPayload.transaction_state === "failed") && statusPayload.result) {
+          const result = statusPayload.result;
+          const sameTransaction = String(result.transaction_id || "") === String(transactionId);
+          const sameRequest = !result.request_id || String(result.request_id) === String(requestId);
+          const sameSession = !result.client_session_id || String(result.client_session_id) === String(sessionId);
+          const samePage = !result.page_instance_id || String(result.page_instance_id) === String(payload.page_instance_id || "");
+          const sameAction = !result.originating_action || String(result.originating_action) === String(payload.action || "");
+          if (sameTransaction && sameRequest && sameSession && samePage && sameAction) return result;
         }
       } catch (_) {}
     }
@@ -309,6 +315,7 @@
 
     try {
       const response = await nativeFetch(input, amended);
+      let responseToReturn = response;
       const clone = response.clone();
       try {
         parsed = await clone.json();
@@ -321,15 +328,35 @@
         httpResult = "invalid_json";
       }
 
-      if (writeRequest && parsed) {
-        const sameTransaction = String(parsed.transaction_id || "") === String(transactionId);
-        const sameSession = !parsed.client_session_id || String(parsed.client_session_id) === String(sessionId);
-        const sameRequest = !parsed.request_id || String(parsed.request_id) === String(requestId);
-        if (!sameTransaction || !sameSession || !sameRequest) {
-          status = "failure";
-          errorMessage = "The save response did not match the originating transaction.";
+      if (writeRequest) {
+        const responseLooksUnrelated = !parsed ||
+          String(parsed.transaction_id || "") !== String(transactionId) ||
+          (!!parsed.client_session_id && String(parsed.client_session_id) !== String(sessionId)) ||
+          (!!parsed.request_id && String(parsed.request_id) !== String(requestId)) ||
+          (!!parsed.page_instance_id && String(parsed.page_instance_id) !== String(PAGE_INSTANCE_ID)) ||
+          (!!parsed.originating_action && String(parsed.originating_action) !== String(payload.action));
+        const genericRoutingError = parsed && String(parsed.message || "") === "Invalid or missing action";
+
+        if (responseLooksUnrelated || genericRoutingError) {
+          const recoveredResult = await recoverTransaction(input, payload, transactionId, requestId, sessionId);
+          if (recoveredResult) {
+            parsed = recoveredResult;
+            status = parsed.status === "success" ? "success" : "failure";
+            errorMessage = parsed.status === "success" ? "" : String(parsed.message || "");
+            httpResult = "transaction_recovered";
+            responseToReturn = new Response(JSON.stringify(parsed), {
+              status: 200,
+              headers: { "Content-Type": "application/json" }
+            });
+          } else {
+            status = "failure";
+            errorMessage = responseLooksUnrelated
+              ? "GLIP could not confirm this save response. The transaction status could not be verified."
+              : "GLIP could not confirm the saved transaction after a routing error.";
+          }
         }
-        if (parsed.committed === true || parsed.status !== "success") endTransactionUi(transactionId);
+
+        if (parsed && (parsed.committed === true || parsed.status !== "success")) endTransactionUi(transactionId);
       }
 
       const role = getRole(payload, parsed);
@@ -373,13 +400,16 @@
         page_instance_id: PAGE_INSTANCE_ID,
         committed: parsed && parsed.committed === true ? "true" : ""
       });
-      return response;
+      return responseToReturn;
     } catch (error) {
       if (writeRequest) {
-        const recovered = await recoverTransaction(input, payload, transactionId);
+        const recovered = await recoverTransaction(input, payload, transactionId, requestId, sessionId);
         if (recovered) {
           endTransactionUi(transactionId);
-          return recovered;
+          return new Response(JSON.stringify(recovered), {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+          });
         }
         endTransactionUi(transactionId);
       }
