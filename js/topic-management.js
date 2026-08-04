@@ -191,6 +191,7 @@
       cancelBtn.id = "cancelCurriculumTopicEditBtn";
       cancelBtn.className = "glip-btn glip-btn-secondary teacher-cancel-btn";
       cancelBtn.textContent = "Cancel";
+      cancelBtn.style.marginLeft = "8px";
       cancelBtn.addEventListener("click", cancelEditMode);
       editBtn.insertAdjacentElement("afterend", cancelBtn);
     }
@@ -267,6 +268,12 @@ function renderViewRow(item) {
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "updateCurriculumTopicManagement", teacher_id: sessionStorage.getItem("glipTeacherId"), role: getRole(), assignments: itemsToSave }); },
       failureMessage: "Could not save topic assignments.",
+      apply: function () {
+        applyUpdatesLocally(itemsToSave);
+        editMode = false;
+        updateEditButton();
+        renderAssignments();
+      },
       onSuccess: function (result) { setMessage(result.message || "Topic assignments saved.", "success"); },
       resync: resyncSilently,
       rollback: function () { assignments = previousAssignments; renderAssignments(); },

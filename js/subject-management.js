@@ -204,6 +204,7 @@ function saveCurriculumItem() {
       cancelBtn.id = "cancelCurriculumEditBtn";
       cancelBtn.className = "glip-btn glip-btn-secondary teacher-cancel-btn";
       cancelBtn.textContent = "Cancel";
+      cancelBtn.style.marginLeft = "8px";
       cancelBtn.addEventListener("click", cancelEditMode);
       editBtn.insertAdjacentElement("afterend", cancelBtn);
     }
@@ -381,6 +382,12 @@ function renderEditRow(item) {
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "updateCurriculumAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), teacher_id: sessionStorage.getItem("glipTeacherId"), role: sessionStorage.getItem("glipUserType"), curriculum: itemsToSave }); },
       failureMessage: "Could not save subject changes.",
+      apply: function () {
+        applyCurriculumUpdatesLocally(itemsToSave);
+        curriculumEditMode = false;
+        updateEditButton();
+        renderCurriculum(currentCurriculum);
+      },
       onSuccess: function (result) { setMessage(result.message || "Subject changes saved.", "success"); },
       resync: resyncCurriculumSilently,
       rollback: function () { currentCurriculum = previousCurriculum; renderCurriculum(currentCurriculum); },

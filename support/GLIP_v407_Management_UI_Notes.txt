@@ -1,0 +1,8 @@
+GLIP v407 – Management UI Consistency
+
+- Subject Management exits edit mode after a committed save and restores browse-mode planning indicators.
+- Topic Management exits edit mode after a committed save and restores browse-mode planning indicators.
+- Added consistent spacing between Save Changes and Cancel on Subject, Topic and Teacher Management.
+- Transaction progress feedback is positioned immediately below the action buttons rather than below long tables.
+- Student, Teacher, Subject, Topic and Class management progress placeholders now use the standard location.
+- The commit-first and performance optimisations from v398–v406 are retained.

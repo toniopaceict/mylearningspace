@@ -445,6 +445,7 @@ function loadTeachers() {
       cancelBtn.className =
         "glip-btn glip-btn-secondary teacher-cancel-btn";
       cancelBtn.textContent = "Cancel";
+      cancelBtn.style.marginLeft = "8px";
       cancelBtn.addEventListener("click", cancelTeachersEditMode);
 
       editTeachersBtn.insertAdjacentElement("afterend", cancelBtn);

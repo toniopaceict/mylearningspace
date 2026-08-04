@@ -38,7 +38,14 @@
       box.innerHTML = '<div class="glip-commit-text" style="margin-bottom:7px;text-align:center;font-weight:600;">Saving...</div><div class="glip-progress show"><div class="glip-progress-bar"></div></div>';
       fallbackIndicator = box;
     }
-    if (fallbackIndicator.parentElement !== host) host.appendChild(fallbackIndicator);
+    const actionGroup = anchor && anchor.closest ? anchor.closest(".panel-right.teacher-actions, .tracker-row") : null;
+    const panelHeader = actionGroup && actionGroup.closest ? actionGroup.closest(".panel-header") : null;
+    const insertionAnchor = panelHeader || actionGroup;
+    if (insertionAnchor && insertionAnchor.parentElement) {
+      if (fallbackIndicator.previousElementSibling !== insertionAnchor) insertionAnchor.insertAdjacentElement("afterend", fallbackIndicator);
+    } else if (fallbackIndicator.parentElement !== host) {
+      host.insertBefore(fallbackIndicator, host.firstChild);
+    }
     return fallbackIndicator;
   }
 
