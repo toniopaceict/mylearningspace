@@ -25,23 +25,27 @@
     });
   }
 
-  function ensureFallbackIndicator() {
-    if (fallbackIndicator && document.body.contains(fallbackIndicator)) return fallbackIndicator;
-    const box = document.createElement("div");
-    box.id = "glipCommitProgress";
-    box.setAttribute("role", "status");
-    box.setAttribute("aria-live", "polite");
-    box.style.cssText = "display:none;position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:9999;min-width:280px;max-width:90vw;background:#fff;border:1px solid #c7ced8;border-radius:8px;padding:10px 14px;box-shadow:0 4px 18px rgba(0,0,0,.18);";
-    box.innerHTML = '<div class="glip-commit-text" style="margin-bottom:7px;text-align:center;font-weight:600;">Saving...</div><div class="glip-progress show"><div class="glip-progress-bar"></div></div>';
-    document.body.appendChild(box);
-    fallbackIndicator = box;
-    return box;
+  function ensureFallbackIndicator(anchor) {
+    const fieldset = anchor && anchor.closest ? anchor.closest("fieldset") : null;
+    const host = fieldset || document.querySelector("main fieldset, .management-wrap fieldset") || document.body;
+    if (!fallbackIndicator || !document.body.contains(fallbackIndicator)) {
+      const box = document.createElement("div");
+      box.id = "glipCommitProgress";
+      box.setAttribute("role", "status");
+      box.setAttribute("aria-live", "polite");
+      box.className = "page-loading-box text-center glip-commit-progress";
+      box.style.cssText = "display:none;margin:12px auto 0;max-width:520px;";
+      box.innerHTML = '<div class="glip-commit-text" style="margin-bottom:7px;text-align:center;font-weight:600;">Saving...</div><div class="glip-progress show"><div class="glip-progress-bar"></div></div>';
+      fallbackIndicator = box;
+    }
+    if (fallbackIndicator.parentElement !== host) host.appendChild(fallbackIndicator);
+    return fallbackIndicator;
   }
 
   function beginTransactionUi(transactionId, action) {
     pendingTransactions.set(transactionId, { action: action, started: Date.now() });
     if (!visibleProgressExists()) {
-      const box = ensureFallbackIndicator();
+      const box = ensureFallbackIndicator(document.activeElement);
       const text = box.querySelector(".glip-commit-text");
       if (text) text.textContent = /delete/i.test(action) ? "Deleting..." : /upload/i.test(action) ? "Uploading..." : "Saving...";
       box.style.display = "block";

@@ -183,75 +183,46 @@ function getWebAppUrl() {
   }
 
 function saveTeacher() {
-  const teacherTitle = document
-    .getElementById("newTeacherTitle")
-    .value.trim();
-
-  const teacherName = document
-    .getElementById("newTeacherName")
-    .value.trim();
-
-  const teacherSurname = document
-    .getElementById("newTeacherSurname")
-    .value.trim();
-
-  const code = document
-    .getElementById("newTeacherCode")
-    .value.trim();
-
-  const email = document
-    .getElementById("newTeacherEmail")
-    .value.trim();
-
+  const teacherTitle = document.getElementById("newTeacherTitle").value.trim();
+  const teacherName = document.getElementById("newTeacherName").value.trim();
+  const teacherSurname = document.getElementById("newTeacherSurname").value.trim();
+  const code = document.getElementById("newTeacherCode").value.trim();
+  const email = document.getElementById("newTeacherEmail").value.trim();
   const role = document.getElementById("newTeacherRole").value;
-
-  const sendCodeEmail =
-    document.getElementById("sendTeacherCodeOnCreate")?.checked || false;
+  const sendCodeEmail = document.getElementById("sendTeacherCodeOnCreate")?.checked || false;
 
   if (!teacherName || !teacherSurname || !code || !email || !role) {
-    setAddTeacherMessage(
-      "Teacher name, surname, login code, email and role are required.",
-      "error"
-    );
+    setAddTeacherMessage("Teacher name, surname, login code, email and role are required.", "error");
     return;
   }
 
   const duplicateCode = currentTeachers.some(function (teacher) {
-    return String(teacher.code || "")
-      .trim()
-      .toLowerCase() === code.toLowerCase();
+    return String(teacher.code || "").trim().toLowerCase() === code.toLowerCase();
   });
 
   if (duplicateCode) {
-    setAddTeacherMessage(
-      "This teacher login code already exists.",
-      "error"
-    );
+    setAddTeacherMessage("This teacher login code already exists.", "error");
     return;
   }
 
   setAddTeacherMessage("", "info");
+  setTeacherSavingState(true);
+  pendingTeacherSaves += 1;
+  updateEditTeachersButton();
 
-  const temporaryId = "pending-teacher-" + Date.now();
-
-  currentTeachers.push({
-    teacher_id: temporaryId,
+  const confirmedTeacher = {
+    teacher_id: "",
     teacher_title: teacherTitle,
     teacher_name: teacherName,
     teacher_surname: teacherSurname,
     full_name: (teacherName + " " + teacherSurname).trim(),
-    code: code,
+    code: code.toUpperCase(),
     email: email,
     role: role,
     active: true,
-    pending_save: true
-  });
-
-  pendingTeacherSaves += 1;
-
-  updateEditTeachersButton();
-  renderTeachers(currentTeachers);
-  clearAddTeacherForm();
+    pending_save: false,
+    pending_state: "saved"
+  };
 
   GLIPOptimisticUpdate.run({
     request: function () {
@@ -267,56 +238,26 @@ function saveTeacher() {
         send_code_email: sendCodeEmail
       });
     },
-
     failureMessage: "Could not add teacher.",
-    apply: function () { currentTeachers.push(temporaryTeacher); clearAddTeacherForm(); renderTeachers(currentTeachers); },
-
+    apply: function (result) {
+      const saved = result.teacher || {};
+      currentTeachers.push(Object.assign({}, confirmedTeacher, saved, {
+        teacher_id: saved.teacher_id || result.teacher_id || ""
+      }));
+      clearAddTeacherForm();
+      renderTeachers(currentTeachers);
+    },
     onSuccess: function (result) {
-      const temporaryTeacher = currentTeachers.find(function (teacher) {
-        return String(teacher.teacher_id) === temporaryId;
-      });
-
-      if (temporaryTeacher) {
-        if (result.teacher_id !== undefined && result.teacher_id !== null) {
-          temporaryTeacher.teacher_id = result.teacher_id;
-        }
-
-        GLIPOptimisticUpdate.markSaved(temporaryTeacher);
-      }
-
-      pendingTeacherSaves = Math.max(0, pendingTeacherSaves - 1);
-      updateEditTeachersButton();
-      renderTeachers(currentTeachers);
-
-      setAddTeacherMessage(
-        result.message || "Teacher added successfully.",
-        "success"
-      );
+      setAddTeacherMessage(result.message || "Teacher added successfully.", "success");
     },
-
     resync: resyncTeachersSilently,
-
-    rollback: function () {
-      currentTeachers = currentTeachers.filter(function (teacher) {
-        return String(teacher.teacher_id) !== temporaryId;
-      });
-
-      selectedTeacherIds = selectedTeacherIds.filter(function (teacherId) {
-        return String(teacherId) !== temporaryId;
-      });
-
-      pendingTeacherSaves = Math.max(0, pendingTeacherSaves - 1);
-      updateEditTeachersButton();
-      renderTeachers(currentTeachers);
-    },
-
     onFailure: function (error) {
-      setAddTeacherMessage(
-        error.message ||
-          "Could not add teacher. The temporary row was removed.",
-        "error"
-      );
+      setAddTeacherMessage(error.message || "Could not add teacher.", "error");
     }
+  }).finally(function () {
+    pendingTeacherSaves = Math.max(0, pendingTeacherSaves - 1);
+    setTeacherSavingState(false);
+    updateEditTeachersButton();
   });
 }
 

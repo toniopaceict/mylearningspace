@@ -1,6 +1,8 @@
 (function () {
   "use strict";
 
+  let recentlyCommittedAssignments = new Map();
+
   let classTeachersEditMode = false;
   let currentAssignments = [];
   let availableTeachers = [];
@@ -472,7 +474,16 @@ function populateSubjectDropdownForLevel(level, select, selectedSubjectId) {
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "addClassTeacherAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), role: getCurrentRole(), teacher_id: teacherId, level: normalisedLevel, subject_id: subjectId, class_id: classId, active: active }); },
       failureMessage: "Could not save assignment.",
-      apply: function (result) { confirmedAssignment.assignment_id = result.class_teacher_id || confirmedAssignment.assignment_id; currentAssignments.push(confirmedAssignment); clearAddForm(); renderAssignments(currentAssignments); },
+      apply: function (result) {
+        confirmedAssignment.assignment_id = result.class_teacher_id || confirmedAssignment.assignment_id;
+        currentAssignments.push(confirmedAssignment);
+        recentlyCommittedAssignments.set(String(confirmedAssignment.assignment_id), {
+          row: Object.assign({}, confirmedAssignment),
+          expires: Date.now() + 30000
+        });
+        clearAddForm();
+        renderAssignments(currentAssignments);
+      },
       onSuccess: function (result) { const row = currentAssignments.find(function (item) { return String(item.assignment_id) === temporaryId; }); if (row) { row.assignment_id = result.class_teacher_id || row.assignment_id; GLIPOptimisticUpdate.markSaved(row); } setAddMessage(result.message || "Assignment saved.", "success"); setAddAssignmentSaving(false); },
       resync: resyncAssignmentsSilently,
       rollback: function () { currentAssignments = currentAssignments.filter(function (item) { return String(item.assignment_id) !== temporaryId; }); renderAssignments(currentAssignments); },
@@ -694,15 +705,43 @@ function renderAssignmentEditRow(assignment) {
     });
   }
 
-  function resyncAssignmentsSilently() {
+  function resyncAssignmentsSilently(context) {
+    const retryAttempt = context && Number(context.retryAttempt || 0) || 0;
     postToGlip({
       action: "listTeachingAssignmentViewAdmin",
       admin_teacher_id: sessionStorage.getItem("glipTeacherId"),
       role: getCurrentRole()
     }).then(function (result) {
       if (!result || result.status !== "success") return;
-      currentAssignments = GLIPOptimisticUpdate.mergePendingRows(result.assignments || [], currentAssignments, "assignment_id");
+
+      const serverRows = result.assignments || [];
+      const serverIds = new Set(serverRows.map(function (row) { return String(row.assignment_id); }));
+      const protectedRows = [];
+      let missingCommitted = false;
+
+      recentlyCommittedAssignments.forEach(function (entry, id) {
+        if (serverIds.has(String(id))) {
+          recentlyCommittedAssignments.delete(id);
+          return;
+        }
+        if (Date.now() > entry.expires) {
+          recentlyCommittedAssignments.delete(id);
+          return;
+        }
+        protectedRows.push(Object.assign({}, entry.row));
+        missingCommitted = true;
+      });
+
+      currentAssignments = serverRows.concat(protectedRows.filter(function (row) {
+        return !serverIds.has(String(row.assignment_id));
+      }));
       renderAssignments(currentAssignments);
+
+      if (missingCommitted && retryAttempt < 3) {
+        setTimeout(function () {
+          resyncAssignmentsSilently({ retryAttempt: retryAttempt + 1 });
+        }, [600, 1200, 2200][retryAttempt]);
+      }
     }).catch(function (error) {
       console.warn("Silent class teacher resync failed.", error);
     });

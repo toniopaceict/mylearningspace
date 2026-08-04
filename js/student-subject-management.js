@@ -650,6 +650,9 @@ const options = renderGroupedSubjectOptions(
                 class="panel-message student-subject-inline-message"
                 id="studentSubjectMessage-${escapeHtml(student.student_id)}"
               ></span>
+              <div id="studentSubjectSaveProgress-${escapeHtml(student.student_id)}" class="glip-progress" style="display:none">
+                <div class="glip-progress-bar"></div>
+              </div>
             </div>
           </div>
         </td>
@@ -698,36 +701,57 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
 }
   
 
-  function saveAssignments(studentId) {
-    const selects = Array.from(
-      document.querySelectorAll(
-        `[data-student-subject-assignment="${studentId}"]`
-      )
-    );
+  function setStudentSubjectSavingState(studentId, isSaving) {
+    const saveBtn = document.querySelector(`[data-save-student-subjects][data-student-id="${studentId}"]`);
+    const cancelBtn = document.querySelector(`[data-cancel-student-subjects][data-student-id="${studentId}"]`);
+    const selects = document.querySelectorAll(`[data-student-subject-assignment="${studentId}"]`);
+    const progress = document.getElementById("studentSubjectSaveProgress-" + studentId);
+    if (saveBtn) { saveBtn.disabled = isSaving; saveBtn.textContent = isSaving ? "Saving..." : "Save All Assignments"; }
+    if (cancelBtn) cancelBtn.disabled = isSaving;
+    selects.forEach(function (select) { select.disabled = isSaving; });
+    if (progress) progress.style.display = isSaving ? "block" : "none";
+  }
 
-    const assignmentsToSave = selects
-      .map(function (select) {
-        return {
-          level_code: select.dataset.levelCode || "",
-          subject_id: select.dataset.subjectId || "",
-          access_type: select.value,
-          active: select.value !== "not_assigned"
-        };
-      })
-      .filter(function (item) {
-        return item.active;
-      });
+  function saveAssignments(studentId) {
+    const selects = Array.from(document.querySelectorAll(`[data-student-subject-assignment="${studentId}"]`));
+    const assignmentsToSave = selects.map(function (select) {
+      return {
+        level_code: select.dataset.levelCode || "",
+        subject_id: select.dataset.subjectId || "",
+        access_type: select.value,
+        active: select.value !== "not_assigned"
+      };
+    }).filter(function (item) { return item.active; });
 
     const messageEl = document.getElementById("studentSubjectMessage-" + studentId);
+    setStudentSubjectMessage(messageEl, "", "info");
+    setStudentSubjectSavingState(studentId, true);
 
     GLIPOptimisticUpdate.run({
-      request: function () { return postToGlip({ action: "saveStudentSubjectsAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), student_id: studentId, assignments_to_save: assignmentsToSave }); },
+      request: function () {
+        return postToGlip({
+          action: "saveStudentSubjectsAdmin",
+          admin_teacher_id: sessionStorage.getItem("glipTeacherId"),
+          student_id: studentId,
+          assignments_to_save: assignmentsToSave
+        });
+      },
       failureMessage: "Could not save assignments.",
-      apply: function () { applyStudentSubjectAssignmentsLocally(studentId, assignmentsToSave); selectedStudentId = ""; selectedRowKey = ""; renderStudentSubjectTable(); },
-      onSuccess: function (result) { setStudentSubjectMessage(messageEl, result.message || "Assignments saved successfully.", "success"); },
+      apply: function () {
+        applyStudentSubjectAssignmentsLocally(studentId, assignmentsToSave);
+        selectedStudentId = "";
+        selectedRowKey = "";
+        renderStudentSubjectTable();
+      },
+      onSuccess: function () {
+        showSuccessMessage();
+      },
       resync: resyncStudentSubjectsSilently,
-      rollback: function () { assignments = previousAssignments; renderStudentSubjectTable(); },
-      onFailure: function (error) { setStudentSubjectMessage(messageEl, error.message || "Could not save assignments. The previous values were restored.", "error"); }
+      onFailure: function (error) {
+        setStudentSubjectMessage(messageEl, error.message || "Could not save assignments. The previous values were retained.", "error");
+      }
+    }).finally(function () {
+      setStudentSubjectSavingState(studentId, false);
     });
   }
 

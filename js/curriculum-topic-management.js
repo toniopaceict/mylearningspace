@@ -191,6 +191,7 @@
       cancelBtn.id = "cancelCurriculumTopicEditBtn";
       cancelBtn.className = "glip-btn glip-btn-secondary teacher-cancel-btn";
       cancelBtn.textContent = "Cancel";
+      cancelBtn.style.marginLeft = "8px";
       cancelBtn.addEventListener("click", cancelEditMode);
       editBtn.insertAdjacentElement("afterend", cancelBtn);
     }
@@ -258,19 +259,38 @@ function renderViewRow(item) {
   }
 
   function saveChanges() {
-    const rows = document.querySelectorAll("[data-curriculum-topic-row]"); const itemsToSave = [];
+    const rows = document.querySelectorAll("[data-curriculum-topic-row]");
+    const itemsToSave = [];
     rows.forEach(function (row) {
       const item = { curriculum_topic_id: row.dataset.curriculumTopicRow };
-      row.querySelectorAll("[data-curriculum-topic-field]").forEach(function (field) { const name = field.dataset.curriculumTopicField; item[name] = name === "visible" || name === "active" ? field.value === "true" : field.value.trim(); });
+      row.querySelectorAll("[data-curriculum-topic-field]").forEach(function (field) {
+        const name = field.dataset.curriculumTopicField;
+        item[name] = name === "visible" || name === "active" ? field.value === "true" : field.value.trim();
+      });
       itemsToSave.push(item);
     });
+
+    setSavingState(true);
     GLIPOptimisticUpdate.run({
-      request: function () { return postToGlip({ action: "updateCurriculumTopicManagement", teacher_id: sessionStorage.getItem("glipTeacherId"), role: getRole(), assignments: itemsToSave }); },
+      request: function () {
+        return postToGlip({ action: "updateCurriculumTopicManagement", teacher_id: sessionStorage.getItem("glipTeacherId"), role: getRole(), assignments: itemsToSave });
+      },
       failureMessage: "Could not save topic assignments.",
-      onSuccess: function (result) { setMessage(result.message || "Topic assignments saved.", "success"); },
+      apply: function () {
+        applyUpdatesLocally(itemsToSave);
+        editMode = false;
+        updateEditButton();
+        renderAssignments();
+      },
+      onSuccess: function (result) {
+        setMessage(result.message || "Topic assignments saved.", "success");
+      },
       resync: resyncSilently,
-      rollback: function () { assignments = previousAssignments; renderAssignments(); },
-      onFailure: function (error) { setMessage(error.message || "Could not save topic assignments. The previous values were restored.", "error"); }
+      onFailure: function (error) {
+        setMessage(error.message || "Could not save topic assignments. The previous values were retained.", "error");
+      }
+    }).finally(function () {
+      setSavingState(false);
     });
   }
 
