@@ -309,7 +309,7 @@ function getCurriculumVisibleText(item) {
 
 function renderViewRow(item) {
   const warnings = getPlanningWarnings(item);
-  const planningClass = warnings.any ? "planning-row" : "";
+  const planningClass = (warnings.any || !isTrue(item.active)) ? "planning-row" : "";
 
   return '<tr class="' + planningClass + '">' +
     '<td>' + escapeHtml(appendPlanningWarning(formatLevel(item.level), warnings.level)) + '</td>' +
@@ -322,7 +322,7 @@ function renderViewRow(item) {
 
 function renderEditRow(item) {
   const warnings = getPlanningWarnings(item);
-  const planningClass = warnings.any ? "planning-row" : "";
+  const planningClass = (warnings.any || !isTrue(item.active)) ? "planning-row" : "";
 
   return '<tr class="' + planningClass + '" data-curriculum-row="' + escapeHtml(item.curriculum_id) + '">' +
     '<td><select class="tracker-input" data-curriculum-field="level">' + renderLevelOptions(item.level) + '</select></td>' +

@@ -168,9 +168,13 @@
   }
 
   function getRole(payload, parsed) {
+    const stored = String(sessionStorage.getItem("glipUserType") || sessionStorage.getItem("glipRole") || "").trim().toLowerCase();
+    // For writes, the response may describe the affected record (for example
+    // the role of a newly created teacher). Audit fields must identify the
+    // authenticated actor, so prefer the session role.
+    if (isWriteAction(payload && payload.action) && stored) return stored;
     const responseRole = roleFromResponse(parsed);
     if (responseRole) return responseRole;
-    const stored = String(sessionStorage.getItem("glipUserType") || sessionStorage.getItem("glipRole") || "").trim().toLowerCase();
     if (stored) return stored;
     const payloadRole = payload && String(payload.role || "").trim().toLowerCase();
     if (payloadRole) return payloadRole;
@@ -178,7 +182,12 @@
     return "unknown";
   }
 
-  function getUserId(role, parsed) {
+  function getUserId(role, parsed, payload) {
+    if (isWriteAction(payload && payload.action)) {
+      return role === "student"
+        ? String(sessionStorage.getItem("glipStudentId") || "")
+        : String(sessionStorage.getItem("glipTeacherId") || "");
+    }
     if (role === "student") {
       return String(
         (parsed && parsed.student && parsed.student.student_id) ||

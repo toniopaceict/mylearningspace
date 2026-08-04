@@ -126,6 +126,31 @@
     "work-folder-management.html": ["listMyWorkFolders"]
   };
 
+
+
+  // After a committed write, warm only the dataset used by the page that
+  // initiated the change. Related datasets remain invalidated and reload when
+  // their pages are actually opened. This avoids several warm requests
+  // competing to rebuild the same relational snapshot.
+  const POST_SAVE_PRIMARY_ACTION = {
+    addLevelAdmin: "listLevelsManagementAdmin",
+    updateLevelsAdmin: "listLevelsManagementAdmin",
+    addClassAdmin: "listClassesAdmin",
+    updateClassesAdmin: "listClassesAdmin",
+    addCurriculumAdmin: "listCurriculumManagementAdmin",
+    updateCurriculumAdmin: "listCurriculumManagementAdmin",
+    addCurriculumTopicManagement: "getCurriculumTopicManagement",
+    updateCurriculumTopicManagement: "getCurriculumTopicManagement",
+    addTeacherAdmin: "listTeachersAdmin",
+    updateTeachersAdmin: "listTeachersAdmin",
+    deactivateTeacherAdmin: "listTeachersAdmin",
+    addStudentAdmin: "listStudentsAdmin",
+    updateStudentsAdmin: "listStudentsAdmin",
+    saveStudentSubjectsAdmin: "getStudentSubjectManagementAdmin",
+    addClassTeacherAdmin: "listClassTeachersAdmin",
+    updateClassTeachersAdmin: "listClassTeachersAdmin"
+  };
+
   const WARMING_DELAY_MS = 150;
   const TEACHING_ASSIGNMENT_POST_SAVE_IDLE_MS = 6000;
   const WARMING_GAP_MS = 75;
@@ -876,11 +901,17 @@
             // page the user is currently viewing, and only after a genuine idle
             // period. Student Subjects and Work Folders remain invalidated and
             // will load authoritatively when their pages are opened.
-            if (action === "addClassTeacherAdmin" || action === "updateClassTeachersAdmin") {
+            const primaryAction = POST_SAVE_PRIMARY_ACTION[action] || "";
+            if (primaryAction) {
               enqueueBackgroundTask(
-                "post_save_primary:listClassTeachersAdmin",
-                function () { return warmAction("listClassTeachersAdmin", apiUrl, "post_save_warm"); },
-                { priority: 8, minIdleMs: TEACHING_ASSIGNMENT_POST_SAVE_IDLE_MS }
+                "post_save_primary:" + primaryAction,
+                function () { return warmAction(primaryAction, apiUrl, "post_save_warm"); },
+                {
+                  priority: 8,
+                  minIdleMs: (action === "addClassTeacherAdmin" || action === "updateClassTeachersAdmin")
+                    ? TEACHING_ASSIGNMENT_POST_SAVE_IDLE_MS
+                    : BACKGROUND_WARM_IDLE_MS
+                }
               );
             } else {
               window.setTimeout(function () {
