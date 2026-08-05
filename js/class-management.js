@@ -72,6 +72,16 @@ loadLevelsDropdown();
         tableKey: "classes",
         tableName: "Classes",
         messageElementId: "classManagementMessage",
+        beforeClear: function () {
+          setAddClassMessage("", "info");
+        },
+        onClearSuccess: function () {
+          currentClasses = [];
+          classesEditMode = false;
+          updateEditClassesButton();
+          renderClasses(currentClasses);
+          setClassesLoadingState(false);
+        },
         refresh: loadClasses
       });
     }
@@ -327,7 +337,7 @@ function loadLevelsDropdown() {
 
     setClassesLoadingState(true);
 
-    postToGlip({
+    return postToGlip({
       action: "listClassesAdmin",
       admin_teacher_id: sessionStorage.getItem("glipTeacherId")
     })
@@ -340,11 +350,9 @@ function loadLevelsDropdown() {
         classesEditMode = false;
         updateEditClassesButton();
         renderClasses(currentClasses);
-        setClassesLoadingState(false);
       })
       .catch(function (error) {
         console.error(error);
-        setClassesLoadingState(false);
         setMessage("Could not load classes.", "error");
 
         tbody.innerHTML = `
@@ -352,6 +360,9 @@ function loadLevelsDropdown() {
             <td colspan="6">Could not load classes.</td>
           </tr>
         `;
+      })
+      .finally(function () {
+        setClassesLoadingState(false);
       });
   }
 

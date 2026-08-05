@@ -487,6 +487,10 @@ wrapper.appendChild(fileInput);
 
 if (!options.hideClear) {
   clearBtn.addEventListener("click", function () {
+    if (typeof options.beforeClear === "function") {
+      options.beforeClear();
+    }
+
     showGlipConfirmModal({
       title: "Clear " + options.tableName + " Table",
       bodyHtml:
@@ -521,9 +525,15 @@ if (!options.hideClear) {
           "success"
         );
 
-        if (typeof options.refresh === "function") {
-          options.refresh();
+        if (typeof options.onClearSuccess === "function") {
+          options.onClearSuccess(result);
         }
+
+        if (typeof options.refresh === "function") {
+          return Promise.resolve(options.refresh());
+        }
+
+        return null;
       }).catch(function (error) {
         console.error(error);
         setMessage(options.messageElementId, error.message || "Could not clear table.", "error");
