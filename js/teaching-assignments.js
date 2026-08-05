@@ -286,7 +286,7 @@ fields: [
   { value: "teacher_name", label: "Teacher", getValue: function (assignment) { return getTeacherNameById(assignment.teacher_id); } },
   { value: "level", label: "Level", getValue: function (assignment) { return getLevelLabel(assignment); } },
   { value: "subject_id", label: "Subject", getValue: function (assignment) { return getSubjectName(assignment.subject_id, assignment.level); } },
-  { value: "class_id", label: "Class" },
+  { value: "class_id", label: "Class", getValue: function (assignment) { const info = getClassInfoById(assignment.class_id); return assignment.class_label || (info && (info.class_label || info.class_code)) || assignment.class_id; } },
   { value: "active", label: "Status", getValue: getAssignmentStatusText }
 ],
     onChange: function () {
@@ -477,7 +477,7 @@ function populateSubjectDropdownForLevel(level, select, selectedSubjectId) {
     const subjectInfo = getSubjectInfoByLevel(subjectId, normalisedLevel) || {};
     const temporaryId = "pending-assignment-" + Date.now();
     setAddAssignmentSaving(true);
-    const confirmedAssignment = { assignment_id: temporaryId, teacher_id: teacherId, teacher_name: teacherInfo.teacher_name, teacher_surname: teacherInfo.teacher_surname, full_name: teacherInfo.full_name || [teacherInfo.teacher_name, teacherInfo.teacher_surname].filter(Boolean).join(" "), teacher_active: teacherInfo.active !== false, level: normalisedLevel, level_active: classInfo.level_active !== false, subject_id: subjectId, subject_name: subjectInfo.subject_name || subjectId, subject_code: subjectInfo.subject_code, curriculum_active: subjectInfo.curriculum_active !== false && subjectInfo.active !== false, class_id: classId, class_active: classInfo.active !== false, active: active, archived: false, status: active ? "active" : "inactive" };
+    const confirmedAssignment = { assignment_id: temporaryId, teacher_id: teacherId, teacher_name: teacherInfo.teacher_name, teacher_surname: teacherInfo.teacher_surname, full_name: teacherInfo.full_name || [teacherInfo.teacher_name, teacherInfo.teacher_surname].filter(Boolean).join(" "), teacher_active: teacherInfo.active !== false, level: normalisedLevel, level_active: classInfo.level_active !== false, subject_id: subjectId, subject_name: subjectInfo.subject_name || subjectInfo.subject_label || subjectId, subject_code: subjectInfo.subject_code, curriculum_active: subjectInfo.curriculum_active !== false && subjectInfo.active !== false, class_id: classId, class_label: classInfo.class_label || classInfo.class_code || classId, class_active: classInfo.active !== false, active: active, archived: false, status: active ? "active" : "inactive" };
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "addClassTeacherAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), role: getCurrentRole(), teacher_id: teacherId, level: normalisedLevel, subject_id: subjectId, class_id: classId, active: active }); },
       failureMessage: "Could not save assignment.",
@@ -573,9 +573,14 @@ function getAssignmentStatusText(assignment) {
 }
 
 function formatAssignmentTeacherCell(assignment) {
+  const teacherName =
+    assignment.full_name ||
+    [assignment.teacher_name, assignment.teacher_surname].filter(Boolean).join(" ") ||
+    getTeacherNameById(assignment.teacher_id);
+
   return escapeHtml(
     appendPlanningWarning(
-      getTeacherNameById(assignment.teacher_id),
+      teacherName,
       assignment.teacher_active === false
     )
   );
@@ -591,18 +596,29 @@ function formatAssignmentLevelCell(assignment) {
 }
 
 function formatAssignmentSubjectCell(assignment) {
+  const subjectLabel =
+    assignment.subject_name ||
+    assignment.subject_label ||
+    getSubjectName(assignment.subject_id, assignment.level);
+
   return escapeHtml(
     appendPlanningWarning(
-      getSubjectName(assignment.subject_id, assignment.level),
+      subjectLabel,
       assignment.curriculum_active === false
     )
   );
 }
 
 function formatAssignmentClassCell(assignment) {
+  const classInfo = getClassInfoById(assignment.class_id);
+  const classLabel =
+    assignment.class_label ||
+    (classInfo && (classInfo.class_label || classInfo.class_code)) ||
+    assignment.class_id;
+
   return escapeHtml(
     appendPlanningWarning(
-      assignment.class_id,
+      classLabel,
       assignment.class_active === false
     )
   );
