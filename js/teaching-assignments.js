@@ -593,9 +593,16 @@ function formatAssignmentSubjectCell(assignment) {
 }
 
 function formatAssignmentClassCell(assignment) {
+  const classInfo = getClassInfoById(assignment.class_id);
+
+  const classLabel =
+    assignment.class_label ||
+    (classInfo && classInfo.class_label) ||
+    assignment.class_id;
+
   return escapeHtml(
     appendPlanningWarning(
-      assignment.class_id,
+      classLabel,
       assignment.class_active === false
     )
   );
