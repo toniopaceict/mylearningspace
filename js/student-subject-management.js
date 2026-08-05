@@ -366,6 +366,10 @@ function rowNeedsAttention(row) {
     row.curriculum_active === false;
 }
 
+function rowHasNoSubjectAssignment(row) {
+  return row.status === "none";
+}
+
 function getStudentSubjectStatusText(row) {
   if (row.student_active === false) {
     return "Inactive";
@@ -527,7 +531,7 @@ function formatStudentSubjectSubjectCell(row) {
   data-row-key="${escapeHtml(row.row_key)}"
   data-student-id="${escapeHtml(row.student_id)}"
   data-selectable="${isSelectable ? "true" : "false"}"
-  class="student-subject-row ${rowNeedsAttention(row) ? "planning-row" : ""} ${isSelected ? "selected-row" : ""}"
+  class="student-subject-row ${(rowNeedsAttention(row) || rowHasNoSubjectAssignment(row)) ? "planning-row" : ""} ${isSelected ? "selected-row" : ""}"
 >
   <td>${formatStudentSubjectNameCell(row)}</td>
   <td>${escapeHtml(row.class_id)}</td>
@@ -930,6 +934,7 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
 
     if (!el) return;
 
+    el.className = "panel-message success";
     el.style.display = "block";
 
     clearTimeout(showSuccessMessage.timer);
