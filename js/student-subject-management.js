@@ -429,7 +429,7 @@ function formatStudentSubjectSubjectCell(row) {
         row_key: makeRowKey(student.student_id, assignment.level, assignment.subject_id, assignment.access_type),
         student_id: student.student_id,
         full_name: formatStudentName(student),
-        class_id: student.class_id,
+        class_id: student.class_label || student.class_code || student.class_id,
         level: assignment.level,
         level_text: formatLevel(assignment.level),
         level_active: subjectInfo
@@ -456,7 +456,7 @@ function formatStudentSubjectSubjectCell(row) {
         row_key: makeRowKey(student.student_id, "", "", "none"),
         student_id: student.student_id,
         full_name: formatStudentName(student),
-        class_id: student.class_id,
+        class_id: student.class_label || student.class_code || student.class_id,
         level: student.level || "",
         level_text: student.level ? formatLevel(student.level) : "",
         level_active: student.level_active !== false,
