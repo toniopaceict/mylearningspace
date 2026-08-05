@@ -199,8 +199,9 @@
     setUploadStage("");
   }
   function isStudent(){ return String(sessionStorage.getItem("glipUserType") || "").toLowerCase() === "student"; }
+  function isStudentLike(){ return ["student", "support"].includes(String(sessionStorage.getItem("glipUserType") || "").toLowerCase()); }
   function applyRoleLayout(){
-    const student = isStudent();
+    const student = isStudentLike();
     byId("studentResourceFilterGroup")?.toggleAttribute("hidden", student);
     byId("teacherResourceBulkToolbar")?.toggleAttribute("hidden", student);
     byId("teacherResourceHeader")?.toggleAttribute("hidden", student);
@@ -218,7 +219,7 @@
   function setUploadStage(text){const el=byId("classResourceUploadStage");if(el){el.textContent=text||"";el.hidden=!text;}}
   function setUploading(value){const b=byId("uploadClassResourceBtn"),p=byId("classResourceUploadProgress");if(b){b.disabled=value;b.textContent=value?"Uploading...":"Upload resource";}if(p)p.classList.toggle("show",value||!!byId("classResourceUploadStage")?.textContent);}
   function setAllAssignments(v){document.querySelectorAll("#resourceAssignmentList input[type=checkbox]").forEach(function(i){i.checked=v;});}
-  function clearFilters(){if(byId("classResourceSearch"))byId("classResourceSearch").value="";if(!isStudent()&&byId("classResourceFilter"))byId("classResourceFilter").value="";render();}
+  function clearFilters(){if(byId("classResourceSearch"))byId("classResourceSearch").value="";if(!isStudentLike()&&byId("classResourceFilter"))byId("classResourceFilter").value="";render();}
   function invalidateResourceCaches(){window.GLIPStoragePageCache?.clear(["listMyClassResources","getTeacherStorageDashboard"]);}
 
   function setDeleting(value,count){

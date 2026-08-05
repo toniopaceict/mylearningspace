@@ -2,6 +2,7 @@
   "use strict";
 
   const TEACHING_ROLES = ["lead_teacher", "subject_teacher"];
+  const STUDENT_LIKE_ROLES = ["student", "support"];
 
   const CAPABILITIES = {
     VIEW_SUBJECTS: "view_subjects",
@@ -24,6 +25,10 @@
       CAPABILITIES.VIEW_CLASS_RESOURCES,
       CAPABILITIES.MANAGE_WORK_FOLDERS,
       CAPABILITIES.VIEW_PROGRESS
+    ],
+    support: [
+      CAPABILITIES.VIEW_SUBJECTS,
+      CAPABILITIES.VIEW_CLASS_RESOURCES
     ]
   };
 
@@ -61,6 +66,10 @@
 
   function isTeachingRole(role) {
     return TEACHING_ROLES.includes(normaliseRole(role || getRole()));
+  }
+
+  function isStudentLikeRole(role) {
+    return STUDENT_LIKE_ROLES.includes(normaliseRole(role || getRole()));
   }
 
   function readPermissions() {
@@ -200,6 +209,7 @@
     CAPABILITIES: Object.freeze(CAPABILITIES),
     getRole: getRole,
     isTeachingRole: isTeachingRole,
+    isStudentLikeRole: isStudentLikeRole,
     getPermissions: getPermissions,
     getPrimaryLevel: getPrimaryLevel,
     getPrimaryLevelNumber: function () { return levelNumber(getPrimaryLevel()); },

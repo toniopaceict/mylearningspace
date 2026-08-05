@@ -843,6 +843,10 @@ function sendSelectedTeacherCodes() {
         label: "Lead"
       },
       {
+        value: "support",
+        label: "Support"
+      },
+      {
         value: "admin",
         label: "Admin"
       }
@@ -866,6 +870,7 @@ function sendSelectedTeacherCodes() {
     if (role === "admin") return "Admin";
     if (role === "lead_teacher") return "Lead";
     if (role === "subject_teacher") return "Subject";
+    if (role === "support") return "Support";
     return escapeHtml(role || "Unknown");
   }
 

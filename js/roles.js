@@ -47,6 +47,13 @@ const GLIP_ROLES = {
     canLogin: true
   },
 
+  support: {
+    label: "Support",
+    group: GLIP_GROUPS.STUDENT,
+    dashboard: null,
+    canLogin: true
+  },
+
   reserved_role_1: {
     label: "Reserved Role 1",
     group: GLIP_GROUPS.RESERVED,
@@ -126,11 +133,23 @@ function isTeachingStaff() {
 }
 
 function isStudent() {
+  return getCurrentRole() === "student";
+}
+
+function isSupport() {
+  return getCurrentRole() === "support";
+}
+
+function isStudentLikeUser() {
   return getCurrentGroup() === GLIP_GROUPS.STUDENT;
 }
 
-function isStaff() {
+function isTeacherLikeUser() {
   return isOwner() || isAdmin() || isTeachingStaff();
+}
+
+function isStaff() {
+  return isOwner() || isAdmin() || isTeachingStaff() || isSupport();
 }
 
 /* =========================================================
