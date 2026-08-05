@@ -52,11 +52,13 @@
     setupClassTeacherTableSorting();
     updateSortIndicators();
 
-    // Show the loading indicator for the complete initial data-loading sequence,
-    // including teachers, levels, classes and subjects.
-    setLoadingState(true);
+    // Load the table immediately instead of making it wait for the four
+    // reference datasets used by the Add Teaching Assignment form. Cached
+    // table data can therefore be painted at once, while the form datasets
+    // continue loading independently.
+    const assignmentsPromise = loadAssignments();
 
-    Promise.all([
+    const referenceDataPromise = Promise.all([
       loadTeachers(),
       loadLevels(),
       loadClasses(),
@@ -65,10 +67,15 @@
       if (!isAdmin()) {
         buildLeadTeacherLevelList();
       }
-    
+
       populateAddDropdowns();
-      loadAssignments();
+    }).catch(function (error) {
+      console.error("Could not load teaching-assignment form data:", error);
     });
+
+    // Keep both promises available for diagnostics without delaying either
+    // part of the page.
+    Promise.allSettled([assignmentsPromise, referenceDataPromise]);
 
     if (isAdmin() && typeof window.setupGlipCsvAdminTools === "function") {
       window.setupGlipCsvAdminTools({
@@ -294,7 +301,7 @@ fields: [
 
     setLoadingState(true);
 
-    postToGlip({
+    return postToGlip({
       action: "listTeachingAssignmentViewAdmin",
       admin_teacher_id: sessionStorage.getItem("glipTeacherId"),
       role: getCurrentRole()
@@ -593,16 +600,9 @@ function formatAssignmentSubjectCell(assignment) {
 }
 
 function formatAssignmentClassCell(assignment) {
-  const classInfo = getClassInfoById(assignment.class_id);
-
-  const classLabel =
-    assignment.class_label ||
-    (classInfo && classInfo.class_label) ||
-    assignment.class_id;
-
   return escapeHtml(
     appendPlanningWarning(
-      classLabel,
+      assignment.class_id,
       assignment.class_active === false
     )
   );

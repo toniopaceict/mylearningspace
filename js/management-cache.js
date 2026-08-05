@@ -31,7 +31,8 @@
     getCurriculumTopicManagement: "topics",
     listTeachersAdmin: "teachers",
     listClassesAdmin: "classes",
-    listClassTeachersAdmin: "teachingAssignments",
+    listClassTeachersAdmin: "teachingAssignmentView",
+    listTeachingAssignmentViewAdmin: "teachingAssignmentView",
     listStudentsAdmin: "students",
     getStudentSubjectManagementAdmin: "studentSubjects",
     listMyWorkFolders: "workFolders"
@@ -48,8 +49,12 @@
     listTeachersAdmin: ["teachers"],
     listClassesAdmin: ["classes"],
     listClassTeachersAdmin: ["assignments", "class_teachers", "teaching_assignments"],
+    listTeachingAssignmentViewAdmin: ["assignments", "class_teachers", "teaching_assignments"],
     listStudentsAdmin: ["students"],
-    getStudentSubjectManagementAdmin: ["student_subjects", "assignments"],
+    // The combined Student Subject response may legitimately contain no
+    // assignments while still containing students. Including students here
+    // allows the complete cached management view to be reused immediately.
+    getStudentSubjectManagementAdmin: ["students", "student_subjects", "assignments"],
     listMyWorkFolders: ["folders", "assignments", "work_folders"]
   };
 
@@ -77,26 +82,26 @@
   }, {});
 
   const WRITE_DEPENDENCIES = {
-    addLevelAdmin: ["levels", "subjects", "classes", "teachingAssignments", "students", "studentSubjects", "workFolders"],
-    updateLevelsAdmin: ["levels", "subjects", "classes", "teachingAssignments", "students", "studentSubjects", "workFolders"],
-    saveSubjectCatalogueOwner: ["subjectCatalogue", "topicCatalogue", "subjects", "topics", "teachingAssignments", "studentSubjects", "workFolders"],
+    addLevelAdmin: ["levels", "subjects", "classes", "teachingAssignmentView", "students", "studentSubjects", "workFolders"],
+    updateLevelsAdmin: ["levels", "subjects", "classes", "teachingAssignmentView", "students", "studentSubjects", "workFolders"],
+    saveSubjectCatalogueOwner: ["subjectCatalogue", "topicCatalogue", "subjects", "topics", "teachingAssignmentView", "studentSubjects", "workFolders"],
     saveTopicCatalogueOwner: ["topicCatalogue", "topics"],
-    addCurriculumAdmin: ["subjects", "topics", "teachingAssignments", "studentSubjects", "workFolders"],
-    updateCurriculumAdmin: ["subjects", "topics", "teachingAssignments", "studentSubjects", "workFolders"],
+    addCurriculumAdmin: ["subjects", "topics", "teachingAssignmentView", "studentSubjects", "workFolders"],
+    updateCurriculumAdmin: ["subjects", "topics", "teachingAssignmentView", "studentSubjects", "workFolders"],
     addCurriculumTopicManagement: ["topics"],
     updateCurriculumTopicManagement: ["topics"],
-    addTeacherAdmin: ["teachers", "teachingAssignments", "workFolders"],
-    updateTeachersAdmin: ["teachers", "teachingAssignments", "workFolders"],
-    deactivateTeacherAdmin: ["teachers", "teachingAssignments", "workFolders"],
-    addClassAdmin: ["classes", "teachingAssignments", "students", "studentSubjects", "workFolders"],
-    updateClassesAdmin: ["classes", "teachingAssignments", "students", "studentSubjects", "workFolders"],
-    addClassTeacherAdmin: ["teachingAssignments", "workFolders", "studentSubjects"],
-    updateClassTeachersAdmin: ["teachingAssignments", "workFolders", "studentSubjects"],
-    updateMyWorkFolders: ["workFolders", "teachingAssignments"],
+    addTeacherAdmin: ["teachers", "teachingAssignmentView", "workFolders"],
+    updateTeachersAdmin: ["teachers", "teachingAssignmentView", "workFolders"],
+    deactivateTeacherAdmin: ["teachers", "teachingAssignmentView", "workFolders"],
+    addClassAdmin: ["classes", "teachingAssignmentView", "students", "studentSubjects", "workFolders"],
+    updateClassesAdmin: ["classes", "teachingAssignmentView", "students", "studentSubjects", "workFolders"],
+    addClassTeacherAdmin: ["teachingAssignmentView", "workFolders", "studentSubjects"],
+    updateClassTeachersAdmin: ["teachingAssignmentView", "workFolders", "studentSubjects"],
+    updateMyWorkFolders: ["workFolders", "teachingAssignmentView"],
     addStudentAdmin: ["students", "studentSubjects"],
     updateStudentsAdmin: ["students", "studentSubjects"],
     saveStudentSubjectsAdmin: ["studentSubjects"],
-    saveAllSubjectsAdmin: ["subjects", "topics", "teachingAssignments", "studentSubjects", "workFolders"],
+    saveAllSubjectsAdmin: ["subjects", "topics", "teachingAssignmentView", "studentSubjects", "workFolders"],
     applyAdminTableCsvImport: "fromTableKey",
     clearAdminTableRows: "fromTableKey"
   };
