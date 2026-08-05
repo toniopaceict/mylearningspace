@@ -1,0 +1,25 @@
+GLIP v419 Support Role
+
+Built directly from the supplied v418 Apps Script and GitHub baselines.
+
+Role
+- Internal value: support
+- Display label: Support
+- Stored in Teachers and assigned through TeachingAssignments.
+- Support is staff for login purposes but uses the learner-facing interface.
+
+Teaching assignments
+- Support rows retain class_id, curriculum_id, teacher_id, active and archived.
+- student_work_folder_id and resources_folder_id remain blank.
+- No Drive folders are created or repaired for Support assignments.
+
+Access
+- Subjects and topics come from active TeachingAssignments.
+- Class Resources are resolved from an active non-Support assignment with the same class_id and curriculum_id.
+- Support sees the learner-style Class Resources interface and can download resources.
+- Student submissions and progress still require a real student identity; server-side validation remains authoritative.
+
+Architecture
+- No new sheets or columns.
+- Existing storage architecture is unchanged.
+- New central helpers distinguish student-like and teacher-like users.
