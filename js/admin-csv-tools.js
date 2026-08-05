@@ -529,7 +529,7 @@ if (!options.hideClear) {
           options.onClearSuccess(result);
         }
 
-        if (typeof options.refresh === "function") {
+        if (options.refreshAfterClear !== false && typeof options.refresh === "function") {
           return Promise.resolve(options.refresh());
         }
 

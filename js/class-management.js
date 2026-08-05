@@ -82,6 +82,7 @@ loadLevelsDropdown();
           renderClasses(currentClasses);
           setClassesLoadingState(false);
         },
+        refreshAfterClear: false,
         refresh: loadClasses
       });
     }
