@@ -367,7 +367,7 @@
         school_id: school,
         school_label: getSchoolLabel(),
         role: role,
-        user_id: getUserId(role, parsed),
+        user_id: getUserId(role, parsed, payload),
         page: location.pathname,
         action: payload.action,
         category: category(payload.action, payload),
