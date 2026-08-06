@@ -769,9 +769,7 @@ const subjectsResult = await postToGlip({
             if (
               userType === "owner" ||
               userType === "admin" ||
-              userType === "lead_teacher" ||
-              userType === "subject_teacher" ||
-              userType === "support"
+              userType === "teacher"
             ) {
             const teacher = result.teacher;
             const firstPermission =
@@ -788,23 +786,20 @@ sessionStorage.setItem("glipTeacherName", teacher.teacher_name);
 sessionStorage.setItem("glipTeacherSurname", teacher.teacher_surname || "");
 sessionStorage.setItem("glipTeacherFullName", teacher.full_name || teacher.teacher_name);
 sessionStorage.setItem("glipTeacherRole", userType);
+sessionStorage.setItem("glipAccountRole", userType);
+sessionStorage.setItem("glipCapabilityContext", JSON.stringify(teacher.capability_context || {}));
 sessionStorage.setItem("glipRole", userType);
 sessionStorage.setItem(
   "glipTeacherPermissions",
   JSON.stringify(teacher.permissions || [])
 );
 
-if (userType === "support") {
-  const supportPermissions = Array.isArray(teacher.permissions) ? teacher.permissions : [];
-  const supportClassIds = supportPermissions.map(function (permission) {
-    return String(permission.class_id || "").trim();
-  }).filter(Boolean).filter(function (value, index, all) {
-    return all.indexOf(value) === index;
-  });
-  sessionStorage.setItem("glipClassIds", JSON.stringify(supportClassIds));
-  if (supportClassIds[0]) sessionStorage.setItem("glipClassId", supportClassIds[0]);
-  if (teacherLevel) sessionStorage.setItem("glipLevel", teacherLevel);
-}
+const staffPermissions = Array.isArray(teacher.permissions) ? teacher.permissions : [];
+const staffClassIds = staffPermissions.map(function (permission) { return String(permission.class_id || "").trim(); }).filter(Boolean).filter(function (value,index,all){ return all.indexOf(value)===index; });
+sessionStorage.setItem("glipClassIds", JSON.stringify(staffClassIds));
+if (staffClassIds[0]) sessionStorage.setItem("glipClassId", staffClassIds[0]);
+if (teacherLevel) sessionStorage.setItem("glipLevel", teacherLevel);
+sessionStorage.setItem("glipSupportOnly", String(Boolean(teacher.capability_context && teacher.capability_context.support_only)));
 
 
 
@@ -906,9 +901,7 @@ if (userType === "owner" || userType === "admin") {
 }
 
 if (
-  userType === "lead_teacher" ||
-  userType === "subject_teacher" ||
-  userType === "support"
+  userType === "teacher"
 ) {
   const firstPermission = permissions[0];
 

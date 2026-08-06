@@ -47,7 +47,7 @@ Help file:
 <fieldset class="task-box panel-box topics-box" id="addClassTeacherPanel">
 <legend>Add Teaching Assignment</legend>
 <p class="q">
-          Assign a teacher to a level, subject and class.
+          Assign a staff member to a level, subject and class, then select the assignment designation.
         </p>
 
 <div class="tracker-row assignment-primary-row">
@@ -62,6 +62,12 @@ Help file:
 </select>
 <select class="tracker-input" disabled="" id="newClassTeacherClass">
 <option value="">Select level first</option>
+</select>
+<select class="tracker-input" id="newClassTeacherDesignation">
+<option value="">Select designation</option>
+<option value="lead_teacher">Lead Teacher</option>
+<option value="subject_teacher">Subject Teacher</option>
+<option value="support">Support</option>
 </select>
 </div>
 
@@ -117,6 +123,9 @@ Help file:
 <th data-label="Class" data-sort-field="class_id">
       Class ↕
     </th>
+<th data-label="Designation" data-sort-field="designation">
+      Designation ↕
+    </th>
 <th class="assignment-status-column" data-label="Status" data-sort-field="active">
       Status ↕
     </th>
@@ -131,7 +140,8 @@ Help file:
 </div>
 <script>
     document.addEventListener("glipReady", function () {
-      requireRole("owner", "admin", "lead_teacher");
+      if (isOwner() || isAdmin()) return;
+      if (!window.GLIPTeachingRole || !window.GLIPTeachingRole.requireCapability(window.GLIPTeachingRole.CAPABILITIES.MANAGE_TEACHING_ASSIGNMENTS)) return;
     });
   </script></body>
 </html>
