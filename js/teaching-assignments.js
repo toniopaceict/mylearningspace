@@ -36,7 +36,7 @@
   function initClassTeacherManagement() {
     if (typeof getCurrentRole !== "function") return;
     const role = getCurrentRole();
-    if (role !== "owner" && role !== "admin" && role !== "lead_teacher") return;
+    if (!(role === "owner" || role === "admin" || (window.GLIPTeachingRole && window.GLIPTeachingRole.hasCapability(window.GLIPTeachingRole.CAPABILITIES.MANAGE_TEACHING_ASSIGNMENTS)))) return;
 
     const saveBtn = document.getElementById("saveClassTeacherBtn");
     const editBtn = document.getElementById("editClassTeachersBtn");
@@ -340,6 +340,7 @@ fields: [
     const levelSelect = document.getElementById("newClassTeacherLevel");
     const subjectSelect = document.getElementById("newClassTeacherSubject");
     const classSelect = document.getElementById("newClassTeacherClass");
+    const designationSelect = document.getElementById("newClassTeacherDesignation");
 
     if (!levelSelect || !subjectSelect || !classSelect) return;
 
@@ -447,7 +448,7 @@ function populateSubjectDropdownForLevel(level, select, selectedSubjectId) {
 
         return `
           <option value="${escapeHtml(item.class_id)}" ${selected}>
-            ${escapeHtml(appendPlanningWarning(item.class_id, item.active === false))}
+            ${escapeHtml(appendPlanningWarning(item.class_label || item.class_code || item.class_id, item.active === false))}
           </option>
         `;
       }).join("");
@@ -469,17 +470,18 @@ function populateSubjectDropdownForLevel(level, select, selectedSubjectId) {
     const level = document.getElementById("newClassTeacherLevel").value.trim();
     const subjectId = document.getElementById("newClassTeacherSubject").value.trim();
     const classId = document.getElementById("newClassTeacherClass").value.trim();
+    const designation = document.getElementById("newClassTeacherDesignation").value.trim();
     const active = document.getElementById("newClassTeacherActive").checked;
-    if (!teacherId || !level || !subjectId || !classId) { setAddMessage("Teacher, level, subject and class are required.", "error"); return; }
+    if (!teacherId || !level || !subjectId || !classId || !designation) { setAddMessage("Staff member, level, subject, class and designation are required.", "error"); return; }
     const normalisedLevel = normaliseLevel(level);
     const teacherInfo = availableTeachers.find(function (item) { return String(item.teacher_id) === teacherId; }) || {};
     const classInfo = getClassInfoById(classId) || {};
     const subjectInfo = getSubjectInfoByLevel(subjectId, normalisedLevel) || {};
     const temporaryId = "pending-assignment-" + Date.now();
     setAddAssignmentSaving(true);
-    const confirmedAssignment = { assignment_id: temporaryId, teacher_id: teacherId, teacher_name: teacherInfo.teacher_name, teacher_surname: teacherInfo.teacher_surname, full_name: teacherInfo.full_name || [teacherInfo.teacher_name, teacherInfo.teacher_surname].filter(Boolean).join(" "), teacher_active: teacherInfo.active !== false, level: normalisedLevel, level_active: classInfo.level_active !== false, subject_id: subjectId, subject_name: subjectInfo.subject_name || subjectInfo.subject_label || subjectId, subject_code: subjectInfo.subject_code, curriculum_active: subjectInfo.curriculum_active !== false && subjectInfo.active !== false, class_id: classId, class_label: classInfo.class_label || classInfo.class_code || classId, class_active: classInfo.active !== false, active: active, archived: false, status: active ? "active" : "inactive" };
+    const confirmedAssignment = { assignment_id: temporaryId, teacher_id: teacherId, teacher_name: teacherInfo.teacher_name, teacher_surname: teacherInfo.teacher_surname, full_name: teacherInfo.full_name || [teacherInfo.teacher_name, teacherInfo.teacher_surname].filter(Boolean).join(" "), teacher_active: teacherInfo.active !== false, level: normalisedLevel, level_active: classInfo.level_active !== false, subject_id: subjectId, subject_name: subjectInfo.subject_name || subjectInfo.subject_label || subjectId, subject_code: subjectInfo.subject_code, curriculum_active: subjectInfo.curriculum_active !== false && subjectInfo.active !== false, class_id: classId, class_label: classInfo.class_label || classInfo.class_code || classId, class_active: classInfo.active !== false, designation: designation, designation_text: formatDesignation(designation), active: active, archived: false, status: active ? "active" : "inactive" };
     GLIPOptimisticUpdate.run({
-      request: function () { return postToGlip({ action: "addClassTeacherAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), role: getCurrentRole(), teacher_id: teacherId, level: normalisedLevel, subject_id: subjectId, class_id: classId, active: active }); },
+      request: function () { return postToGlip({ action: "addClassTeacherAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), role: getCurrentRole(), teacher_id: teacherId, level: normalisedLevel, subject_id: subjectId, class_id: classId, designation: designation, active: active }); },
       failureMessage: "Could not save assignment.",
       apply: function (result) {
         confirmedAssignment.assignment_id = result.class_teacher_id || confirmedAssignment.assignment_id;
@@ -572,6 +574,14 @@ function getAssignmentStatusText(assignment) {
   return "Active";
 }
 
+
+  function formatDesignation(value) {
+    const designation = String(value || "").trim().toLowerCase();
+    if (designation === "lead_teacher") return "Lead Teacher";
+    if (designation === "subject_teacher") return "Subject Teacher";
+    if (designation === "support") return "Support";
+    return designation || "-";
+  }
 function formatAssignmentTeacherCell(assignment) {
   const teacherName =
     assignment.full_name ||
@@ -653,6 +663,7 @@ const filteredAssignments =
     <td>${formatAssignmentLevelCell(assignment)}</td>
     <td>${formatAssignmentSubjectCell(assignment)}</td>
     <td>${formatAssignmentClassCell(assignment)}</td>
+    <td>${escapeHtml(formatDesignation(assignment.designation))}</td>
     <td>${getAssignmentStatusText(assignment)}</td>
   </tr>
 `;
@@ -681,6 +692,7 @@ function renderAssignmentEditRow(assignment) {
       <td>${formatAssignmentLevelCell(assignment)}</td>
       <td>${formatAssignmentSubjectCell(assignment)}</td>
       <td>${formatAssignmentClassCell(assignment)}</td>
+      <td>${escapeHtml(formatDesignation(assignment.designation))}</td>
       <td>
         <select class="tracker-input" data-assignment-field="status">
           <option value="active" ${status === "active" ? "selected" : ""}>Active</option>
@@ -982,7 +994,7 @@ function renderSubjectOptionsForLevel(level, selectedSubjectId) {
 
         return `
           <option value="${escapeHtml(item.class_id)}" ${selected}>
-            ${escapeHtml(appendPlanningWarning(item.class_id, item.active === false))}
+            ${escapeHtml(appendPlanningWarning(item.class_label || item.class_code || item.class_id, item.active === false))}
           </option>
         `;
       }).join("");

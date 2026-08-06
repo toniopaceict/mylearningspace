@@ -484,7 +484,7 @@ const teacherName =
     let roleLabel = "";
 
     
-    if (userType === "student") {
+    if (userType === "student" || (window.GLIPTeachingRole && window.GLIPTeachingRole.isSupportOnly())) {
       displayName = studentName || "";
 
 if (classLabel) {

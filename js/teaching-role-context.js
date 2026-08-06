@@ -1,223 +1,38 @@
 (function () {
   "use strict";
 
-  const TEACHING_ROLES = ["lead_teacher", "subject_teacher"];
-  const STUDENT_LIKE_ROLES = ["student", "support"];
-
-  const CAPABILITIES = {
+  const DESIGNATIONS = ["lead_teacher", "subject_teacher", "support"];
+  const CAPABILITIES = Object.freeze({
     VIEW_SUBJECTS: "view_subjects",
     VIEW_CLASS_RESOURCES: "view_class_resources",
     MANAGE_WORK_FOLDERS: "manage_work_folders",
+    VIEW_STUDENT_WORK: "view_student_work",
     VIEW_PROGRESS: "view_progress",
-    MANAGE_TOPICS: "manage_topics"
-  };
-
-  const ROLE_CAPABILITIES = {
-    lead_teacher: [
-      CAPABILITIES.VIEW_SUBJECTS,
-      CAPABILITIES.VIEW_CLASS_RESOURCES,
-      CAPABILITIES.MANAGE_WORK_FOLDERS,
-      CAPABILITIES.VIEW_PROGRESS,
-      CAPABILITIES.MANAGE_TOPICS
-    ],
-    subject_teacher: [
-      CAPABILITIES.VIEW_SUBJECTS,
-      CAPABILITIES.VIEW_CLASS_RESOURCES,
-      CAPABILITIES.MANAGE_WORK_FOLDERS,
-      CAPABILITIES.VIEW_PROGRESS
-    ],
-    support: [
-      CAPABILITIES.VIEW_SUBJECTS,
-      CAPABILITIES.VIEW_CLASS_RESOURCES
-    ]
-  };
-
-  function normaliseRole(value) {
-    return String(value || "").trim().toLowerCase();
-  }
-
-  function normaliseLevel(value) {
-    const match = String(value || "").match(/\d+/);
-    return match ? "level-" + match[0].padStart(2, "0") : "";
-  }
-
-  function levelNumber(value) {
-    const match = normaliseLevel(value).match(/\d+/);
-    return match ? match[0] : "";
-  }
-
-  function isTrue(value) {
-    return value === true || ["true", "yes", "1"].includes(
-      String(value || "").trim().toLowerCase()
-    );
-  }
-
-  function getRole() {
-    if (typeof window.getCurrentRole === "function") {
-      return normaliseRole(window.getCurrentRole());
-    }
-
-    return normaliseRole(
-      sessionStorage.getItem("glipRole") ||
-      sessionStorage.getItem("glipTeacherRole") ||
-      sessionStorage.getItem("glipUserType")
-    );
-  }
-
-  function isTeachingRole(role) {
-    return TEACHING_ROLES.includes(normaliseRole(role || getRole()));
-  }
-
-  function isStudentLikeRole(role) {
-    return STUDENT_LIKE_ROLES.includes(normaliseRole(role || getRole()));
-  }
-
-  function readPermissions() {
-    try {
-      const parsed = JSON.parse(
-        sessionStorage.getItem("glipTeacherPermissions") || "[]"
-      );
-
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (error) {
-      console.warn("GLIP teacher permissions could not be read.", error);
-      return [];
-    }
-  }
-
-  function normalisePermission(permission) {
-    const item = permission && typeof permission === "object" ? permission : {};
-
-    return Object.assign({}, item, {
-      active: isTrue(item.active),
-      level: normaliseLevel(item.level || item.level_code),
-      subject_id: String(item.subject_id || item.subject_pk || "").trim(),
-      curriculum_id: String(item.curriculum_id || "").trim(),
-      class_id: String(item.class_id || "").trim()
-    });
-  }
-
-  function getPermissions(options) {
-    const settings = options || {};
-    const permissions = readPermissions().map(normalisePermission);
-
-    return settings.includeInactive
-      ? permissions
-      : permissions.filter(function (permission) {
-          return permission.active;
-        });
-  }
-
-  function getPrimaryLevel() {
-    const storedLevel = normaliseLevel(sessionStorage.getItem("glipLevel"));
-    if (storedLevel) return storedLevel;
-
-    const firstPermission = getPermissions()[0];
-    return firstPermission ? firstPermission.level : "";
-  }
-
-  function hasAssignments() {
-    return getPermissions().length > 0;
-  }
-
-  function hasCapability(capability, role) {
-    const currentRole = normaliseRole(role || getRole());
-
-    if (currentRole === "owner" || currentRole === "admin") {
-      return true;
-    }
-
-    return (ROLE_CAPABILITIES[currentRole] || []).includes(capability);
-  }
-
-  function hasSubjectLevelPermission(subjectId, level) {
-    const role = getRole();
-    if (role === "owner" || role === "admin") return true;
-
-    const subject = String(subjectId || "").trim();
-    const normalisedLevel = normaliseLevel(level);
-    if (!subject || !normalisedLevel) return false;
-
-    return getPermissions().some(function (permission) {
-      return permission.subject_id === subject && permission.level === normalisedLevel;
-    });
-  }
-
-  function getSchool() {
-    const match = window.location.pathname.match(/\/schools\/([^/]+)\//i);
-    const urlSchool = match ? match[1] : "";
-
-    return urlSchool && urlSchool !== "management"
-      ? urlSchool
-      : String(sessionStorage.getItem("glipSchool") || "").trim();
-  }
-
-  function getNavigationItems() {
-    const school = getSchool();
-    const items = [];
-
-    if (!isTeachingRole() || !hasAssignments()) return items;
-
-    items.push({
-      text: "⌂ Subjects",
-      url: "/mylearningspace/schools/" + school + "/subjects-home.html"
-    });
-
-    items.push({
-      text: "▧ Resources",
-      url: "/mylearningspace/schools/management/class-resources.html"
-    });
-
-    if (hasCapability(CAPABILITIES.MANAGE_TOPICS)) {
-      items.push({
-        text: "▤ Topic Management",
-        url: "/mylearningspace/schools/management/topic-management.html"
-      });
-    }
-
-    if (hasCapability(CAPABILITIES.MANAGE_WORK_FOLDERS)) {
-      items.push({
-        text: "▣ My GLIP Storage",
-        url: "/mylearningspace/schools/management/work-folder-management.html"
-      });
-
-      items.push({
-        text: "▨ Student Work",
-        url: "/mylearningspace/schools/management/student-submissions.html"
-      });
-    }
-
-    if (hasCapability(CAPABILITIES.VIEW_PROGRESS)) {
-      items.push({ text: "◔ Progress", url: "#" });
-    }
-
-    items.push({ spacer: true });
-    return items;
-  }
-
-  function requireCapability(capability) {
-    if (hasCapability(capability) && hasAssignments()) return true;
-
-    if (typeof window.redirectToSchoolLogin === "function") {
-      window.redirectToSchoolLogin();
-    }
-
-    return false;
-  }
-
-  window.GLIPTeachingRole = Object.freeze({
-    CAPABILITIES: Object.freeze(CAPABILITIES),
-    getRole: getRole,
-    isTeachingRole: isTeachingRole,
-    isStudentLikeRole: isStudentLikeRole,
-    getPermissions: getPermissions,
-    getPrimaryLevel: getPrimaryLevel,
-    getPrimaryLevelNumber: function () { return levelNumber(getPrimaryLevel()); },
-    hasAssignments: hasAssignments,
-    hasCapability: hasCapability,
-    hasSubjectLevelPermission: hasSubjectLevelPermission,
-    getNavigationItems: getNavigationItems,
-    requireCapability: requireCapability,
-    normaliseLevel: normaliseLevel
+    MANAGE_TOPICS: "manage_topics",
+    MANAGE_TEACHING_ASSIGNMENTS: "manage_teaching_assignments"
   });
+
+  const DESIGNATION_CAPABILITIES = Object.freeze({
+    lead_teacher: [CAPABILITIES.VIEW_SUBJECTS, CAPABILITIES.VIEW_CLASS_RESOURCES, CAPABILITIES.MANAGE_WORK_FOLDERS, CAPABILITIES.VIEW_STUDENT_WORK, CAPABILITIES.VIEW_PROGRESS, CAPABILITIES.MANAGE_TOPICS, CAPABILITIES.MANAGE_TEACHING_ASSIGNMENTS],
+    subject_teacher: [CAPABILITIES.VIEW_SUBJECTS, CAPABILITIES.VIEW_CLASS_RESOURCES, CAPABILITIES.MANAGE_WORK_FOLDERS, CAPABILITIES.VIEW_STUDENT_WORK, CAPABILITIES.VIEW_PROGRESS],
+    support: [CAPABILITIES.VIEW_SUBJECTS, CAPABILITIES.VIEW_CLASS_RESOURCES]
+  });
+
+  function key(v){ return String(v || "").trim().toLowerCase(); }
+  function truth(v){ return v === true || ["true","yes","1"].includes(key(v)); }
+  function level(v){ const m=String(v||"").match(/\d+/); return m ? "level-"+m[0].padStart(2,"0") : ""; }
+  function accountRole(){ return key(sessionStorage.getItem("glipRole") || sessionStorage.getItem("glipTeacherRole") || sessionStorage.getItem("glipUserType")); }
+  function readPermissions(){ try { const x=JSON.parse(sessionStorage.getItem("glipTeacherPermissions")||"[]"); return Array.isArray(x)?x:[]; } catch(e){ return []; } }
+  function permissions(options){ const includeInactive=options&&options.includeInactive; return readPermissions().map(function(p){ return Object.assign({},p,{designation:key(p.designation),active:truth(p.active),archived:truth(p.archived),level:level(p.level||p.level_code),subject_id:String(p.subject_id||p.subject_pk||"").trim(),curriculum_id:String(p.curriculum_id||"").trim(),class_id:String(p.class_id||"").trim()}); }).filter(function(p){ return DESIGNATIONS.includes(p.designation) && (includeInactive || (p.active && !p.archived)); }); }
+  function designations(){ return Array.from(new Set(permissions().map(function(p){return p.designation;}))); }
+  function isSupportOnly(){ const p=permissions(); return accountRole()==="teacher" && p.length>0 && p.every(function(x){return x.designation==="support";}); }
+  function hasCapability(capability){ const role=accountRole(); if(role==="owner"||role==="admin") return true; return permissions().some(function(p){ return (DESIGNATION_CAPABILITIES[p.designation]||[]).includes(capability); }); }
+  function matching(subjectId, levelValue, classId, curriculumId){ return permissions().filter(function(p){ if(subjectId && p.subject_id!==String(subjectId)) return false; if(levelValue && p.level!==level(levelValue)) return false; if(classId && p.class_id!==String(classId)) return false; if(curriculumId && p.curriculum_id!==String(curriculumId)) return false; return true; }); }
+  function hasCapabilityFor(capability, context){ const role=accountRole(); if(role==="owner"||role==="admin") return true; const c=context||{}; return matching(c.subject_id,c.level,c.class_id,c.curriculum_id).some(function(p){ return (DESIGNATION_CAPABILITIES[p.designation]||[]).includes(capability); }); }
+  function primaryLevel(){ const stored=level(sessionStorage.getItem("glipLevel")); if(stored) return stored; const p=permissions()[0]; return p?p.level:""; }
+  function getSchool(){ const m=location.pathname.match(/\/schools\/([^/]+)\//i); const x=m?m[1]:""; return x&&x!=="management"?x:String(sessionStorage.getItem("glipSchool")||""); }
+  function getNavigationItems(){ const school=getSchool(), items=[]; if(accountRole()!=="teacher"||!permissions().length) return items; items.push({text:"⌂ Subjects",url:"/mylearningspace/schools/"+school+"/subjects-home.html"}); items.push({text:"▧ Resources",url:"/mylearningspace/schools/management/class-resources.html"}); if(hasCapability(CAPABILITIES.MANAGE_TOPICS)) items.push({text:"▤ Topic Management",url:"/mylearningspace/schools/management/topic-management.html"}); if(hasCapability(CAPABILITIES.MANAGE_TEACHING_ASSIGNMENTS)) items.push({text:"▦ Teaching Assignments",url:"/mylearningspace/schools/management/teaching-assignments.html"}); if(hasCapability(CAPABILITIES.MANAGE_WORK_FOLDERS)){ items.push({text:"▣ My GLIP Storage",url:"/mylearningspace/schools/management/work-folder-management.html"}); items.push({text:"▨ Student Work",url:"/mylearningspace/schools/management/student-submissions.html"}); } if(hasCapability(CAPABILITIES.VIEW_PROGRESS)) items.push({text:"◔ Progress",url:"#"}); items.push({spacer:true}); return items; }
+  function requireCapability(capability, context){ if(hasCapabilityFor(capability,context)||(!context&&hasCapability(capability))) return true; if(typeof window.redirectToSchoolLogin==="function") window.redirectToSchoolLogin(); return false; }
+
+  window.GLIPTeachingRole=Object.freeze({CAPABILITIES:CAPABILITIES,getRole:accountRole,getAccountRole:accountRole,getPermissions:permissions,getDesignations:designations,getPrimaryLevel:primaryLevel,getPrimaryLevelNumber:function(){const m=primaryLevel().match(/\d+/);return m?m[0]:"";},hasAssignments:function(){return permissions().length>0;},hasCapability:hasCapability,hasCapabilityFor:hasCapabilityFor,hasSubjectLevelPermission:function(s,l){return accountRole()==="owner"||accountRole()==="admin"||matching(s,l).length>0;},isTeachingRole:function(){return accountRole()==="teacher"&&!isSupportOnly();},isStudentLikeRole:function(){return accountRole()==="student"||isSupportOnly();},isSupportOnly:isSupportOnly,getNavigationItems:getNavigationItems,requireCapability:requireCapability,normaliseLevel:level});
 })();

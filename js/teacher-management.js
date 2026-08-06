@@ -835,16 +835,8 @@ function sendSelectedTeacherCodes() {
   function renderRoleOptions(currentRole) {
     const roles = [
       {
-        value: "subject_teacher",
-        label: "Subject"
-      },
-      {
-        value: "lead_teacher",
-        label: "Lead"
-      },
-      {
-        value: "support",
-        label: "Support"
+        value: "teacher",
+        label: "Staff Member"
       },
       {
         value: "admin",
@@ -867,10 +859,8 @@ function sendSelectedTeacherCodes() {
   }
 
   function formatRole(role) {
-    if (role === "admin") return "Admin";
-    if (role === "lead_teacher") return "Lead";
-    if (role === "subject_teacher") return "Subject";
-    if (role === "support") return "Support";
+    if (role === "admin") return "Administrator";
+    if (role === "teacher") return "Staff Member";
     return escapeHtml(role || "Unknown");
   }
 

@@ -26,17 +26,10 @@ const GLIP_ROLES = {
     canLogin: true
   },
 
-  lead_teacher: {
-    label: "Lead Teacher",
+  teacher: {
+    label: "Staff Member",
     group: GLIP_GROUPS.TEACHING_STAFF,
-    dashboard: "lead-teacher-home.html",
-    canLogin: true
-  },
-
-  subject_teacher: {
-    label: "Subject Teacher",
-    group: GLIP_GROUPS.TEACHING_STAFF,
-    dashboard: "subject-teacher-home.html",
+    dashboard: null,
     canLogin: true
   },
 
@@ -47,12 +40,6 @@ const GLIP_ROLES = {
     canLogin: true
   },
 
-  support: {
-    label: "Support",
-    group: GLIP_GROUPS.STUDENT,
-    dashboard: null,
-    canLogin: true
-  },
 
   reserved_role_1: {
     label: "Reserved Role 1",
@@ -137,11 +124,11 @@ function isStudent() {
 }
 
 function isSupport() {
-  return getCurrentRole() === "support";
+  return Boolean(window.GLIPTeachingRole && window.GLIPTeachingRole.isSupportOnly());
 }
 
 function isStudentLikeUser() {
-  return getCurrentGroup() === GLIP_GROUPS.STUDENT;
+  return getCurrentGroup() === GLIP_GROUPS.STUDENT || isSupport();
 }
 
 function isTeacherLikeUser() {
@@ -149,7 +136,7 @@ function isTeacherLikeUser() {
 }
 
 function isStaff() {
-  return isOwner() || isAdmin() || isTeachingStaff() || isSupport();
+  return isOwner() || isAdmin() || isTeachingStaff();
 }
 
 /* =========================================================

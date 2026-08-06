@@ -444,7 +444,7 @@
 
     const role = String(sessionStorage.getItem("glipUserType") || "").toLowerCase();
     const teacherId = String(sessionStorage.getItem("glipTeacherId") || "").trim();
-    const isAuthenticatedStaff = teacherId && ["owner", "admin", "lead_teacher", "subject_teacher"].includes(role);
+    const isAuthenticatedStaff = teacherId && ["owner", "admin", "teacher"].includes(role);
     if (!isAuthenticatedStaff) return Promise.resolve(readVersions());
 
     const lastCheck = Number(sessionStorage.getItem(lastVersionCheckKey()) || 0);
@@ -542,7 +542,7 @@
   function canWarmAction(action) {
     const role = String(sessionStorage.getItem("glipUserType") || "").toLowerCase();
     if (role === "owner" || role === "admin") return action !== "listMyWorkFolders";
-    if (role === "lead_teacher") {
+    if (role === "teacher") {
       return action === "listCurriculumManagementAdmin" ||
         action === "getCurriculumTopicManagement";
     }
