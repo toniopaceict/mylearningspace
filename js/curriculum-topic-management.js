@@ -30,8 +30,11 @@
 
   function initCurriculumTopicManagement() {
     const role = getRole();
+    const canManageTopics = role === "owner" || role === "admin" ||
+      Boolean(window.GLIPTeachingRole &&
+        window.GLIPTeachingRole.hasCapability(window.GLIPTeachingRole.CAPABILITIES.MANAGE_TOPICS));
 
-    if (role !== "owner" && role !== "admin" && role !== "lead_teacher") return;
+    if (!canManageTopics) return;
 
     document.getElementById("saveCurriculumTopicBtn").addEventListener("click", addAssignment);
     document.getElementById("cancelAddCurriculumTopicBtn").addEventListener("click", cancelAddAssignment);

@@ -1,0 +1,7 @@
+GLIP v423 – Lead Teacher curriculum scope
+
+Lead Teacher authority is resolved by teacher_id + curriculum_id.
+A curriculum represents one subject at one level, so the designation applies across all classes using that curriculum.
+
+Storage, Student Work and class-progress access remain tied to the staff member's own exact teacher_id + class_id + curriculum_id assignment.
+Lead Teacher status alone never exposes another teacher's Google Drive folders.

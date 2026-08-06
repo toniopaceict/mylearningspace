@@ -28,7 +28,23 @@
   function isSupportOnly(){ const p=permissions(); return accountRole()==="teacher" && p.length>0 && p.every(function(x){return x.designation==="support";}); }
   function hasCapability(capability){ const role=accountRole(); if(role==="owner"||role==="admin") return true; return permissions().some(function(p){ return (DESIGNATION_CAPABILITIES[p.designation]||[]).includes(capability); }); }
   function matching(subjectId, levelValue, classId, curriculumId){ return permissions().filter(function(p){ if(subjectId && p.subject_id!==String(subjectId)) return false; if(levelValue && p.level!==level(levelValue)) return false; if(classId && p.class_id!==String(classId)) return false; if(curriculumId && p.curriculum_id!==String(curriculumId)) return false; return true; }); }
-  function hasCapabilityFor(capability, context){ const role=accountRole(); if(role==="owner"||role==="admin") return true; const c=context||{}; return matching(c.subject_id,c.level,c.class_id,c.curriculum_id).some(function(p){ return (DESIGNATION_CAPABILITIES[p.designation]||[]).includes(capability); }); }
+  function hasCapabilityFor(capability, context){
+    const role=accountRole();
+    if(role==="owner"||role==="admin") return true;
+    const c=context||{};
+
+    // Lead Teacher authority is curriculum-scoped (subject + level), not class-scoped.
+    if(capability===CAPABILITIES.MANAGE_TOPICS){
+      return matching(c.subject_id,c.level,null,c.curriculum_id).some(function(p){
+        return p.designation==="lead_teacher";
+      });
+    }
+
+    // Storage, student work and progress stay tied to the exact class assignment.
+    return matching(c.subject_id,c.level,c.class_id,c.curriculum_id).some(function(p){
+      return (DESIGNATION_CAPABILITIES[p.designation]||[]).includes(capability);
+    });
+  }
   function primaryLevel(){ const stored=level(sessionStorage.getItem("glipLevel")); if(stored) return stored; const p=permissions()[0]; return p?p.level:""; }
   function getSchool(){ const m=location.pathname.match(/\/schools\/([^/]+)\//i); const x=m?m[1]:""; return x&&x!=="management"?x:String(sessionStorage.getItem("glipSchool")||""); }
   function getNavigationItems(){ const school=getSchool(), items=[]; if(accountRole()!=="teacher"||!permissions().length) return items; items.push({text:"⌂ Subjects",url:"/mylearningspace/schools/"+school+"/subjects-home.html"}); items.push({text:"▧ Resources",url:"/mylearningspace/schools/management/class-resources.html"}); if(hasCapability(CAPABILITIES.MANAGE_TOPICS)) items.push({text:"▤ Topic Management",url:"/mylearningspace/schools/management/topic-management.html"}); if(hasCapability(CAPABILITIES.MANAGE_TEACHING_ASSIGNMENTS)) items.push({text:"▦ Teaching Assignments",url:"/mylearningspace/schools/management/teaching-assignments.html"}); if(hasCapability(CAPABILITIES.MANAGE_WORK_FOLDERS)){ items.push({text:"▣ My GLIP Storage",url:"/mylearningspace/schools/management/work-folder-management.html"}); items.push({text:"▨ Student Work",url:"/mylearningspace/schools/management/student-submissions.html"}); } if(hasCapability(CAPABILITIES.VIEW_PROGRESS)) items.push({text:"◔ Progress",url:"#"}); items.push({spacer:true}); return items; }
