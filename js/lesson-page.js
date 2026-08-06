@@ -9,7 +9,7 @@ const GLIP_CLASSES = {
   visible: "show",
 };
   
-
+ 
   function byId(id) {
     return document.getElementById(id);
   }
