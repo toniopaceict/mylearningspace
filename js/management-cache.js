@@ -8,7 +8,7 @@
   const MAX_AGE_MS = 10 * 60 * 1000;
   const VERSION_CHECK_INTERVAL_MS = 90 * 1000;
   const VERSION_CHECK_IDLE_MS = 20 * 1000;
-  const BACKGROUND_WARM_IDLE_MS = 2500;
+  const BACKGROUND_WARM_IDLE_MS = 4000;
   const BACKGROUND_RETRY_MS = 750;
   const nativeFetch = window.fetch.bind(window);
   const inFlightReads = {};
@@ -123,10 +123,14 @@
     "level-management.html": ["listCurriculumManagementAdmin", "listClassesAdmin"],
     "subject-management.html": ["listCurriculumManagementAdmin"],
     "topic-management.html": ["getCurriculumTopicManagement"],
-    "teacher-management.html": ["listClassTeachersAdmin", "listMyWorkFolders"],
-    "class-management.html": ["listClassTeachersAdmin", "listStudentsAdmin"],
-    "teaching-assignments.html": ["listTeachersAdmin", "listClassesAdmin", "getAllSubjectsAdmin", "listMyWorkFolders"],
-    "student-management.html": ["getStudentSubjectManagementAdmin", "listClassesAdmin"],
+    // Expensive joined views are deliberately not predicted from neighbouring
+    // management pages. They are loaded authoritatively when their own page is
+    // opened. This keeps background work from competing with foreground saves
+    // and navigation, while retaining cheap predictive warming.
+    "teacher-management.html": [],
+    "class-management.html": ["listStudentsAdmin"],
+    "teaching-assignments.html": ["listTeachersAdmin", "listClassesAdmin", "getAllSubjectsAdmin"],
+    "student-management.html": ["listClassesAdmin"],
     "student-subject-management.html": ["listStudentsAdmin", "listCurriculumManagementAdmin"],
     "work-folder-management.html": ["listMyWorkFolders"]
   };
@@ -158,11 +162,11 @@
 
   const WARMING_DELAY_MS = 150;
   const TEACHING_ASSIGNMENT_POST_SAVE_IDLE_MS = 6000;
-  const WARMING_GAP_MS = 75;
+  const WARMING_GAP_MS = 400;
   const ADMIN_BACKGROUND_QUEUE_KEY = "glipAdminBackgroundWarmQueue";
   const WARM_JOB_PREFIX = "glipWarmJob_" + STORAGE_VERSION + "_";
   const WARM_JOB_TTL_MS = 2 * 60 * 1000;
-  const ADMIN_BACKGROUND_PAUSE_MS = 1200;
+  const ADMIN_BACKGROUND_PAUSE_MS = 2500;
   let warmingSequence = Promise.resolve();
   let backgroundWarmRunning = false;
   let backgroundPauseUntil = 0;
@@ -942,6 +946,10 @@
     if (adaptiveVersionTimer) window.clearTimeout(adaptiveVersionTimer);
     adaptiveVersionTimer = window.setTimeout(function () {
       adaptiveVersionTimer = null;
+      // A hidden tab cannot benefit from a version check and may otherwise
+      // consume an Apps Script invocation while the user is working elsewhere.
+      // The visibilitychange handler schedules a fresh check on return.
+      if (document.hidden) return;
       checkVersions(currentApiUrl(), false);
     }, Math.max(1000, Number(delayMs) || VERSION_CHECK_IDLE_MS));
   }
