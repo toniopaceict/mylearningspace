@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" href="../../assets/GLIP-icon-transparent.png">
+  <title>GLIP – Resources</title>
+  <script>
+    window.PAGE_CONFIG = { helpSection: "class-resources", pageKind: "management", pageTitle: "GLIP – Resources" };
+    window.PAGE_MENU_CONTEXT = { type: "management" };
+  </script>
+  <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
+  <style>
+    .resource-assignment-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 8px 18px;
+      margin: 14px 0 18px;
+      padding: 14px;
+      border: 1px solid var(--color-primary-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-soft);
+    }
+    .resource-assignment-option { display: flex; align-items: flex-start; gap: 9px; line-height: 1.4; }
+    .resource-assignment-option input { margin-top: 4px; }
+    .resource-upload-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; }
+    .resource-upload-controls input[type="file"] { width: min(520px, 100%); }
+    .resource-toolbar { display: grid; grid-template-columns: minmax(220px, 300px) auto; gap: 24px; align-items: end; justify-content: start; margin: 14px 0; }
+    .resource-toolbar label { display: flex; flex-direction: column; gap: 4px; }
+    .resource-toolbar .resource-search { width: min(300px, 100%); }
+    .resource-toolbar .resource-filter { width: 230px; }
+    .resource-filter-group { display: flex; align-items: end; gap: 8px; }
+    .resource-filter-group .glip-btn { margin: 0; }
+    @media (max-width: 760px) { .resource-toolbar { grid-template-columns: 1fr; } .resource-filter-group { flex-wrap: wrap; } }
+    .resource-file-cell { overflow-wrap: anywhere; word-break: break-word; }
+    .resource-actions { display: flex; gap: 8px; align-items: center; flex-wrap: nowrap; }
+    .resource-actions .glip-btn { min-width: 0; padding-left: 12px; padding-right: 12px; }
+    .storage-usage { font-weight: 600; }
+    #studentResourceHeader .resource-select-column { width: 8%; }
+    #studentResourceHeader .resource-level-column { width: 12%; }
+    #studentResourceHeader .resource-subject-column { width: 20%; }
+    #studentResourceHeader .resource-class-column { width: 12%; }
+    #studentResourceHeader .resource-teacher-column { width: 22%; }
+    #studentResourceHeader .resource-file-column { width: 26%; }
+  </style>
+</head>
+<body>
+  <div id="header-placeholder"></div>
+  <div class="page-shell">
+    <header class="page-hero">
+      <div class="page-hero-panel">
+        <div class="page-hero-divider-top"></div>
+        <img class="page-hero-brand-icon" src="../../assets/GLIP-icon-transparent-cropped.png" alt="GLIP logo">
+        <div class="page-hero-logo">GLIP</div>
+        <p class="page-hero-topline">Guided Learning for Independent Progress</p>
+        <h1>Resources</h1>
+        <h2 id="classResourcesSubtitle">Files shared with your classes</h2>
+        <div class="page-hero-divider-bottom"></div>
+      </div>
+    </header>
+
+    <div class="wrap management-wrap">
+      <fieldset id="teacherResourceUploadPanel" class="task-box panel-box readable-section" hidden>
+        <legend>Upload Resource</legend>
+        <p class="q">Select one or more classes, then choose the file you want to share.</p>
+        <div class="tracker-row" style="justify-content:flex-start">
+          <button id="selectAllResourceAssignments" type="button" class="glip-btn glip-btn-secondary">Select all</button>
+          <button id="clearResourceAssignments" type="button" class="glip-btn glip-btn-secondary">Clear selection</button>
+        </div>
+        <div id="resourceAssignmentList" class="resource-assignment-list"></div>
+        <div class="resource-upload-controls">
+          <input id="classResourceFile" type="file" class="tracker-input">
+          <button id="uploadClassResourceBtn" type="button" class="glip-btn">Upload resource</button>
+        </div>
+        <p id="classResourceFileStatus" class="meta text-center" hidden><strong>Selected file:</strong> <span id="classResourceFileName"></span></p>
+        <div id="classResourceUploadProgress" class="glip-progress" role="progressbar" aria-label="Uploading class resource"><div class="glip-progress-bar"></div></div>
+        <p id="classResourceUploadMessage" class="panel-message text-center"></p>
+        <p id="classResourceUploadStage" class="meta text-center" hidden></p>
+      </fieldset>
+
+      <fieldset class="task-box panel-box topics-box">
+        <legend>Available Resources</legend>
+        <div class="panel-header">
+          <p id="availableResourcesIntro" class="q panel-top-text">View, download or delete the resources shared with your classes.</p>
+          <p id="classResourcesStorageUsage" class="meta storage-usage"></p>
+        </div>
+        <div class="resource-toolbar resource-toolbar-compact">
+          <label class="resource-search">Search
+            <input id="classResourceSearch" class="tracker-input" type="search" placeholder="Search files, subjects or classes">
+          </label>
+          <div id="studentResourceFilterGroup" class="resource-filter-group">
+            <label class="resource-filter">Class
+              <select id="classResourceFilter" class="tracker-input"><option value="">All classes</option></select>
+            </label>
+            <button id="clearClassResourceFilters" type="button" class="glip-btn glip-btn-secondary">Clear</button>
+          </div>
+        </div>
+        <div id="teacherResourceBulkToolbar" class="resource-bulk-toolbar">
+          <button id="selectAllVisibleResources" type="button" class="glip-btn glip-btn-secondary">Select all</button>
+          <button id="clearSelectedResources" type="button" class="glip-btn glip-btn-secondary">Clear selection</button>
+          <button id="downloadSelectedResources" type="button" class="glip-btn" disabled>Download selected</button>
+          <button id="deleteSelectedResources" type="button" class="glip-btn glip-btn-danger" disabled>Delete selected</button>
+          <span id="selectedResourceCount" class="meta">0 selected</span>
+        </div>
+        <div id="classResourcesLoading" class="page-loading-box text-center">
+          <div class="glip-progress show"><div class="glip-progress-bar"></div></div>
+          <p>Loading resources...</p>
+        </div>
+        <div id="classResourcesDeleteProgress" class="glip-progress" role="progressbar" aria-label="Deleting class resources"><div class="glip-progress-bar"></div></div>
+        <p id="classResourcesDeleteStage" class="meta text-center" hidden></p>
+        <p id="classResourcesMessage" class="panel-message text-center"></p>
+        <div class="topics-table-wrap">
+          <table id="classResourcesTable" class="topics-table management-table" style="visibility:hidden">
+            <thead id="teacherResourceHeader"><tr><th class="resource-select-column">Select</th><th class="resource-level-column">Level</th><th class="resource-subject-column">Subject</th><th class="resource-class-column">Class</th><th class="resource-file-column">File</th></tr></thead>
+            <thead id="studentResourceHeader" hidden><tr><th class="resource-select-column">Select</th><th class="resource-level-column">Level</th><th class="resource-subject-column">Subject</th><th class="resource-class-column">Class</th><th class="resource-teacher-column">Teacher</th><th class="resource-file-column">File</th></tr></thead>
+            <tbody id="classResourcesBody"></tbody>
+          </table>
+        </div>
+      </fieldset>
+    </div>
+    <div class="site-footer" id="siteFooter"></div>
+  </div>
+</body>
+</html>
