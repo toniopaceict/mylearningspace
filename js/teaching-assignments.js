@@ -153,9 +153,10 @@
         throw new Error(result.message || "Could not load teachers.");
       }
 
-      availableTeachers = (result.teachers || []).filter(function (teacher) {
-        return String(teacher.role || "").trim().toLowerCase() !== "owner";
-      });
+      // Owners and administrators may also hold a teaching designation, so
+      // every staff account returned by the authorised server endpoint is a
+      // valid assignment candidate.
+      availableTeachers = result.teachers || [];
     }).catch(function (error) {
       console.error(error);
       setAddMessage("Could not load teachers.", "error");
