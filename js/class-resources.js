@@ -146,26 +146,26 @@
 
   function deleteSelected(rows){
     const ids=rows.map(function(r){return String(r.resource_id);});
-    const previous=(dataState.resources||[]).slice();
-    dataState.resources=(dataState.resources||[]).filter(function(r){return ids.indexOf(String(r.resource_id))===-1;});
-    ids.forEach(function(id){selectedResources.delete(id);});
     setDeleting(true, ids.length);
-    render();
+    tableMessage(ids.length===1?"Deleting resource from Google Drive...":"Deleting resources from Google Drive...","info");
+
+    // Deliberately not optimistic: destructive Drive operations must be
+    // confirmed by the server before the browser removes any table rows.
     window.GLIPStorageDownload.post({action:"deleteClassResources",teacher_id:teacherId(),resource_ids:ids})
       .then(function(result){
         if(!result||result.status!=="success")throw new Error(result&&result.message||"Could not delete resources.");
+        ids.forEach(function(id){selectedResources.delete(id);});
         invalidateResourceCaches();
         if(result.storage){dataState.storage=result.storage;renderUsage(result.storage);}
-        tableMessage((result.message||"Resources deleted.")+" Updating the resources table...","success");
         return load(false);
       })
       .then(function(){
         tableMessage(ids.length===1?"Resource deleted and table updated.":ids.length+" resources deleted and table updated.","success");
       })
       .catch(function(error){
-        dataState.resources=previous;
+        // Nothing was removed optimistically, so the existing row remains visible.
         render();
-        tableMessage(error.message,"error");
+        tableMessage(error.message||"Could not delete resources.","error");
       })
       .finally(function(){setDeleting(false,0);});
   }
