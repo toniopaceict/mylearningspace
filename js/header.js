@@ -109,7 +109,10 @@ function buildRoleFooterLinks(existingSettingsItems) {
 
   if (!role) return [];
   if (isStudent()) {
-    return [{ text: "▧ Class Resources", url: `/mylearningspace/schools/management/class-resources.html` }];
+    return [
+      { text: "⌂ Subjects", url: `/mylearningspace/schools/${school}/subjects-home.html` },
+      { text: "▧ Resources", url: `/mylearningspace/schools/management/class-resources.html` }
+    ];
   }
 
   const links = [];

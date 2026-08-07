@@ -74,7 +74,18 @@
   }
 
   function renderUsage(storage) {
-    const el = byId("classResourcesStorageUsage"); if (!el || !storage) return;
+    const el = byId("classResourcesStorageUsage");
+    if (!el) return;
+    if (isStudentLike()) {
+      el.hidden = true;
+      el.textContent = "";
+      return;
+    }
+    el.hidden = false;
+    if (!storage) {
+      el.textContent = "";
+      return;
+    }
     el.textContent = "Storage used: " + mb(storage.used_bytes) + " MB of " + mb(storage.limit_bytes, 0) + " MB";
   }
 
@@ -84,25 +95,19 @@
     return (dataState.resources || []).filter(function(row){
       if (assignment && String(row.class_teacher_id) !== assignment) return false;
       if (!query) return true;
-      return [row.file_name,row.subject_name,row.class_label,formatLevel(row.level)].some(function(v){return String(v||"").toLowerCase().includes(query);});
+      return [row.file_name,row.subject_name,row.class_label,row.teacher_display_name,formatLevel(row.level)].some(function(v){return String(v||"").toLowerCase().includes(query);});
     });
   }
 
   function render() {
     const body = byId("classResourcesBody"), table = byId("classResourcesTable"); if (!body || !table) return;
     visibleRows = filteredRows();
-    if (isStudent()) {
+    if (isStudentLike()) {
       body.innerHTML = visibleRows.length ? visibleRows.map(function (row) {
-        return '<tr><td>'+esc(formatLevel(row.level))+'</td><td>'+esc(row.subject_name)+'</td><td>'+esc(formatClassLabel(row.class_label))+'</td><td class="resource-file-cell">'+esc(row.file_name)+'</td><td><button type="button" class="glip-btn student-resource-download" data-file-id="'+esc(row.file_id)+'">Download</button></td></tr>';
-      }).join("") : '<tr><td colspan="5" class="text-center">No resources match your search.</td></tr>';
-      body.querySelectorAll(".student-resource-download").forEach(function (button) {
-        button.addEventListener("click", function () {
-          tableMessage("Preparing download...", "info");
-          window.GLIPStorageDownload.downloadFile(button.dataset.fileId)
-            .then(function () { tableMessage("File downloaded.", "success"); })
-            .catch(function (error) { tableMessage(error.message, "error"); });
-        });
-      });
+        const checked = selectedResources.has(String(row.resource_id)) ? " checked" : "";
+        return '<tr data-resource-row="'+esc(row.resource_id)+'"><td class="resource-select-column"><input type="checkbox" class="resource-row-select" value="'+esc(row.resource_id)+'"'+checked+' aria-label="Select '+esc(row.file_name)+'"></td><td>'+esc(formatLevel(row.level))+'</td><td>'+esc(row.subject_name)+'</td><td>'+esc(formatClassLabel(row.class_label))+'</td><td>'+esc(row.teacher_display_name || "")+'</td><td class="resource-file-cell">'+esc(row.file_name)+'</td></tr>';
+      }).join("") : '<tr><td colspan="6" class="text-center">No resources match your search.</td></tr>';
+      body.querySelectorAll(".resource-row-select").forEach(function(input){input.addEventListener("change",function(){ if(input.checked) selectedResources.add(input.value); else selectedResources.delete(input.value); updateBulkControls(); });});
     } else {
       body.innerHTML = visibleRows.length ? visibleRows.map(function(row){
         const checked = selectedResources.has(String(row.resource_id)) ? " checked" : "";
@@ -118,7 +123,10 @@
   function clearSelected(){ selectedResources.clear(); render(); }
   function updateBulkControls(){
     const count = selectedResources.size;
-    ["downloadSelectedResources","deleteSelectedResources"].forEach(function(id){const el=byId(id); if(el) el.disabled=!count;});
+    const download = byId("downloadSelectedResources");
+    const remove = byId("deleteSelectedResources");
+    if (download) download.disabled = !count;
+    if (remove) remove.disabled = !count || isStudentLike();
     const label=byId("selectedResourceCount"); if(label) label.textContent=count+" selected";
   }
 
@@ -131,7 +139,7 @@
       window.GLIPStorageDownload.downloadFile(rows[0].file_id).then(function(){tableMessage("File downloaded.","success");}).catch(function(e){tableMessage(e.message,"error");});
       return;
     }
-    window.GLIPStorageDownload.post({action:"downloadSelectedClassResources",teacher_id:teacherId(),resource_ids:rows.map(function(r){return r.resource_id;})})
+    window.GLIPStorageDownload.post({action:"downloadSelectedClassResources",teacher_id:teacherId(),student_id:sessionStorage.getItem("glipStudentId")||"",resource_ids:rows.map(function(r){return r.resource_id;})})
       .then(function(result){window.GLIPStorageDownload.downloadBase64(result);tableMessage("Selected resources downloaded.","success");})
       .catch(function(e){tableMessage(e.message,"error");});
   }
@@ -203,11 +211,15 @@
   function applyRoleLayout(){
     const student = isStudentLike();
     byId("studentResourceFilterGroup")?.toggleAttribute("hidden", student);
-    byId("teacherResourceBulkToolbar")?.toggleAttribute("hidden", student);
+    byId("teacherResourceBulkToolbar")?.toggleAttribute("hidden", false);
+    byId("deleteSelectedResources")?.toggleAttribute("hidden", student);
     byId("teacherResourceHeader")?.toggleAttribute("hidden", student);
     byId("studentResourceHeader")?.toggleAttribute("hidden", !student);
+    byId("classResourcesStorageUsage")?.toggleAttribute("hidden", student);
     const intro = byId("availableResourcesIntro");
     if (intro) intro.textContent = student ? "Search and download the resources available to your class." : "View, download or delete the resources shared with your classes.";
+    const subtitle = byId("classResourcesSubtitle");
+    if (subtitle) subtitle.textContent = student ? "Files shared with your class" : "Files shared with your classes";
   }
 
   function updateFileName(){

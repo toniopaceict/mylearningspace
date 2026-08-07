@@ -36,6 +36,12 @@
     .resource-actions { display: flex; gap: 8px; align-items: center; flex-wrap: nowrap; }
     .resource-actions .glip-btn { min-width: 0; padding-left: 12px; padding-right: 12px; }
     .storage-usage { font-weight: 600; }
+    #studentResourceHeader .resource-select-column { width: 8%; }
+    #studentResourceHeader .resource-level-column { width: 12%; }
+    #studentResourceHeader .resource-subject-column { width: 20%; }
+    #studentResourceHeader .resource-class-column { width: 12%; }
+    #studentResourceHeader .resource-teacher-column { width: 22%; }
+    #studentResourceHeader .resource-file-column { width: 26%; }
   </style>
 </head>
 <body>
@@ -48,7 +54,7 @@
         <div class="page-hero-logo">GLIP</div>
         <p class="page-hero-topline">Guided Learning for Independent Progress</p>
         <h1>Resources</h1>
-        <h2>Files shared with your classes</h2>
+        <h2 id="classResourcesSubtitle">Files shared with your classes</h2>
         <div class="page-hero-divider-bottom"></div>
       </div>
     </header>
@@ -106,7 +112,7 @@
         <div class="topics-table-wrap">
           <table id="classResourcesTable" class="topics-table management-table" style="visibility:hidden">
             <thead id="teacherResourceHeader"><tr><th class="resource-select-column">Select</th><th class="resource-level-column">Level</th><th class="resource-subject-column">Subject</th><th class="resource-class-column">Class</th><th class="resource-file-column">File</th></tr></thead>
-            <thead id="studentResourceHeader" hidden><tr><th class="resource-level-column">Level</th><th class="resource-subject-column">Subject</th><th class="resource-class-column">Class</th><th class="resource-file-column">File</th><th>Download</th></tr></thead>
+            <thead id="studentResourceHeader" hidden><tr><th class="resource-select-column">Select</th><th class="resource-level-column">Level</th><th class="resource-subject-column">Subject</th><th class="resource-class-column">Class</th><th class="resource-teacher-column">Teacher</th><th class="resource-file-column">File</th></tr></thead>
             <tbody id="classResourcesBody"></tbody>
           </table>
         </div>
