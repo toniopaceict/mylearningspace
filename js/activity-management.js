@@ -228,7 +228,7 @@
 
     // The authoritative numeric primary key is assigned by Apps Script.
     // The browser deliberately does not calculate or reserve an ID.
-    activityId.value = "Assigned when saved";
+    activityId.value = "";
   }
 
   function normaliseCodeToken(value) {
@@ -392,6 +392,8 @@
     };
 
 
+    setAddSavingState(true);
+
     GLIPOptimisticUpdate.run({
       request: function () { return post(payload); },
       failureMessage: "Could not save activity.",
@@ -419,6 +421,8 @@
       onFailure: function (error) {
         setMessage(error.message || "Could not save activity. The temporary row was removed.", "error");
       }
+    }).finally(function () {
+      setAddSavingState(false);
     });
   }
 
@@ -433,7 +437,7 @@
     const requiresSubmission = document.getElementById("activityRequiresSubmission");
 
     const activityId = document.getElementById("activityId");
-    if (activityId) activityId.value = "Assigned when saved";
+    if (activityId) activityId.value = "";
     if (topic) topic.value = "";
     if (type) type.value = "";
     if (code) code.value = "";

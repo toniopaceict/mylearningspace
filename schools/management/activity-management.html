@@ -43,9 +43,9 @@ Help file:
       display: grid;
       grid-template-columns: repeat(6, minmax(0, 1fr));
       grid-template-areas:
-        "topic topic topic type type type"
-        "id id code code title title"
-        "sort visible visible active active submission";
+        "topic topic topic topic type type"
+        "title title title code code code"
+        "sort visible active active submission submission";
       gap: 0.75rem;
       align-items: start;
       margin-top: 1rem;
@@ -58,7 +58,6 @@ Help file:
 
     #activityTopic { grid-area: topic; }
     #activityType { grid-area: type; }
-    #activityId { grid-area: id; }
     .activity-code-field { grid-area: code; }
     #activityTitle { grid-area: title; }
     #activitySortOrder { grid-area: sort; }
@@ -130,10 +129,10 @@ Help file:
     }
 
     #activitiesTable th:nth-child(1),
-    #activitiesTable td:nth-child(1) { width: 8%; }
+    #activitiesTable td:nth-child(1) { width: 12%; }
 
     #activitiesTable th:nth-child(2),
-    #activitiesTable td:nth-child(2) { width: 19%; }
+    #activitiesTable td:nth-child(2) { width: 15%; }
 
     #activitiesTable th:nth-child(3),
     #activitiesTable td:nth-child(3) { width: 13%; }
@@ -251,9 +250,8 @@ Help file:
         grid-template-areas:
           "topic"
           "type"
-          "id"
-          "code"
           "title"
+          "code"
           "sort"
           "visible"
           "active"
@@ -306,12 +304,12 @@ Help file:
 <select class="tracker-input" id="activityType">
 <option value="">Select activity type</option>
 </select>
-<input aria-label="Automatically generated Activity ID" class="tracker-input" id="activityId" placeholder="Activity ID generated automatically" readonly=""/>
+<input id="activityId" type="hidden" value=""/>
+<input class="tracker-input" id="activityTitle" placeholder="Activity title"/>
 <div class="activity-code-field">
 <input aria-describedby="activityCodeHint" class="tracker-input" id="activityCode" placeholder="Activity Code, for example my_lesson_01"/>
 <p class="activity-code-hint" id="activityCodeHint">Enter a title and GLIP will suggest the Activity Code.</p>
 </div>
-<input class="tracker-input" id="activityTitle" placeholder="Activity title"/>
 <input class="tracker-input" id="activitySortOrder" min="1" placeholder="Sort order" step="1" type="number"/>
 <select class="tracker-input" id="activityVisible">
 <option value="true">Visible</option>
@@ -333,6 +331,16 @@ Help file:
 <button class="glip-btn glip-btn-secondary" id="cancelAddActivityBtn" type="button">
             Cancel
           </button>
+</div>
+<div
+  id="saveActivityProgress"
+  class="page-loading-box text-center"
+  style="display: none; margin-top: 0.75rem;"
+>
+  <div class="glip-progress show topics-progress">
+    <div class="glip-progress-bar"></div>
+  </div>
+  <p>Saving activity...</p>
 </div>
 <p class="panel-message text-center" id="activityMessage"></p>
 
