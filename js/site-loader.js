@@ -1,9 +1,9 @@
 (function () {
   "use strict";
  
-    
   
-  const GLIP_ASSET_VERSION = "423";
+  
+  const GLIP_ASSET_VERSION = "424";
   const GLIP_BASE_URL = "https://toniopaceict.github.io/mylearningspace";
 
   const GLIP_PAGE_CHECK_CLASS = "glip-page-checking";

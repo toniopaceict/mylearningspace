@@ -287,6 +287,7 @@ fields: [
   { value: "level", label: "Level", getValue: function (assignment) { return getLevelLabel(assignment); } },
   { value: "subject_id", label: "Subject", getValue: function (assignment) { return getSubjectName(assignment.subject_id, assignment.level); } },
   { value: "class_id", label: "Class", getValue: function (assignment) { const info = getClassInfoById(assignment.class_id); return assignment.class_label || (info && (info.class_label || info.class_code)) || assignment.class_id; } },
+  { value: "designation", label: "Designation", getValue: function (assignment) { return formatDesignation(assignment.designation); } },
   { value: "active", label: "Status", getValue: getAssignmentStatusText }
 ],
     onChange: function () {
@@ -322,7 +323,7 @@ fields: [
 
       tbody.innerHTML = `
         <tr>
-          <td colspan="5">Could not load assignments.</td>
+          <td colspan="6">Could not load assignments.</td>
         </tr>
       `;
     });
@@ -644,7 +645,7 @@ const filteredAssignments =
     if (!filteredAssignments.length) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="5">No teaching assignments found.</td>
+          <td colspan="6">No teaching assignments found.</td>
         </tr>
       `;
       return;
