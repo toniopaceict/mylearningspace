@@ -4,6 +4,8 @@
   let dataState = { resources: [], assignments: [], can_upload: false, storage: null };
   let visibleRows = [];
   const selectedResources = new Set();
+  const resourceSortState = { key: "", direction: 1 };
+  const resourceSortCollator = new Intl.Collator("en-GB", { numeric: true, sensitivity: "base" });
 
   document.addEventListener("glipReady", init);
   document.addEventListener("DOMContentLoaded", init);
@@ -25,6 +27,15 @@
     byId("clearSelectedResources")?.addEventListener("click", clearSelected);
     byId("downloadSelectedResources")?.addEventListener("click", downloadSelected);
     byId("deleteSelectedResources")?.addEventListener("click", confirmDeleteSelected);
+    document.querySelectorAll("#classResourcesTable th[data-sort-key]").forEach(function (heading) {
+      heading.addEventListener("click", function () { setResourceSort(heading.dataset.sortKey || ""); });
+      heading.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          setResourceSort(heading.dataset.sortKey || "");
+        }
+      });
+    });
 
     applyRoleLayout();
     const cached = window.GLIPStoragePageCache?.get("listMyClassResources");
@@ -64,7 +75,7 @@
   }
 
   function populateFilter() {
-    const select = byId("classResourceFilter"); if (!select || isStudent()) return;
+    const select = byId("classResourceFilter"); if (!select || isStudentLike()) return;
     const current = select.value, options = {};
     (dataState.resources || []).forEach(function (row) {
       options[String(row.class_teacher_id)] = formatLevel(row.level) + " – " + formatClassLabel(row.class_label) + " – " + row.subject_name;
@@ -91,7 +102,7 @@
 
   function filteredRows() {
     const query = String(byId("classResourceSearch")?.value || "").trim().toLowerCase();
-    const assignment = isStudent() ? "" : (byId("classResourceFilter")?.value || "");
+    const assignment = isStudentLike() ? "" : (byId("classResourceFilter")?.value || "");
     return (dataState.resources || []).filter(function(row){
       if (assignment && String(row.class_teacher_id) !== assignment) return false;
       if (!query) return true;
@@ -101,7 +112,7 @@
 
   function render() {
     const body = byId("classResourcesBody"), table = byId("classResourcesTable"); if (!body || !table) return;
-    visibleRows = filteredRows();
+    visibleRows = sortResourceRows(filteredRows());
     if (isStudentLike()) {
       body.innerHTML = visibleRows.length ? visibleRows.map(function (row) {
         const checked = selectedResources.has(String(row.resource_id)) ? " checked" : "";
@@ -116,7 +127,41 @@
       body.querySelectorAll(".resource-row-select").forEach(function(input){input.addEventListener("change",function(){ if(input.checked) selectedResources.add(input.value); else selectedResources.delete(input.value); updateBulkControls(); });});
     }
     table.style.visibility = "visible";
+    updateResourceSortIndicators();
     updateBulkControls();
+  }
+
+  function setResourceSort(key){
+    if(!key) return;
+    if(resourceSortState.key===key) resourceSortState.direction*=-1;
+    else { resourceSortState.key=key; resourceSortState.direction=1; }
+    render();
+  }
+
+  function sortResourceRows(rows){
+    if(!resourceSortState.key) return rows.slice();
+    const key=resourceSortState.key, direction=resourceSortState.direction;
+    return rows.slice().sort(function(a,b){
+      const av=resourceSortValue(a,key), bv=resourceSortValue(b,key);
+      return resourceSortCollator.compare(av,bv)*direction;
+    });
+  }
+
+  function resourceSortValue(row,key){
+    if(key==="level") return formatLevel(row.level);
+    if(key==="subject") return String(row.subject_name||"");
+    if(key==="class") return formatClassLabel(row.class_label);
+    if(key==="teacher") return String(row.teacher_display_name||"");
+    if(key==="file") return String(row.file_name||"");
+    return "";
+  }
+
+  function updateResourceSortIndicators(){
+    document.querySelectorAll("#classResourcesTable th[data-sort-key]").forEach(function(heading){
+      const indicator=heading.querySelector(".resource-sort-indicator");
+      if(!indicator) return;
+      indicator.textContent=resourceSortState.key===heading.dataset.sortKey ? (resourceSortState.direction===1?"▲":"▼") : "↕";
+    });
   }
 
   function selectAllVisible(){ visibleRows.forEach(function(r){selectedResources.add(String(r.resource_id));}); render(); }
@@ -136,11 +181,22 @@
     const rows=selectedRows(); if(!rows.length) return;
     tableMessage("Preparing selected resources...","info");
     if(rows.length===1){
-      window.GLIPStorageDownload.downloadFile(rows[0].file_id).then(function(){tableMessage("File downloaded.","success");}).catch(function(e){tableMessage(e.message,"error");});
+      window.GLIPStorageDownload.downloadFile(rows[0].file_id)
+        .then(function(){
+          selectedResources.clear();
+          render();
+          tableMessage("File downloaded.","success");
+        })
+        .catch(function(e){tableMessage(e.message,"error");});
       return;
     }
     window.GLIPStorageDownload.post({action:"downloadSelectedClassResources",teacher_id:teacherId(),student_id:sessionStorage.getItem("glipStudentId")||"",resource_ids:rows.map(function(r){return r.resource_id;})})
-      .then(function(result){window.GLIPStorageDownload.downloadBase64(result);tableMessage("Selected resources downloaded.","success");})
+      .then(function(result){
+        window.GLIPStorageDownload.downloadBase64(result);
+        selectedResources.clear();
+        render();
+        tableMessage("Selected resources downloaded.","success");
+      })
       .catch(function(e){tableMessage(e.message,"error");});
   }
 
@@ -210,12 +266,15 @@
   function isStudentLike(){ return ["student", "support"].includes(String(sessionStorage.getItem("glipUserType") || "").toLowerCase()); }
   function applyRoleLayout(){
     const student = isStudentLike();
-    byId("studentResourceFilterGroup")?.toggleAttribute("hidden", student);
+    const filterGroup = byId("studentResourceFilterGroup");
+    const deleteButton = byId("deleteSelectedResources");
+    const storageUsage = byId("classResourcesStorageUsage");
+    if(filterGroup){ filterGroup.hidden=student; filterGroup.style.display=student?"none":""; }
     byId("teacherResourceBulkToolbar")?.toggleAttribute("hidden", false);
-    byId("deleteSelectedResources")?.toggleAttribute("hidden", student);
+    if(deleteButton){ deleteButton.hidden=student; deleteButton.style.display=student?"none":""; }
     byId("teacherResourceHeader")?.toggleAttribute("hidden", student);
     byId("studentResourceHeader")?.toggleAttribute("hidden", !student);
-    byId("classResourcesStorageUsage")?.toggleAttribute("hidden", student);
+    if(storageUsage){ storageUsage.hidden=student; storageUsage.style.display=student?"none":""; }
     const intro = byId("availableResourcesIntro");
     if (intro) intro.textContent = student ? "Search and download the resources available to your class." : "View, download or delete the resources shared with your classes.";
     const subtitle = byId("classResourcesSubtitle");

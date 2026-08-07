@@ -42,6 +42,8 @@
     #studentResourceHeader .resource-class-column { width: 12%; }
     #studentResourceHeader .resource-teacher-column { width: 22%; }
     #studentResourceHeader .resource-file-column { width: 26%; }
+    #classResourcesTable th[data-sort-key] { cursor: pointer; user-select: none; white-space: nowrap; }
+    .resource-sort-indicator { display: inline-block; margin-left: 4px; font-weight: 400; }
   </style>
 </head>
 <body>
@@ -111,8 +113,8 @@
         <p id="classResourcesMessage" class="panel-message text-center"></p>
         <div class="topics-table-wrap">
           <table id="classResourcesTable" class="topics-table management-table" style="visibility:hidden">
-            <thead id="teacherResourceHeader"><tr><th class="resource-select-column">Select</th><th class="resource-level-column">Level</th><th class="resource-subject-column">Subject</th><th class="resource-class-column">Class</th><th class="resource-file-column">File</th></tr></thead>
-            <thead id="studentResourceHeader" hidden><tr><th class="resource-select-column">Select</th><th class="resource-level-column">Level</th><th class="resource-subject-column">Subject</th><th class="resource-class-column">Class</th><th class="resource-teacher-column">Teacher</th><th class="resource-file-column">File</th></tr></thead>
+            <thead id="teacherResourceHeader"><tr><th class="resource-select-column">Select</th><th class="resource-level-column" data-sort-key="level" tabindex="0">Level <span class="resource-sort-indicator">↕</span></th><th class="resource-subject-column" data-sort-key="subject" tabindex="0">Subject <span class="resource-sort-indicator">↕</span></th><th class="resource-class-column" data-sort-key="class" tabindex="0">Class <span class="resource-sort-indicator">↕</span></th><th class="resource-file-column" data-sort-key="file" tabindex="0">File <span class="resource-sort-indicator">↕</span></th></tr></thead>
+            <thead id="studentResourceHeader" hidden><tr><th class="resource-select-column">Select</th><th class="resource-level-column" data-sort-key="level" tabindex="0">Level <span class="resource-sort-indicator">↕</span></th><th class="resource-subject-column" data-sort-key="subject" tabindex="0">Subject <span class="resource-sort-indicator">↕</span></th><th class="resource-class-column" data-sort-key="class" tabindex="0">Class <span class="resource-sort-indicator">↕</span></th><th class="resource-teacher-column" data-sort-key="teacher" tabindex="0">Teacher <span class="resource-sort-indicator">↕</span></th><th class="resource-file-column" data-sort-key="file" tabindex="0">File <span class="resource-sort-indicator">↕</span></th></tr></thead>
             <tbody id="classResourcesBody"></tbody>
           </table>
         </div>
