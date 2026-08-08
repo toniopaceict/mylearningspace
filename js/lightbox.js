@@ -128,7 +128,11 @@ const TonioLightbox = (function () {
   /* =========================================================
      AUTO INIT AFTER PAGE LOAD
      ========================================================= */
-  document.addEventListener("DOMContentLoaded", initLightbox);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initLightbox, { once: true });
+  } else {
+    initLightbox();
+  }
 
   /* OPTIONAL: expose for manual use if needed */
   return {

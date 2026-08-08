@@ -191,5 +191,9 @@
     });
   }
 
-  document.addEventListener("DOMContentLoaded", setupDragAndDropQuestions);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", setupDragAndDropQuestions, { once: true });
+  } else {
+    setupDragAndDropQuestions();
+  }
 })();

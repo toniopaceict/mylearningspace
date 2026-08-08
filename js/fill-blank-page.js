@@ -111,10 +111,17 @@
       });
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
+  function initialiseFillBlankSubmission() {
     const button = document.getElementById("submitFillBlankBtn");
-    if (!button) return;
+    if (!button || button.dataset.fillBlankSubmitReady === "true") return;
 
+    button.dataset.fillBlankSubmitReady = "true";
     button.addEventListener("click", submitFillBlankAnswers);
-  });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initialiseFillBlankSubmission, { once: true });
+  } else {
+    initialiseFillBlankSubmission();
+  }
 })();

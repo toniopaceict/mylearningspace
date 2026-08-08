@@ -204,7 +204,15 @@
     uploadQuizBtn?.addEventListener("click", uploadQuizPdf);
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
+  function initialiseQuizPage() {
+    if (document.documentElement.dataset.glipQuizPageReady === "true") return;
+    document.documentElement.dataset.glipQuizPageReady = "true";
     initPage(window.PAGE_CONFIG, window.QUESTIONS, window.EXTRA_BOX);
-  });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initialiseQuizPage, { once: true });
+  } else {
+    initialiseQuizPage();
+  }
 })();

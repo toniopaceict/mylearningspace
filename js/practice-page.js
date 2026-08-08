@@ -207,7 +207,15 @@
     });
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
+  function initialisePracticePage() {
+    if (document.documentElement.dataset.glipPracticePageReady === "true") return;
+    document.documentElement.dataset.glipPracticePageReady = "true";
     initPage(window.PAGE_CONFIG);
-  });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initialisePracticePage, { once: true });
+  } else {
+    initialisePracticePage();
+  }
 })();
