@@ -195,25 +195,83 @@
     return window.GLIP_TOPIC_CONTEXT_AUTHORITATIVE === true;
   }
 
+  function fileStem(value) {
+    return text(value)
+      .toLowerCase()
+      .replace(/[?#].*$/, "")
+      .replace(/\.html?$/, "");
+  }
+
+  function currentActivityRequiresSubmission() {
+    if (!hasAuthoritativeContext()) return false;
+
+    const topicData = window.GLIP_TOPIC_PAGE_DATA || {};
+    const activities = Array.isArray(topicData.activities) ? topicData.activities : [];
+    const pageFile = text(window.location.pathname.split("/").pop());
+    const pageStem = fileStem(pageFile);
+
+    // The current HTML filename is authoritative. This prevents stale session
+    // data or PAGE_CONFIG values from making one activity inherit another
+    // activity's submission setting.
+    let activity = activities.find(function (item) {
+      const itemFile = text(item.file_name);
+      return Boolean(
+        pageStem &&
+        (fileStem(itemFile) === pageStem || fileStem(item.activity_code) === pageStem)
+      );
+    }) || null;
+
+    // Older links may not have a recognisable filename. In that case only,
+    // use the activity_id from the URL/PAGE_CONFIG as a fallback.
+    if (!activity) {
+      const query = new URLSearchParams(window.location.search || "");
+      const activityId = text(query.get("activity_id") || getConfig().activityId);
+      if (activityId) {
+        activity = activities.find(function (item) {
+          return text(item.activity_id) === activityId;
+        }) || null;
+      }
+    }
+
+    return Boolean(activity && activity.requires_submission === true);
+  }
+
+  function hideAndRemoveSection() {
+    const section = document.getElementById("glipActivitySubmission");
+    if (!section) return;
+    section.hidden = true;
+    section.classList.add("hidden");
+    section.remove();
+  }
+
   function refresh() {
     const config = getConfig();
-    const section = ensureSection();
-    bindControls();
     const legacyButton = document.getElementById("uploadPracticeBtn");
     const legacyPanel = legacyButton && legacyButton.closest(".task-box, .panel-box, section");
-    if (legacyPanel && legacyPanel !== section) legacyPanel.hidden = true;
+    if (legacyPanel) {
+      legacyPanel.hidden = true;
+      legacyPanel.classList.add("hidden");
+    }
 
-    section.hidden = !(
-      hasAuthoritativeContext() &&
+    const shouldShow =
       config.pageKind !== "topic-home" &&
-      config.requiresSubmission === true
-    );
+      currentActivityRequiresSubmission();
+
+    if (!shouldShow) {
+      hideAndRemoveSection();
+      return;
+    }
+
+    const section = ensureSection();
+    section.hidden = false;
+    section.classList.remove("hidden");
+    bindControls();
+    updateSelectedFileName();
   }
 
   function initialise() {
-    ensureSection();
-    bindControls();
-    updateSelectedFileName();
+    // Do not create a submission fieldset until fresh Google Sheets metadata
+    // explicitly confirms that the current activity requires submission.
     refresh();
   }
 
