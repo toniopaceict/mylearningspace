@@ -42,12 +42,12 @@
     };
   }
 
-  function setMessage(text, colour) {
+  function setMessage(text, type) {
     const message = document.getElementById("fillBlankSubmitMessage");
     if (!message) return;
 
     message.textContent = text || "";
-    message.style.color = colour || "#0b3c6f";
+    message.className = "panel-message text-center" + (type ? " " + type : "");
   }
 
   function submitFillBlankAnswers() {
@@ -55,18 +55,18 @@
     const student = getStudentDetails();
 
     if (!student.student_id) {
-      setMessage("Student not logged in.", "#b3261e");
+      setMessage("Student not logged in.", "error");
       return;
     }
 
     const result = collectFillBlankAnswers();
 
     if (result.answers.some(a => !a.selected_answer || a.selected_answer.startsWith("Blank"))) {
-      setMessage("Please fill in all blanks before submitting.", "#b3261e");
+      setMessage("Please fill in all blanks before submitting.", "error");
       return;
     }
 
-    setMessage("Submitting answers...", "#0b3c6f");
+    setMessage("Submitting answers...", "info");
 
     fetch(config.webAppUrl, {
       method: "POST",
@@ -89,7 +89,7 @@
       .then(response => response.json())
       .then(data => {
         if (data.status === "success") {
-          setMessage("Answers submitted successfully.", "#137333");
+          setMessage("Answers submitted successfully.", "success");
 
           window.dispatchEvent(
             new CustomEvent("glipProgressSaved", {
@@ -103,11 +103,11 @@
             })
           );
         } else {
-          setMessage(data.message || "Could not submit answers.", "#b3261e");
+          setMessage(data.message || "Could not submit answers.", "error");
         }
       })
       .catch(() => {
-        setMessage("Could not contact the server.", "#b3261e");
+        setMessage("Could not contact the server.", "error");
       });
   }
 

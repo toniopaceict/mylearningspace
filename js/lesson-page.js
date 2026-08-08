@@ -171,6 +171,7 @@ function showDownloadProgress() {
 
   bar.classList.add(GLIP_CLASSES.visible);
   message.textContent = GLIP_MESSAGES.preparingDownload;
+  message.className = "panel-message text-center info";
 
   setTimeout(function () {
     bar.classList.remove("show");

@@ -170,7 +170,7 @@ Progress is stored using the immutable activity ID resolved automatically from t
           class="download-box no-print readable-section"
           id="requiredFilesSection"
         >
-          <legend>Required Files</legend>
+          <legend id="requiredFilesLegend">Required Files</legend>
 
           <button
             type="button"
@@ -229,7 +229,7 @@ Progress is stored using the immutable activity ID resolved automatically from t
 
           <p
             id="downloadMessage"
-            class="tracker-message"
+            class="panel-message text-center"
             role="status"
             aria-live="polite"
           ></p>
@@ -491,7 +491,7 @@ Progress is stored using the immutable activity ID resolved automatically from t
 
           <p
             id="fillBlankSubmitMessage"
-            class="tracker-message"
+            class="panel-message text-center"
             role="status"
             aria-live="polite"
           ></p>
@@ -550,7 +550,7 @@ Progress is stored using the immutable activity ID resolved automatically from t
 
           <p
             id="message"
-            class="tracker-message"
+            class="panel-message text-center"
             role="status"
             aria-live="polite"
           ></p>
@@ -615,6 +615,14 @@ Progress is stored using the immutable activity ID resolved automatically from t
               visibleFileCount > 0 ? "" : "none";
           }
 
+          const requiredFilesLegend =
+            document.getElementById("requiredFilesLegend");
+
+          if (requiredFilesLegend) {
+            requiredFilesLegend.textContent =
+              visibleFileCount === 1 ? "Required File" : "Required Files";
+          }
+
           const progressBar = document.getElementById("downloadProgressBar");
           const message = document.getElementById("downloadMessage");
 
@@ -626,7 +634,10 @@ Progress is stored using the immutable activity ID resolved automatically from t
 
               button.addEventListener("click", function () {
                 if (progressBar) progressBar.classList.add("show");
-                if (message) message.textContent = "Preparing download...";
+                if (message) {
+                  message.textContent = "Preparing download...";
+                  message.className = "panel-message text-center info";
+                }
 
                 window.setTimeout(function () {
                   if (progressBar) progressBar.classList.remove("show");

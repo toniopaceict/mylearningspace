@@ -37,7 +37,7 @@ Progress is stored using the immutable activity ID resolved automatically from t
 
       1. Rename the HTML file so that it matches the Activity Code
          in the Activities sheet, followed by .html.
-      2. Update the file link and button text.
+      2. Update the required file links and button text.
       3. Update the poster image and video URL.
       4. Update the lesson introduction.
       5. Update the learning outcomes.
@@ -57,9 +57,17 @@ Progress is stored using the immutable activity ID resolved automatically from t
         // this particular lesson and is not stored in the
         // GLIP relational tables.
         // -------------------------------------------------
-        fileLink:
+        // Leave a fileLink empty to hide that button.
+        // One, two or three files may be provided.
+        fileLink1:
           "https://drive.google.com/uc?export=download&id=19J4MyYeC6AzHo-tKqfgLMgJ79Hcb4mOu",
-        fileButtonText: "Download File",
+        fileButtonText1: "Download File",
+
+        fileLink2: "",
+        fileButtonText2: "Download File 2",
+
+        fileLink3: "",
+        fileButtonText3: "Download File 3",
 
         // -------------------------------------------------
         // VIDEO
@@ -90,8 +98,16 @@ Progress is stored using the immutable activity ID resolved automatically from t
           pageKind: "lesson",
 
           // Lesson-specific resources
-          fileLink: lesson.fileLink,
-          fileButtonText: lesson.fileButtonText,
+          // fileLink/fileButtonText are retained as compatibility aliases
+          // for existing shared lesson code.
+          fileLink: lesson.fileLink1,
+          fileButtonText: lesson.fileButtonText1,
+          fileLink1: lesson.fileLink1,
+          fileButtonText1: lesson.fileButtonText1,
+          fileLink2: lesson.fileLink2,
+          fileButtonText2: lesson.fileButtonText2,
+          fileLink3: lesson.fileLink3,
+          fileButtonText3: lesson.fileButtonText3,
 
           webAppUrl:
             typeof window.getGlipWebAppUrl === "function"
@@ -200,12 +216,16 @@ Progress is stored using the immutable activity ID resolved automatically from t
         EDIT THE INSTRUCTION TEXT FOR EACH NEW LESSON
         WHEN NECESSARY.
 
-        The file URL and button text come automatically
-        from LESSON_CONFIG.
+        The file URLs and button text come automatically
+        from LESSON_CONFIG. The complete fieldset is hidden
+        automatically when no required file has been configured.
         ===================================================
         -->
-        <fieldset class="download-box readable-section">
-          <legend>Required File</legend>
+        <fieldset
+          class="download-box no-print readable-section"
+          id="requiredFilesSection"
+        >
+          <legend id="requiredFilesLegend">Required File</legend>
 
           <button
             type="button"
@@ -226,6 +246,23 @@ Progress is stored using the immutable activity ID resolved automatically from t
               id="fileLinkBtn"
               href="#"
               target="glipDownloadFrame"
+              style="display: none"
+            ></a>
+
+            <a
+              class="glip-btn download-btn"
+              id="fileLinkBtn2"
+              href="#"
+              target="glipDownloadFrame"
+              style="display: none"
+            ></a>
+
+            <a
+              class="glip-btn download-btn"
+              id="fileLinkBtn3"
+              href="#"
+              target="glipDownloadFrame"
+              style="display: none"
             ></a>
 
             <!--
@@ -253,7 +290,7 @@ Progress is stored using the immutable activity ID resolved automatically from t
 
           <p
             id="downloadMessage"
-            class="tracker-message"
+            class="panel-message text-center"
             role="status"
             aria-live="polite"
           ></p>
@@ -377,7 +414,7 @@ Progress is stored using the immutable activity ID resolved automatically from t
 
           <p
             id="message"
-            class="tracker-message"
+            class="panel-message text-center"
             role="status"
             aria-live="polite"
           ></p>
@@ -407,17 +444,77 @@ Progress is stored using the immutable activity ID resolved automatically from t
           const lesson = window.LESSON_CONFIG || {};
           const page = window.PAGE_CONFIG || {};
 
-          const fileButton = document.getElementById("fileLinkBtn");
+          const files = [
+            {
+              buttonId: "fileLinkBtn",
+              link: lesson.fileLink1,
+              text: lesson.fileButtonText1,
+            },
+            {
+              buttonId: "fileLinkBtn2",
+              link: lesson.fileLink2,
+              text: lesson.fileButtonText2,
+            },
+            {
+              buttonId: "fileLinkBtn3",
+              link: lesson.fileLink3,
+              text: lesson.fileButtonText3,
+            },
+          ];
 
-          if (fileButton) {
-            fileButton.href = lesson.fileLink || "#";
-            fileButton.textContent =
-              lesson.fileButtonText || "Download required file";
+          let visibleFileCount = 0;
 
-            if (!lesson.fileLink) {
-              fileButton.style.display = "none";
+          files.forEach(function (file) {
+            const button = document.getElementById(file.buttonId);
+            if (!button) return;
+
+            if (file.link) {
+              button.href = file.link;
+              button.textContent = file.text || "Download required file";
+              button.style.display = "inline-flex";
+              visibleFileCount += 1;
+            } else {
+              button.removeAttribute("href");
+              button.style.display = "none";
             }
+          });
+
+          const requiredFilesSection =
+            document.getElementById("requiredFilesSection");
+          const requiredFilesLegend =
+            document.getElementById("requiredFilesLegend");
+
+          if (requiredFilesSection) {
+            requiredFilesSection.style.display =
+              visibleFileCount > 0 ? "" : "none";
           }
+
+          if (requiredFilesLegend) {
+            requiredFilesLegend.textContent =
+              visibleFileCount === 1 ? "Required File" : "Required Files";
+          }
+
+          const progressBar = document.getElementById("downloadProgressBar");
+          const downloadMessage = document.getElementById("downloadMessage");
+
+          ["fileLinkBtn2", "fileLinkBtn3"].forEach(function (buttonId) {
+            const button = document.getElementById(buttonId);
+            if (!button || button.dataset.downloadReady) return;
+            button.dataset.downloadReady = "true";
+
+            button.addEventListener("click", function () {
+              if (progressBar) progressBar.classList.add("show");
+              if (downloadMessage) {
+                downloadMessage.textContent = "Preparing download...";
+                downloadMessage.className = "panel-message text-center info";
+              }
+
+              window.setTimeout(function () {
+                if (progressBar) progressBar.classList.remove("show");
+                if (downloadMessage) downloadMessage.textContent = "";
+              }, 3000);
+            });
+          });
 
           const poster = document.getElementById("videoPoster");
           const posterImage = document.getElementById("videoPosterImage");

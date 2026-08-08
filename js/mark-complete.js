@@ -15,13 +15,19 @@
     return id ? document.getElementById(id) : null;
   }
 
-function setMessage(text, colour) {
+function setMessage(text, typeOrColour) {
   const config = getConfig();
   const message = getById(config.messageId || "message");
   if (!message) return;
 
+  let type = typeOrColour || "info";
+  if (type === "#137333" || type === config.successColour) type = "success";
+  if (type === "#b3261e" || type === "#b00020" || type === config.errorColour) type = "error";
+  if (type === "#0b3c6f" || type === config.loadingColour || type === config.defaultColour) type = "info";
+  if (["success", "error", "info"].indexOf(type) === -1) type = "info";
+
   message.innerText = text || "";
-  message.style.color = colour || config.defaultColour || "#0b3c6f";
+  message.className = "panel-message text-center " + type;
 
   if (text) {
     setTimeout(function () {

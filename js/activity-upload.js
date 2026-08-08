@@ -30,7 +30,7 @@
       '<div id="glipSubmissionProgress" class="glip-progress" aria-hidden="true">' +
       '<div class="glip-progress-bar"></div>' +
       '</div>' +
-      '<p id="glipSubmissionMessage" class="panel-message" role="status" aria-live="polite"></p>';
+      '<p id="glipSubmissionMessage" class="panel-message text-center" role="status" aria-live="polite"></p>';
 
     // Keep the submission fieldset inside the normal activity content wrapper.
     const mainContent = document.getElementById("mainContent") || document.querySelector(".page-shell .wrap");
@@ -47,7 +47,7 @@
     const element = document.getElementById("glipSubmissionMessage");
     if (!element) return;
     element.textContent = message || "";
-    element.className = "panel-message" + (type ? " " + type : "");
+    element.className = "panel-message text-center" + (type ? " " + type : "");
   }
 
   function setUploading(isUploading) {
@@ -152,14 +152,20 @@
 
       const stored = result.file || {};
       const versionText = stored.version ? " Version " + stored.version + "." : "";
+      if (fileInput) fileInput.value = "";
+      updateSelectedFileName();
+
+      const teacherName = text(result.teacher && result.teacher.display_name);
+      const successText = teacherName
+        ? "Your work has been submitted successfully to " + teacherName + "."
+        : (result.message || "Your work has been submitted successfully.");
+
       setMessage(
-        (result.message || "Your work has been submitted successfully.") +
+        successText +
         (stored.file_name ? " File: " + stored.file_name + "." : "") +
         versionText,
         "success"
       );
-      if (fileInput) fileInput.value = "";
-      updateSelectedFileName();
       window.dispatchEvent(new CustomEvent("glipActivitySubmitted", {
         detail: { activityId: config.activityId }
       }));
@@ -185,6 +191,8 @@
     }
   }
 
+  let authoritativeContextReady = false;
+
   function refresh() {
     const config = getConfig();
     const section = ensureSection();
@@ -194,6 +202,7 @@
     if (legacyPanel && legacyPanel !== section) legacyPanel.hidden = true;
 
     section.hidden = !(
+      authoritativeContextReady &&
       config.pageKind !== "topic-home" &&
       config.requiresSubmission === true
     );
@@ -212,6 +221,12 @@
     initialise();
   }
 
-  document.addEventListener("glipTopicContextRefreshed", refresh);
-  document.addEventListener("glipReady", refresh);
+  document.addEventListener("glipTopicContextRefreshed", function () {
+    authoritativeContextReady = true;
+    refresh();
+  });
+
+  document.addEventListener("glipReady", function () {
+    if (authoritativeContextReady) refresh();
+  });
 })();

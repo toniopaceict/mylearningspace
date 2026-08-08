@@ -37,10 +37,11 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
 
       1. Rename the HTML file so that it matches the Activity Code
          in the Activities sheet, followed by .html.
-      2. Update the instructions.
-      3. Update the QUESTIONS array.
-      4. Update the optional EXTRA_BOX if required.
-      5. Update the PDF fallback filename if required.
+      2. Update the required file links and button text if needed.
+      3. Update the instructions.
+      4. Update the QUESTIONS array.
+      5. Update the optional EXTRA_BOX if required.
+      6. Update the PDF fallback filename if required.
 
       Do not enter activity IDs, subject, topic, level or activity titles.
       GLIP resolves the activity from the filename and reads its metadata
@@ -49,6 +50,21 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
       */
 
       window.QUIZ_CONFIG = {
+        // -------------------------------------------------
+        // REQUIRED FILES
+        //
+        // Leave a fileLink empty to hide that button.
+        // One, two or three files may be provided.
+        // -------------------------------------------------
+        fileLink1: "",
+        fileButtonText1: "Download File",
+
+        fileLink2: "",
+        fileButtonText2: "Download File 2",
+
+        fileLink3: "",
+        fileButtonText3: "Download File 3",
+
         instructionsText:
           "Read each question carefully and think about both the financial meaning and the Excel function involved.",
 
@@ -178,6 +194,13 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
           helpSection: "activity",
           pageKind: "quiz",
 
+          fileLink1: quiz.fileLink1,
+          fileButtonText1: quiz.fileButtonText1,
+          fileLink2: quiz.fileLink2,
+          fileButtonText2: quiz.fileButtonText2,
+          fileLink3: quiz.fileLink3,
+          fileButtonText3: quiz.fileButtonText3,
+
           instructionsText: quiz.instructionsText,
           pdfBoxTitle: quiz.pdfBoxTitle,
           pdfButtonText: quiz.pdfButtonText,
@@ -251,6 +274,65 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
             Reset Quiz
           </button>
         </div>
+
+        <!--
+        ===================================================
+        SECTION 2: REQUIRED FILES
+
+        EDIT THE FILE LINKS AND BUTTON TEXT IN QUIZ_CONFIG.
+
+        The complete fieldset is hidden automatically when
+        no required file has been configured.
+        ===================================================
+        -->
+        <fieldset
+          class="download-box no-print readable-section"
+          id="requiredFilesSection"
+        >
+          <legend id="requiredFilesLegend">Required Files</legend>
+
+          <button
+            type="button"
+            class="speak-btn"
+            onclick="speakSection(this)"
+            aria-label="Read the required file instructions aloud"
+          >
+            🔊
+          </button>
+
+          <p class="q" data-read>
+            Download the required file before starting this quiz.
+          </p>
+
+          <div class="download-buttons">
+            <a class="glip-btn download-btn" id="fileLinkBtn1" href="#" target="glipDownloadFrame" style="display: none"></a>
+            <a class="glip-btn download-btn" id="fileLinkBtn2" href="#" target="glipDownloadFrame" style="display: none"></a>
+            <a class="glip-btn download-btn" id="fileLinkBtn3" href="#" target="glipDownloadFrame" style="display: none"></a>
+
+            <iframe
+              name="glipDownloadFrame"
+              id="glipDownloadFrame"
+              title="File download"
+              hidden
+            ></iframe>
+          </div>
+
+          <div
+            id="downloadProgressBar"
+            class="glip-loading"
+            role="progressbar"
+            aria-label="Preparing the file download"
+          >
+            <div class="glip-loading-fill"></div>
+          </div>
+
+          <p
+            id="downloadMessage"
+            class="panel-message text-center"
+            role="status"
+            aria-live="polite"
+          ></p>
+        </fieldset>
 
         <fieldset class="task-box readable-section">
           <legend>Instructions</legend>
@@ -331,7 +413,7 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
 
           <p
             id="message"
-            class="tracker-message"
+            class="panel-message text-center"
             role="status"
             aria-live="polite"
           ></p>
@@ -359,6 +441,85 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
         </div>
       </div>
     </div>
+
+    <script>
+      /*
+      =====================================================
+      REQUIRED FILE INITIALISATION
+      =====================================================
+      */
+      (function () {
+        function initialiseRequiredFiles() {
+          const quiz = window.QUIZ_CONFIG || {};
+          const files = [
+            { buttonId: "fileLinkBtn1", link: quiz.fileLink1, text: quiz.fileButtonText1 },
+            { buttonId: "fileLinkBtn2", link: quiz.fileLink2, text: quiz.fileButtonText2 },
+            { buttonId: "fileLinkBtn3", link: quiz.fileLink3, text: quiz.fileButtonText3 },
+          ];
+
+          let visibleFileCount = 0;
+
+          files.forEach(function (file) {
+            const button = document.getElementById(file.buttonId);
+            if (!button) return;
+
+            if (file.link) {
+              button.href = file.link;
+              button.textContent = file.text || "Download required file";
+              button.style.display = "inline-flex";
+              visibleFileCount += 1;
+            } else {
+              button.removeAttribute("href");
+              button.style.display = "none";
+            }
+          });
+
+          const section = document.getElementById("requiredFilesSection");
+          const legend = document.getElementById("requiredFilesLegend");
+
+          if (section) {
+            section.style.display = visibleFileCount > 0 ? "" : "none";
+          }
+
+          if (legend) {
+            legend.textContent =
+              visibleFileCount === 1 ? "Required File" : "Required Files";
+          }
+
+          const progressBar = document.getElementById("downloadProgressBar");
+          const message = document.getElementById("downloadMessage");
+
+          document
+            .querySelectorAll("#requiredFilesSection .download-btn")
+            .forEach(function (button) {
+              if (button.dataset.downloadReady) return;
+              button.dataset.downloadReady = "true";
+
+              button.addEventListener("click", function () {
+                if (progressBar) progressBar.classList.add("show");
+                if (message) {
+                  message.textContent = "Preparing download...";
+                  message.className = "panel-message text-center info";
+                }
+
+                window.setTimeout(function () {
+                  if (progressBar) progressBar.classList.remove("show");
+                  if (message) message.textContent = "";
+                }, 3000);
+              });
+            });
+        }
+
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", initialiseRequiredFiles);
+        } else {
+          initialiseRequiredFiles();
+        }
+
+        document.addEventListener("glipReady", initialiseRequiredFiles);
+        document.addEventListener("glipTopicContextRefreshed", initialiseRequiredFiles);
+      })();
+    </script>
 
     <script>
       /*
@@ -439,12 +600,13 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
           }
         }
 
-        function setMessage(text, colour) {
+        function setMessage(text, type) {
           const message = document.getElementById("message");
           if (!message) return;
 
           message.textContent = text || "";
-          message.style.color = colour || "#0b3c6f";
+          message.className =
+            "panel-message text-center" + (type ? " " + type : "");
         }
 
         function updateMenuIconAfterQuizSubmit() {
@@ -470,7 +632,7 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
           if (!allQuizQuestionsAnswered(result)) {
             setMessage(
               "Please answer all quiz questions before submitting.",
-              "#b3261e"
+              "error"
             );
             return;
           }
@@ -478,7 +640,7 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
           const studentId = sessionStorage.getItem("glipStudentId") || "";
 
           if (!studentId) {
-            setMessage("Student not logged in.", "#b3261e");
+            setMessage("Student not logged in.", "error");
             return;
           }
 
@@ -488,12 +650,12 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
               : config.webAppUrl || "";
 
           if (!webAppUrl) {
-            setMessage("GLIP could not connect to the server.", "#b3261e");
+            setMessage("GLIP could not connect to the server.", "error");
             return;
           }
 
           setQuizSavingState(true);
-          setMessage("Saving quiz result...", "#0b3c6f");
+          setMessage("Saving quiz result...", "info");
 
           fetch(webAppUrl, {
             method: "POST",
@@ -532,13 +694,13 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
 
               setMessage(
                 "Your quiz has been submitted and marked as complete.",
-                "#137333"
+                "success"
               );
             })
             .catch(function (error) {
               setMessage(
                 error.message || "Could not save quiz result.",
-                "#b3261e"
+                "error"
               );
             })
             .finally(function () {
