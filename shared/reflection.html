@@ -404,7 +404,7 @@ Help file:
 
             setSavingState(false);
 
-            message.innerText = "Your reflection has been saved.";
+            message.innerText = feedbackData.message || "Your reflection has been saved.";
             message.style.color = "#137333";
           })
 

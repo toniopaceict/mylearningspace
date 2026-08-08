@@ -27,8 +27,15 @@
 
       if (isCorrect) score++;
 
+      const fieldset = blank.closest("fieldset");
+      const legend = fieldset ? fieldset.querySelector("legend") : null;
+      const blankId = blank.dataset.blankId || "";
+      const blankMatch = blankId.match(/blank(\d+)$/i);
+
       return {
-        blank_id: blank.dataset.blankId || "",
+        task_title: legend ? legend.textContent.trim() : "Task",
+        blank_id: blankId,
+        blank_label: blankMatch ? "Blank " + blankMatch[1] : blankId,
         selected_answer: selectedAnswer,
         correct_answer: correctAnswer,
         is_correct: isCorrect
@@ -89,7 +96,7 @@
       .then(response => response.json())
       .then(data => {
         if (data.status === "success") {
-          setMessage("Answers submitted successfully.", "success");
+          setMessage(data.message || "Answers submitted successfully.", "success");
 
           window.dispatchEvent(
             new CustomEvent("glipProgressSaved", {

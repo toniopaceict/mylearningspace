@@ -108,11 +108,6 @@ Help file:
             <button id="loginBtn" class="login-btn glip-btn">Continue</button>
           </div>
 
-          <label class="login-staff-option">
-            <input type="checkbox" id="staffMemberInput" />
-            <span>Tick this box if you are a staff member</span>
-          </label>
-
           <p id="loginMessage" class="login-message"></p>
 
           <div id="loginProgress" class="glip-progress">
@@ -710,7 +705,6 @@ const subjectsResult = await postToGlip({
           const result = await postToGlip({
             action: "loginUser",
             code: code,
-            staff_member: document.getElementById("staffMemberInput").checked,
           });
 
           if (result.status !== "success") {

@@ -222,7 +222,7 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
     • PDF export
     • lightbox support
     -->
-    <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js?v=437.3"></script>
+    <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js?v=438"></script>
   </head>
 
   <body>
@@ -552,11 +552,21 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
               score += marks;
             }
 
+            const selectedOption = (question.options || []).find(function (option) {
+              return option.value === selectedAnswer;
+            }) || {};
+            const correctOption = (question.options || []).find(function (option) {
+              return option.value === question.correct;
+            }) || {};
+
             return {
               question_id: question.id,
               question_title: question.title,
+              question_text: question.text || "",
               selected_answer: selectedAnswer,
+              selected_label: selectedOption.label || selectedAnswer,
               correct_answer: question.correct,
+              correct_label: correctOption.label || question.correct,
               marks: marks,
               awarded_marks: isCorrect ? marks : 0,
               is_correct: isCorrect,
@@ -689,7 +699,7 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
               updateMenuIconAfterQuizSubmit();
 
               setMessage(
-                "Your quiz has been submitted and marked as complete.",
+                data.message || "Your quiz has been submitted and marked as complete.",
                 "success"
               );
             })
