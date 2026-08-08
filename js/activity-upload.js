@@ -191,7 +191,9 @@
     }
   }
 
-  let authoritativeContextReady = false;
+  function hasAuthoritativeContext() {
+    return window.GLIP_TOPIC_CONTEXT_AUTHORITATIVE === true;
+  }
 
   function refresh() {
     const config = getConfig();
@@ -202,7 +204,7 @@
     if (legacyPanel && legacyPanel !== section) legacyPanel.hidden = true;
 
     section.hidden = !(
-      authoritativeContextReady &&
+      hasAuthoritativeContext() &&
       config.pageKind !== "topic-home" &&
       config.requiresSubmission === true
     );
@@ -221,12 +223,6 @@
     initialise();
   }
 
-  document.addEventListener("glipTopicContextRefreshed", function () {
-    authoritativeContextReady = true;
-    refresh();
-  });
-
-  document.addEventListener("glipReady", function () {
-    if (authoritativeContextReady) refresh();
-  });
+  document.addEventListener("glipTopicContextRefreshed", refresh);
+  document.addEventListener("glipReady", refresh);
 })();

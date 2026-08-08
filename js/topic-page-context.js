@@ -244,11 +244,12 @@
 
     const currentPageStem = fileStem(pageFile);
 
-    const activity = (topicData.activities || []).find(function (item) {
-      if (configuredActivityId && text(item.activity_id) === configuredActivityId) {
-        return true;
-      }
+    // The current HTML filename is the primary identity of an activity page.
+    // A stored activity_id may belong to the activity visited immediately before
+    // this one, so it must never override a clear filename match.
+    const activities = topicData.activities || [];
 
+    let activity = activities.find(function (item) {
       const itemFile = text(item.file_name).toLowerCase();
       const itemFileStem = fileStem(itemFile);
       const activityCode = fileStem(item.activity_code);
@@ -262,6 +263,15 @@
         )
       );
     }) || null;
+
+    // Only fall back to activity_id when the page itself cannot identify the
+    // activity. This supports older links without allowing stale session data
+    // to make one activity inherit another activity's metadata.
+    if (!activity && configuredActivityId) {
+      activity = activities.find(function (item) {
+        return text(item.activity_id) === configuredActivityId;
+      }) || null;
+    }
 
     config.subjectId = topicData.subject_id || "";
     config.level = topicData.level_code || "";
@@ -341,6 +351,11 @@
     const initial = getInitialContext();
     let learningSessionTopic = null;
 
+    // Cached context is useful for a fast first paint, but activity metadata that
+    // controls permissions/visibility must be confirmed by a fresh Apps Script
+    // response before dependent controls are shown.
+    window.GLIP_TOPIC_CONTEXT_AUTHORITATIVE = false;
+
     if (window.GLIPLearningSession) {
       const topicPage = window.GLIPLearningSession.getTopicPageData({
         curriculum_id: initial.curriculum_id,
@@ -373,6 +388,7 @@
           writeCache(initial, fresh);
           saveStoredContext(fresh);
           install(fresh);
+          window.GLIP_TOPIC_CONTEXT_AUTHORITATIVE = true;
           document.dispatchEvent(new CustomEvent("glipTopicContextRefreshed", {
             detail: fresh
           }));
