@@ -264,10 +264,10 @@ function normaliseTopic(topic) {
     title: String(topic.topic_name || "").trim(),
     folder: topicFolder,
     image: topicFolder
-      ? "../../content/" + SUBJECT + "/" + topicFolder + "/assets/" + topicFolder + ".jpg"
+      ? "../../content/topics/" + topicFolder + "/" + topicFolder + ".jpg"
       : "../../assets/studentslearning.jpg",
     link: topicFolder
-      ? "../../content/" + SUBJECT + "/" + topicFolder + "/" + topicFolder + "-home.html?" +
+      ? "../../content/topics/" + topicFolder + "/" + topicFolder + "-home.html?" +
         new URLSearchParams({
           school: SCHOOL,
           curriculum_id: CURRICULUM_ID,

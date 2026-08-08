@@ -14,16 +14,32 @@
   }
 
   function getPathContext() {
-    const match = window.location.pathname.match(
+    const path = window.location.pathname || "";
+
+    // Current content architecture: topics are independent of subjects.
+    const topicPoolMatch = path.match(
+      /\/content\/topics\/([^/]+)\/([^/]+\.html)$/i
+    );
+
+    if (topicPoolMatch) {
+      return {
+        topic_code: decodeURIComponent(topicPoolMatch[1]),
+        page_file: decodeURIComponent(topicPoolMatch[2])
+      };
+    }
+
+    // Temporary backwards compatibility for bookmarks or cached URLs that
+    // still use the pre-v437 subject/topic folder structure.
+    const legacyMatch = path.match(
       /\/content\/([^/]+)\/([^/]+)\/([^/]+\.html)$/i
     );
 
-    if (!match) return {};
+    if (!legacyMatch) return {};
 
     return {
-      subject_code: decodeURIComponent(match[1]),
-      topic_code: decodeURIComponent(match[2]),
-      page_file: decodeURIComponent(match[3])
+      subject_code: decodeURIComponent(legacyMatch[1]),
+      topic_code: decodeURIComponent(legacyMatch[2]),
+      page_file: decodeURIComponent(legacyMatch[3])
     };
   }
 

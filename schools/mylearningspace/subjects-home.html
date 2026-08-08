@@ -489,9 +489,7 @@ function renderSubjectCards(subjects, fallbackLevel) {
       const link = getSubjectHomeLink(subjectLevel, subjectId);
 
       const image =
-        "../../content/" +
-        subjectCode +
-        "/assets/" +
+        "../../content/subjects/" +
         subjectCode +
         ".jpg";
 
@@ -511,7 +509,7 @@ function renderSubjectCards(subjects, fallbackLevel) {
               alt="${subjectName}"
               loading="lazy"
               decoding="async"
-              onerror="this.src='../../assets/studentslearning.jpg'"
+              onerror="this.onerror=null; this.src='../../assets/studentslearning.jpg';"
             >
           </div>
 
@@ -851,14 +849,12 @@ const res = await fetch(getWebAppUrl(), {
       function getTopicImageFromSubjectPage(subjectCode, topic) {
         const topicFolder = String(topic.topic_code || topic.topic_id || "").trim();
 
-        if (!subjectCode || !topicFolder) return "";
+        if (!topicFolder) return "";
 
         return (
-          "../../content/" +
-          subjectCode +
-          "/" +
+          "../../content/topics/" +
           topicFolder +
-          "/assets/" +
+          "/" +
           topicFolder +
           ".jpg"
         );

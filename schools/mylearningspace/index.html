@@ -233,6 +233,13 @@ Help file:
         });
       }
 
+      function preloadSubjectImage(subjectCode) {
+        const code = String(subjectCode || "").trim();
+        if (!code) return Promise.resolve(false);
+
+        return preloadImage("../../content/subjects/" + code + ".jpg");
+      }
+
 
       function getTopicCacheKey(subject) {
         return glipCacheKey([
@@ -329,8 +336,7 @@ Help file:
             const topicFolder = String(topic.topic_code || topic.topic_id || "").trim();
             if (!subjectCode || !topicFolder) return Promise.resolve(false);
             return preloadImage(
-              "../../content/" + subjectCode + "/" + topicFolder +
-              "/assets/" + topicFolder + ".jpg"
+              "../../content/topics/" + topicFolder + "/" + topicFolder + ".jpg"
             );
           }));
 
@@ -380,7 +386,7 @@ Help file:
               const nextContext = Object.assign({}, topicPageData, {
                 student_id: userId,
                 base_url: "../..",
-                topic_base_url: "../../content/" + subjectCode + "/" +
+                topic_base_url: "../../content/topics/" +
                   String(topicPageData.topic_code || "").trim()
               });
               const nextUrl = window.GLIPNextActivity.buildActivityUrl(nextContext, nextActivity);
@@ -435,13 +441,7 @@ const subjectsResult = await postToGlip({
             const subjectCode = String(subject.subject_code || subjectId).trim();
             if (!subjectCode) return Promise.resolve(false);
 
-            return preloadImage(
-              "../../content/" +
-                subjectCode +
-                "/assets/" +
-                subjectCode +
-                ".jpg"
-            );
+            return preloadSubjectImage(subjectCode);
           });
 
           addLoginLog("Preparing your progress icons...");
@@ -576,9 +576,7 @@ const subjectsResult = await postToGlip({
           }).map(function (subject) {
             const subjectCode = String(subject.subject_code || "").trim();
             if (!subjectCode) return Promise.resolve(false);
-            return preloadImage(
-              "../../content/" + subjectCode + "/assets/" + subjectCode + ".jpg"
-            );
+            return preloadSubjectImage(subjectCode);
           }));
 
           await preloadTopicsAndTopicPages(subjects, userType, teacherId, []);

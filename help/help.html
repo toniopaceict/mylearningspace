@@ -583,8 +583,7 @@ Help Section:
       <h3>Naming a subject icon</h3>
 
       <p>
-        Each subject icon is stored in the subject's
-        <code>assets</code> folder.
+        Each subject icon is stored directly under <code>content/subjects</code>.
       </p>
 
       <p><strong>Required file name:</strong></p>
@@ -609,15 +608,14 @@ Help Section:
 
       <p>and saved in:</p>
 
-      <pre><code>content/subject_a/assets/subject_a.jpg</code></pre>
+      <pre><code>content/subjects/subject_a.jpg</code></pre>
     </section>
 
     <section class="help-subsection">
       <h3>Naming a topic icon</h3>
 
       <p>
-        Each topic icon is stored in the topic's
-        <code>assets</code> folder.
+        Each topic icon is stored directly in the topic's folder under <code>content/topics</code>.
       </p>
 
       <p><strong>Required file name:</strong></p>
@@ -642,7 +640,7 @@ Help Section:
 
       <p>and saved in:</p>
 
-      <pre><code>content/subject_a/topic_a/assets/topic_a.jpg</code></pre>
+      <pre><code>content/topics/topic_a/topic_a.jpg</code></pre>
     </section>
 
     <section class="help-subsection">
@@ -651,7 +649,7 @@ Help Section:
       <ul>
         <li>Use the subject code and topic code exactly as they appear in Google Sheets.</li>
         <li>Use the same name for the folder and its icon.</li>
-        <li>Do not add prefixes such as <code>icon-</code>.</li>
+        <li>New subject icons should use the exact subject code. GLIP also accepts the older <code>icon-{subject_code}.jpg</code> name as a compatibility fallback.</li>
         <li>Do not add suffixes such as <code>_icon</code>.</li>
         <li>Do not replace underscores with spaces or hyphens.</li>
         <li>File names are case-sensitive. Lower-case filenames are recommended.</li>
@@ -718,7 +716,7 @@ Help Section:
   fileLink: "DIRECT_OR_SHAREABLE_FILE_LINK",
   fileButtonText: "Download Word file",
 
-  posterImage: "assets/text_to_table_lesson_video_image.jpg",
+  posterImage: "text_to_table_lesson_video_image.jpg",
   videoUrl: "EMBEDDABLE_VIDEO_PREVIEW_URL"
 };</code></pre>
 
