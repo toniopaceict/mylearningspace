@@ -262,8 +262,21 @@
     uploadMessage("", "");
     setUploadStage("");
   }
-  function isStudent(){ return String(sessionStorage.getItem("glipUserType") || "").toLowerCase() === "student"; }
-  function isStudentLike(){ return ["student", "support"].includes(String(sessionStorage.getItem("glipUserType") || "").toLowerCase()); }
+  function isStudent(){
+    return String(sessionStorage.getItem("glipUserType") || "").toLowerCase() === "student";
+  }
+
+  function isSupportOnly(){
+    if (window.GLIPTeachingRole && typeof window.GLIPTeachingRole.isSupportOnly === "function") {
+      return window.GLIPTeachingRole.isSupportOnly();
+    }
+
+    return String(sessionStorage.getItem("glipSupportOnly") || "").toLowerCase() === "true";
+  }
+
+  function isStudentLike(){
+    return isStudent() || isSupportOnly();
+  }
   function applyRoleLayout(){
     const student = isStudentLike();
     const filterGroup = byId("studentResourceFilterGroup");

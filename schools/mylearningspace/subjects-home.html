@@ -171,7 +171,7 @@ function getSubjectCache() {
   const teacherId = sessionStorage.getItem("glipTeacherId") || "";
   const studentId = sessionStorage.getItem("glipStudentId") || "";
 
-  const keyParts = isStudentUser()
+  const keyParts = isStudentLikeUser()
     ? [SCHOOL, userType, teacherId, studentId, "subjects"]
     : [SCHOOL, LEVEL, userType, teacherId, studentId, "subjects"];
 
@@ -186,7 +186,7 @@ function setSubjectCache(subjects) {
   const teacherId = sessionStorage.getItem("glipTeacherId") || "";
   const studentId = sessionStorage.getItem("glipStudentId") || "";
 
-  const keyParts = isStudentUser()
+  const keyParts = isStudentLikeUser()
     ? [SCHOOL, userType, teacherId, studentId, "subjects"]
     : [SCHOOL, LEVEL, userType, teacherId, studentId, "subjects"];
 
@@ -309,6 +309,18 @@ function isStudentUser() {
   const role = sessionStorage.getItem("glipRole") || "";
   const userType = sessionStorage.getItem("glipUserType") || "";
   return role === "student" || userType === "student";
+}
+
+function isSupportUser() {
+  if (window.GLIPTeachingRole && typeof window.GLIPTeachingRole.isSupportOnly === "function") {
+    return window.GLIPTeachingRole.isSupportOnly();
+  }
+
+  return String(sessionStorage.getItem("glipSupportOnly") || "").toLowerCase() === "true";
+}
+
+function isStudentLikeUser() {
+  return isStudentUser() || isSupportUser();
 }
 
 function getAcademicYearFromClassId(classId) {
@@ -599,7 +611,7 @@ if (!Array.isArray(subjects) || subjects.length === 0) {
 const intro = document.getElementById("subjectsIntro");
 if (intro) intro.style.display = "";
 
-  if (isStudentUser()) {
+  if (isStudentLikeUser()) {
     renderStudentSubjectsByClass(subjects);
     return;
   }
@@ -705,7 +717,7 @@ const payload = {
   student_id: sessionStorage.getItem("glipStudentId") || "",
 };
 
-if (!isStudentUser()) {
+if (!isStudentLikeUser()) {
   payload.level = LEVEL;
 }
 

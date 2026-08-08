@@ -526,7 +526,7 @@ const subjectsResult = await postToGlip({
 
       async function preloadTeacherSubjects(teacher, userType) {
         if (!teacher || !teacher.teacher_id) return;
-        if (userType !== "lead_teacher" && userType !== "subject_teacher") return;
+        if (userType !== "teacher") return;
 
         const teacherId = String(teacher.teacher_id || "").trim();
         addLoginLog("Loading Subjects...");
