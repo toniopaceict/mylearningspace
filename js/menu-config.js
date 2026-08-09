@@ -47,6 +47,7 @@
       "fill-blanks": "Fill in the Blanks",
       fillblank: "Fill in the Blanks",
       reflection: "End-of-Topic Reflection",
+      "free-text": "Free Text",
       checkpoint: "CheckPoint"
     };
     return labels[normalised] || normalised.replace(/(^|-)([a-z])/g, function (_, dash, letter) {

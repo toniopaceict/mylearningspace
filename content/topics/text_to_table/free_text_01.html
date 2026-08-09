@@ -1,0 +1,265 @@
+<!--
+=========================================================
+GLIP FREE TEXT PAGE
+
+FOR EACH NEW FREE TEXT ACTIVITY, EDIT ONLY:
+1. The HTML filename so that it matches the Activity Code in Google Sheets.
+2. The question text inside each .free-text-prompt paragraph.
+3. The recommended character length in data-recommended-length.
+4. Add or remove complete .free-text-question fieldsets if more or fewer questions are needed.
+
+DO NOT ENTER:
+• activity IDs
+• subject names
+• topic names
+• level names
+• activity titles
+
+GLIP resolves these automatically from Google Sheets.
+
+IMPORTANT:
+• data-recommended-length is guidance only. Students may type beyond it.
+• Use a unique data-question-id for each question on the page.
+• Enter creates a new line normally.
+• The editor supports Unicode text, including Maltese characters.
+=========================================================
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="icon" href="../../../assets/GLIP-icon-transparent.png" />
+
+    <script>
+      window.PAGE_CONFIG = {
+        helpSection: "activity",
+        pageKind: "free-text",
+
+        get webAppUrl() {
+          return typeof window.getGlipWebAppUrl === "function"
+            ? window.getGlipWebAppUrl()
+            : "";
+        }
+      };
+    </script>
+
+    <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
+  </head>
+
+  <body>
+    <div id="header-placeholder"></div>
+
+    <div class="page-shell">
+      <header class="page-hero">
+        <div class="page-hero-panel">
+          <div class="page-hero-divider-top"></div>
+
+          <img
+            class="page-hero-brand-icon"
+            src="../../../assets/GLIP-icon-transparent-cropped.png"
+            alt="GLIP logo"
+          />
+
+          <div class="page-hero-logo">GLIP</div>
+          <p class="page-hero-topline" id="heroTopline"></p>
+          <h1 id="heroMainTitle"></h1>
+          <h2 id="heroSubTitle"></h2>
+          <div class="page-hero-divider-bottom"></div>
+        </div>
+      </header>
+
+      <div class="top-user-bar">
+        <span id="loggedInInfoTop"></span>
+        <button id="logoutBtnTop" class="glip-btn" type="button" style="display: none">
+          Log out
+        </button>
+      </div>
+
+      <main class="wrap" id="mainContent">
+        <!-- =================================================
+             QUESTION 1
+
+             EDIT:
+             • data-recommended-length="1000"
+             • the text inside .free-text-prompt
+
+             The character limit is advisory only.
+             ================================================= -->
+        <fieldset
+          class="task-box readable-section free-text-question"
+          data-question-id="question_1"
+          data-recommended-length="1000"
+        >
+          <legend>Question 1</legend>
+
+          <button
+            type="button"
+            class="speak-btn"
+            onclick="speakSection(this)"
+            aria-label="Read Question 1 aloud"
+          >
+            🔊
+          </button>
+
+          <p class="q free-text-prompt" data-read>
+            Explain why converting text into a table can make information easier to read and organise.
+          </p>
+
+          <div class="free-text-toolbar no-print" aria-label="Answer formatting">
+            <button
+              type="button"
+              class="glip-btn glip-btn-secondary free-text-format-btn"
+              data-format-command="bold"
+              aria-label="Bold"
+              title="Bold"
+            ><strong>B</strong></button>
+
+            <button
+              type="button"
+              class="glip-btn glip-btn-secondary free-text-format-btn"
+              data-format-command="italic"
+              aria-label="Italic"
+              title="Italic"
+            ><em>I</em></button>
+
+            <button
+              type="button"
+              class="glip-btn glip-btn-secondary free-text-format-btn"
+              data-format-command="underline"
+              aria-label="Underline"
+              title="Underline"
+            ><u>U</u></button>
+          </div>
+
+          <div
+            class="free-text-editor"
+            contenteditable="true"
+            role="textbox"
+            aria-multiline="true"
+            aria-label="Answer to Question 1"
+            data-placeholder="Type your answer here..."
+            spellcheck="true"
+          ></div>
+
+          <div class="free-text-answer-meta no-print">
+            <span class="free-text-character-count" aria-live="polite">0 / 1000 characters</span>
+
+            <div class="free-text-speech-actions">
+              <button type="button" class="glip-btn free-text-read-btn">
+                Read my answer
+              </button>
+              <button type="button" class="glip-btn glip-btn-secondary free-text-stop-btn">
+                Stop
+              </button>
+            </div>
+          </div>
+
+          <p class="free-text-speech-status panel-message" role="status" aria-live="polite"></p>
+        </fieldset>
+
+        <!--
+        =====================================================
+        OPTIONAL ADDITIONAL QUESTIONS
+
+        To add another question, copy the complete fieldset above.
+        Change:
+          data-question-id="question_2"
+          <legend>Question 2</legend>
+          aria labels that mention Question 1
+          question text
+          data-recommended-length
+        =====================================================
+        -->
+
+        <fieldset class="tracker-box no-print readable-section">
+          <legend>Draft</legend>
+
+          <p class="q free-text-draft-note" data-read>
+            Your draft is saved temporarily in this browser while this session remains open.
+            It may be lost if the browser or tab is closed, or if browser data is cleared.
+          </p>
+
+          <p
+            id="freeTextDraftMessage"
+            class="panel-message text-center"
+            role="status"
+            aria-live="polite"
+          ></p>
+        </fieldset>
+
+        <fieldset class="tracker-box no-print readable-section">
+          <legend>Save as PDF</legend>
+
+          <button
+            type="button"
+            class="speak-btn"
+            onclick="speakSection(this)"
+            aria-label="Read the PDF instructions aloud"
+          >
+            🔊
+          </button>
+
+          <p class="q" data-read>
+            Save a PDF copy of your answers for your own records.
+          </p>
+
+          <div class="tracker-row">
+            <button type="button" class="glip-btn" id="saveFreeTextPdfBtn">
+              Save as PDF
+            </button>
+          </div>
+
+          <p
+            id="freeTextPdfMessage"
+            class="panel-message text-center"
+            role="status"
+            aria-live="polite"
+          ></p>
+        </fieldset>
+
+        <fieldset class="tracker-box no-print readable-section">
+          <legend>Submit</legend>
+
+          <button
+            type="button"
+            class="speak-btn"
+            onclick="speakSection(this)"
+            aria-label="Read the submission instructions aloud"
+          >
+            🔊
+          </button>
+
+          <p class="q" data-read>
+            Submit your answers to your teacher and mark this activity as complete.
+          </p>
+
+          <div class="tracker-row">
+            <button id="submitFreeTextBtn" type="button" class="glip-btn">
+              Submit and Mark as Complete
+            </button>
+          </div>
+
+          <div
+            id="freeTextSubmitProgress"
+            class="glip-loading"
+            role="progressbar"
+            aria-label="Submitting Free Text answers"
+          >
+            <div class="glip-loading-fill"></div>
+          </div>
+
+          <p
+            id="freeTextSubmitMessage"
+            class="panel-message text-center"
+            role="status"
+            aria-live="polite"
+          ></p>
+        </fieldset>
+      </main>
+
+      <div class="site-footer" id="siteFooter"></div>
+    </div>
+  </body>
+</html>

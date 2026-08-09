@@ -3,7 +3,7 @@
  
   
   
-  const GLIP_ASSET_VERSION = "444";
+  const GLIP_ASSET_VERSION = "445";
   const GLIP_BASE_URL = "https://toniopaceict.github.io/mylearningspace";
 
   const GLIP_PAGE_CHECK_CLASS = "glip-page-checking";
@@ -65,7 +65,7 @@
 
     if (pageKind !== "topic-home" && pageKind !== "lesson" &&
         pageKind !== "practice" && pageKind !== "quiz" &&
-        pageKind !== "fillblank") {
+        pageKind !== "fillblank" && pageKind !== "free-text") {
       callback();
       return;
     }
@@ -118,6 +118,7 @@
     if (path.indexOf("lesson") !== -1) return "lesson";
     if (path.indexOf("topic-") !== -1 && path.indexOf("-home") !== -1) return "topic-home";
     if (path.indexOf("reflection") !== -1) return "reflection";
+    if (path.indexOf("free_text") !== -1 || path.indexOf("free-text") !== -1) return "free-text";
 
     return "";
   }
@@ -213,7 +214,7 @@ const managementScriptsByPage = {
 
     scripts.push("/js/accessibility.js");
 
-    if (["lesson", "practice", "quiz", "fillblank", "reflection"].indexOf(pageKind) !== -1) {
+    if (["lesson", "practice", "quiz", "fillblank", "reflection", "free-text"].indexOf(pageKind) !== -1) {
       scripts.push("/js/activity-upload.js");
     }
 
@@ -248,6 +249,12 @@ const managementScriptsByPage = {
       scripts.push("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
       scripts.push("/js/glip-pdf.js");
       scripts.push("/js/pdf-export.js");
+    }
+
+
+    if (pageKind === "free-text") {
+      scripts.push("https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js");
+      scripts.push("/js/free-text-page.js");
     }
 
     if (pageKind === "topic-home") {

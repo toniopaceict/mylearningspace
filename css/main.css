@@ -4128,3 +4128,121 @@ body.glip-management-page::before {
 .class-teachers-table th:nth-child(6),
 .class-teachers-table td:nth-child(6) { width: 10%; }
 .class-teachers-table .assignment-status-column { min-width: 80px; }
+
+/* =========================================================
+   FREE TEXT ACTIVITY
+   ========================================================= */
+.free-text-question {
+  position: relative;
+}
+
+.free-text-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 6px;
+}
+
+.free-text-format-btn {
+  min-width: 42px;
+  padding: 7px 10px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.free-text-editor {
+  min-height: 180px;
+  padding: 12px;
+  border: 1px solid #aab9c8;
+  border-radius: 6px;
+  background: var(--card-bg, #fff);
+  color: inherit;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.free-text-editor:focus {
+  outline: 2px solid #2f6fad;
+  outline-offset: 2px;
+}
+
+.free-text-editor:empty::before {
+  content: attr(data-placeholder);
+  color: #687786;
+  pointer-events: none;
+}
+
+.free-text-answer-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 7px;
+}
+
+.free-text-character-count {
+  font-weight: 600;
+}
+
+.free-text-character-count.over-limit {
+  color: #b42318;
+}
+
+.free-text-speech-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.free-text-speech-status {
+  min-height: 1.25em;
+  margin: 5px 0 0;
+}
+
+.free-text-draft-note {
+  margin-top: 10px;
+  font-size: 0.92rem;
+}
+
+.free-text-pdf-document {
+  font-family: Arial, sans-serif;
+  color: #12365b;
+  background: #fff;
+  padding: 18px;
+  line-height: 1.45;
+}
+
+.free-text-pdf-document h1,
+.free-text-pdf-document h2 {
+  color: #073f78;
+}
+
+.free-text-pdf-meta p {
+  margin: 3px 0;
+}
+
+.free-text-pdf-answer {
+  margin-top: 18px;
+  break-inside: avoid;
+}
+
+.free-text-pdf-question {
+  font-weight: 600;
+}
+
+.free-text-pdf-response {
+  min-height: 50px;
+  padding: 10px;
+  border: 1px solid #ccd8e4;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.free-text-pdf-count {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: #425b73;
+}
