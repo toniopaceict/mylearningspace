@@ -169,8 +169,9 @@
   function setMessage(id, message, type) {
     const element = document.getElementById(id);
     if (!element) return;
-    element.textContent = message || "";
-    element.className = "panel-message text-center" + (type ? " " + type : "");
+    const text = message || "";
+    element.textContent = text;
+    element.className = "panel-message text-center" + (type ? " " + type : "") + (text ? "" : " hidden");
   }
 
   function formatAnswer(question, command) {
