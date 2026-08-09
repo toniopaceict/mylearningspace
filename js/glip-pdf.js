@@ -34,7 +34,7 @@
     );
   }
 
-  function loadImageDataUrl(src) {
+  function loadImageInfo(src) {
     return new Promise(function (resolve) {
       if (!src) {
         resolve(null);
@@ -46,12 +46,19 @@
 
       img.onload = function () {
         try {
+          const width = img.naturalWidth || img.width || 1;
+          const height = img.naturalHeight || img.height || 1;
           const canvas = document.createElement("canvas");
-          canvas.width = img.naturalWidth || img.width;
-          canvas.height = img.naturalHeight || img.height;
+          canvas.width = width;
+          canvas.height = height;
           const ctx = canvas.getContext("2d");
           ctx.drawImage(img, 0, 0);
-          resolve(canvas.toDataURL("image/png"));
+          resolve({
+            dataUrl: canvas.toDataURL("image/png"),
+            width: width,
+            height: height,
+            ratio: width / height
+          });
         } catch (error) {
           resolve(null);
         }
@@ -65,51 +72,138 @@
     });
   }
 
+  function loadImageDataUrl(src) {
+    return loadImageInfo(src).then(function (info) {
+      return info ? info.dataUrl : null;
+    });
+  }
+
+  function currentPageDetails() {
+    const config = window.PAGE_CONFIG || {};
+    return {
+      student_id: safeText(sessionStorage.getItem("glipStudentId")),
+      class_id: safeText(sessionStorage.getItem("glipClassId")),
+      level: safeText(config.level || sessionStorage.getItem("glipLevel")),
+      subject_id: safeText(config.subjectId || sessionStorage.getItem("glipSubjectId")),
+      topic_id: safeText(config.topicId),
+      activity_id: safeText(config.activityId)
+    };
+  }
+
+  async function getActivityMetadata() {
+    const config = window.PAGE_CONFIG || {};
+    const fallback = {
+      student: getStudentName(),
+      class_label: getClassLabel(),
+      subject: safeText(config.subjectName || config.subject || document.getElementById("heroTopline")?.textContent),
+      topic: safeText(config.topicName || document.getElementById("heroMainTitle")?.textContent),
+      activity: safeText(config.subTitle || document.getElementById("heroSubTitle")?.textContent),
+      teacher: safeText(sessionStorage.getItem("glipSubmissionTeacherDisplayName")),
+      submitted: new Date().toLocaleString("en-GB", {
+        day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false
+      }).replace(",", "")
+    };
+
+    if (typeof window.getGlipWebAppUrl !== "function") return fallback;
+    const webAppUrl = window.getGlipWebAppUrl();
+    if (!webAppUrl) return fallback;
+
+    try {
+      const response = await fetch(webAppUrl, {
+        method: "POST",
+        body: JSON.stringify(Object.assign({ action: "getGeneratedActivityPdfContext" }, currentPageDetails()))
+      });
+      const data = await response.json();
+      if (!data || data.status !== "success" || !data.pdf_context) return fallback;
+      return Object.assign({}, fallback, data.pdf_context);
+    } catch (error) {
+      return fallback;
+    }
+  }
+
   async function addHeader(pdf, options) {
     options = options || {};
 
     const pageWidth = pdf.internal.pageSize.getWidth();
     const top = Number(options.top || 10);
     const left = Number(options.left || 15);
-    const logoW = Number(options.logoWidth || 19);
-    const logoH = Number(options.logoHeight || 25);
-    const textX = left + logoW + 5;
+    const maxLogoW = Number(options.logoWidth || 18);
+    const maxLogoH = Number(options.logoHeight || 18);
     const logoUrl = options.logoUrl || DEFAULT_LOGO_URL;
-    const logoData = await loadImageDataUrl(logoUrl);
+    const logoInfo = await loadImageInfo(logoUrl);
 
-    if (logoData) {
-      pdf.addImage(logoData, "PNG", left, top, logoW, logoH);
+    let logoW = maxLogoW;
+    let logoH = maxLogoH;
+    if (logoInfo && logoInfo.ratio) {
+      logoW = maxLogoW;
+      logoH = logoW / logoInfo.ratio;
+      if (logoH > maxLogoH) {
+        logoH = maxLogoH;
+        logoW = logoH * logoInfo.ratio;
+      }
+    }
+
+    const textX = left + logoW + 5;
+    if (logoInfo && logoInfo.dataUrl) {
+      pdf.addImage(logoInfo.dataUrl, "PNG", left, top, logoW, logoH);
     }
 
     pdf.setTextColor.apply(pdf, GLIP_BLUE);
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(18);
-    pdf.text(safeText(options.title) || "GLIP", textX, top + 8);
+    pdf.text(safeText(options.title) || "GLIP Activity Submission", textX, top + 7);
 
-    const subtitle = safeText(options.subtitle);
+    const subtitle = safeText(options.subtitle || "Guided Learning for Independent Progress");
     if (subtitle) {
       pdf.setFont("helvetica", "normal");
-      pdf.setFontSize(11);
-      pdf.text(subtitle, textX, top + 14);
-    }
-
-    const detailLeft = safeText(options.detailLeft);
-    const detailRight = safeText(options.detailRight);
-
-    if (detailLeft || detailRight) {
-      pdf.setFont("helvetica", "normal");
       pdf.setFontSize(9.5);
-      if (detailLeft) pdf.text(detailLeft, textX, top + 22);
-      if (detailRight) {
-        pdf.text(detailRight, pageWidth - left, top + 22, { align: "right" });
-      }
+      pdf.text(subtitle, textX, top + 12.5);
     }
 
+    const dividerY = Math.max(top + logoH + 4, top + 18);
     pdf.setDrawColor.apply(pdf, GLIP_LINE);
     pdf.setLineWidth(0.3);
-    pdf.line(left, top + 30, pageWidth - left, top + 30);
+    pdf.line(left, dividerY, pageWidth - left, dividerY);
 
-    return top + 41;
+    return dividerY + 7;
+  }
+
+  function addMetadataTable(pdf, state, metadata, options) {
+    options = options || {};
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const left = Number(options.left || 15);
+    const right = Number(options.right || 15);
+    const labelWidth = Number(options.labelWidth || 36);
+    const rowHeight = Number(options.rowHeight || 8.2);
+    const usableWidth = pageWidth - left - right;
+    const valueX = left + labelWidth + 4;
+    const rows = [
+      ["Student", metadata.student],
+      ["Class", metadata.class_label],
+      ["Subject", metadata.subject],
+      ["Topic", metadata.topic],
+      ["Activity", metadata.activity],
+      ["Teacher", metadata.teacher],
+      ["Submitted", metadata.submitted]
+    ];
+
+    pdf.setFontSize(9.5);
+    rows.forEach(function (row) {
+      const label = safeText(row[0]);
+      const value = safeText(row[1]);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor.apply(pdf, GLIP_BLUE);
+      pdf.text(label, left + 2, state.y + 5.1);
+      pdf.setFont("helvetica", "normal");
+      const valueLines = pdf.splitTextToSize(value, usableWidth - labelWidth - 6);
+      pdf.text(valueLines, valueX, state.y + 5.1);
+      const usedHeight = Math.max(rowHeight, valueLines.length * 4.5 + 3.5);
+      pdf.setDrawColor.apply(pdf, GLIP_LINE);
+      pdf.setLineWidth(0.2);
+      pdf.line(left, state.y + usedHeight, pageWidth - right, state.y + usedHeight);
+      state.y += usedHeight;
+    });
+    state.y += 8;
   }
 
   function addFooter(pdf, options) {
@@ -118,18 +212,17 @@
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     const left = Number(options.left || 15);
-    const centreText = safeText(options.centreText || options.title || "GLIP");
 
     for (let i = 1; i <= totalPages; i++) {
       pdf.setPage(i);
+      pdf.setDrawColor.apply(pdf, GLIP_LINE);
+      pdf.setLineWidth(0.2);
+      pdf.line(left, pageHeight - 13, pageWidth - left, pageHeight - 13);
       pdf.setFont("helvetica", "normal");
-      pdf.setFontSize(6);
+      pdf.setFontSize(6.5);
       pdf.setTextColor.apply(pdf, GLIP_BLUE);
-      pdf.text("© GLIP", left, pageHeight - 8);
-      if (centreText) {
-        pdf.text(centreText, pageWidth / 2, pageHeight - 8, { align: "center" });
-      }
-      pdf.text("Page " + i + " of " + totalPages, pageWidth - left, pageHeight - 8, {
+      pdf.text("© GLIP", left, pageHeight - 7.5);
+      pdf.text("Page " + i + " of " + totalPages, pageWidth - left, pageHeight - 7.5, {
         align: "right"
       });
     }
@@ -142,7 +235,7 @@
     const maxWidth = Number(options.maxWidth || 180);
     const fontSize = Number(options.fontSize || 10);
     const style = options.style || "normal";
-    const bottom = Number(options.bottom || 20);
+    const bottom = Number(options.bottom || 22);
     const onNewPage = options.onNewPage;
 
     pdf.setFont("helvetica", style);
@@ -166,8 +259,11 @@
     safeFilePart: safeFilePart,
     getStudentName: getStudentName,
     getClassLabel: getClassLabel,
+    getActivityMetadata: getActivityMetadata,
+    loadImageInfo: loadImageInfo,
     loadImageDataUrl: loadImageDataUrl,
     addHeader: addHeader,
+    addMetadataTable: addMetadataTable,
     addFooter: addFooter,
     addWrappedText: addWrappedText,
     defaultLogoUrl: DEFAULT_LOGO_URL
