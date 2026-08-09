@@ -47,8 +47,8 @@
     if (!firstName) firstName = safeStudentName();
 
     const parts = [
-      surname,
       firstName,
+      surname,
       metadata.class_label || window.GLIPPdf?.getClassLabel(),
       activityTitle || heading.activity
     ].filter(Boolean);
