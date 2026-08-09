@@ -102,6 +102,7 @@
         buttonId: "savePdfBtn",
         quizSelector: "#quizContainer",
         scoreSelector: "#scoreBox",
+        messageId: "pdfMessage",
         fallbackName: config.pdfFallbackName || "Quiz",
         includeSubtitleInFileName: true
       });

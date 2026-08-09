@@ -15,7 +15,6 @@
 
   function collectFillBlankAnswers() {
     const blanks = Array.from(document.querySelectorAll(".drop-zone"));
-
     let score = 0;
 
     const answers = blanks.map(function (blank) {
@@ -49,12 +48,40 @@
     };
   }
 
+  function isComplete(result) {
+    return result.answers.every(function (answer) {
+      return answer.selected_answer && !/^Blank\s*\d*$/i.test(answer.selected_answer);
+    });
+  }
+
   function setMessage(text, type) {
     const message = document.getElementById("fillBlankSubmitMessage");
     if (!message) return;
-
     message.textContent = text || "";
     message.className = "panel-message text-center" + (type ? " " + type : "");
+  }
+
+  function setSubmitting(isSubmitting) {
+    const button = document.getElementById("submitFillBlankBtn");
+    const progress = document.getElementById("fillBlankSubmitProgress");
+
+    if (button) {
+      button.disabled = isSubmitting;
+      button.textContent = isSubmitting
+        ? "Submitting..."
+        : "Submit Answers and Mark as Complete";
+    }
+
+    if (progress) {
+      progress.classList.toggle("show", isSubmitting);
+    }
+  }
+
+  function updatePdfScore() {
+    const scoreBox = document.getElementById("fillBlankPdfScore");
+    if (!scoreBox) return;
+    const result = collectFillBlankAnswers();
+    scoreBox.textContent = "Score: " + result.score + " / " + result.total_marks;
   }
 
   function submitFillBlankAnswers() {
@@ -68,12 +95,13 @@
 
     const result = collectFillBlankAnswers();
 
-    if (result.answers.some(a => !a.selected_answer || a.selected_answer.startsWith("Blank"))) {
+    if (!isComplete(result)) {
       setMessage("Please fill in all blanks before submitting.", "error");
       return;
     }
 
-    setMessage("Submitting answers...", "info");
+    setSubmitting(true);
+    setMessage("Submitting answers and marking the activity as complete...", "info");
 
     fetch(config.webAppUrl, {
       method: "POST",
@@ -93,42 +121,81 @@
         answers_json: JSON.stringify(result.answers)
       })
     })
-      .then(response => response.json())
-      .then(data => {
-        if (data.status === "success") {
-          setMessage(data.message || "Answers submitted successfully.", "success");
-
-          window.dispatchEvent(
-            new CustomEvent("glipProgressSaved", {
-              detail: {
-                subjectId: config.subjectId,
-                level: config.level,
-                topicId: config.topicId,
-                activityId: config.activityId,
-                status: "completed"
-              }
-            })
-          );
-        } else {
-          setMessage(data.message || "Could not submit answers.", "error");
+      .then(function (response) { return response.json(); })
+      .then(function (data) {
+        if (data.status !== "success") {
+          throw new Error(data.message || "Could not submit answers.");
         }
+
+        setMessage(
+          data.message || "Your answers have been submitted and the activity has been marked as complete.",
+          "success"
+        );
+
+        window.dispatchEvent(
+          new CustomEvent("glipProgressSaved", {
+            detail: {
+              subjectId: config.subjectId,
+              level: config.level,
+              topicId: config.topicId,
+              activityId: config.activityId,
+              status: "completed"
+            }
+          })
+        );
       })
-      .catch(() => {
-        setMessage("Could not contact the server.", "error");
+      .catch(function (error) {
+        setMessage(error.message || "Could not contact the server.", "error");
+      })
+      .finally(function () {
+        setSubmitting(false);
       });
   }
 
-  function initialiseFillBlankSubmission() {
-    const button = document.getElementById("submitFillBlankBtn");
-    if (!button || button.dataset.fillBlankSubmitReady === "true") return;
+  function initialiseFillBlankPdf() {
+    if (!window.TonioPdfExport || typeof window.TonioPdfExport.initFillBlankPdfExport !== "function") {
+      return;
+    }
 
-    button.dataset.fillBlankSubmitReady = "true";
-    button.addEventListener("click", submitFillBlankAnswers);
+    window.TonioPdfExport.initFillBlankPdfExport({
+      buttonId: "saveFillBlankPdfBtn",
+      messageId: "fillBlankPdfMessage",
+      fallbackName: "Fill in the Blanks"
+    });
+  }
+
+  function initialiseFillBlankPage() {
+    const button = document.getElementById("submitFillBlankBtn");
+    if (button && button.dataset.fillBlankSubmitReady !== "true") {
+      button.dataset.fillBlankSubmitReady = "true";
+      button.addEventListener("click", submitFillBlankAnswers);
+    }
+
+    if (document.documentElement.dataset.glipFillBlankPdfReady !== "true") {
+      document.documentElement.dataset.glipFillBlankPdfReady = "true";
+      initialiseFillBlankPdf();
+    }
+
+    updatePdfScore();
+
+    if (document.documentElement.dataset.glipFillBlankScoreReady !== "true") {
+      document.documentElement.dataset.glipFillBlankScoreReady = "true";
+      document.addEventListener("click", function (event) {
+        if (event.target.closest(".check-drag-drop-btn, .reset-drag-drop-btn")) {
+          window.setTimeout(updatePdfScore, 0);
+        }
+      });
+      document.addEventListener("drop", function () {
+        window.setTimeout(updatePdfScore, 0);
+      });
+    }
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initialiseFillBlankSubmission, { once: true });
+    document.addEventListener("DOMContentLoaded", initialiseFillBlankPage, { once: true });
   } else {
-    initialiseFillBlankSubmission();
+    initialiseFillBlankPage();
   }
+
+  document.addEventListener("glipReady", initialiseFillBlankPage);
 })();

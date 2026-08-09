@@ -229,6 +229,7 @@ const managementScriptsByPage = {
     if (pageKind === "practice") {
       scripts.push("/js/lightbox.js");
       scripts.push("https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js");
+      scripts.push("/js/glip-pdf.js");
       scripts.push("/js/pdf-export.js");
       scripts.push("/js/practice-page.js");
     }
@@ -237,8 +238,16 @@ const managementScriptsByPage = {
       scripts.push("/js/quiz-engine.js");
       scripts.push("/js/mark-complete.js");
       scripts.push("/js/lightbox.js");
+      scripts.push("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+      scripts.push("/js/glip-pdf.js");
       scripts.push("/js/pdf-export.js");
       scripts.push("/js/quiz-page.js");
+    }
+
+    if (pageKind === "fillblank") {
+      scripts.push("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+      scripts.push("/js/glip-pdf.js");
+      scripts.push("/js/pdf-export.js");
     }
 
     if (pageKind === "topic-home") {

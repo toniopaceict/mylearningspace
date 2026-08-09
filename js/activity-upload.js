@@ -253,8 +253,15 @@
       legacyPanel.classList.add("hidden");
     }
 
+    // Interactive result activities submit structured answers through their
+    // own controls. They must not also show the generic file-upload fieldset.
+    const pageKind = String(config.pageKind || "").toLowerCase();
+    const usesStructuredSubmission =
+      pageKind === "quiz" || pageKind === "fillblank" || pageKind === "reflection";
+
     const shouldShow =
-      config.pageKind !== "topic-home" &&
+      pageKind !== "topic-home" &&
+      !usesStructuredSubmission &&
       currentActivityRequiresSubmission();
 
     if (!shouldShow) {
