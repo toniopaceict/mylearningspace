@@ -92,8 +92,11 @@
 
   async function getActivityMetadata() {
     const config = window.PAGE_CONFIG || {};
+    const fallbackStudent = getStudentName();
     const fallback = {
-      student: getStudentName(),
+      student: fallbackStudent,
+      student_name: fallbackStudent,
+      student_surname: "",
       class_label: getClassLabel(),
       subject: safeText(config.subjectName || config.subject || document.getElementById("heroTopline")?.textContent),
       topic: safeText(config.topicName || document.getElementById("heroMainTitle")?.textContent),

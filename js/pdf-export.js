@@ -29,16 +29,37 @@
       (sessionStorage.getItem("glipStudentName") || "Student");
   }
 
-  function buildLearnerFileName(activityTitle, fallback) {
+  function buildLearnerFileName(metadata, activityTitle, fallback) {
     const layout = window.GLIPPdf;
     const heading = getPageHeading();
-    const parts = [safeStudentName(), window.GLIPPdf?.getClassLabel(), activityTitle || heading.activity];
+    metadata = metadata || {};
+
+    let firstName = String(metadata.student_name || "").trim();
+    let surname = String(metadata.student_surname || "").trim();
+
+    // Compatibility fallback for older PDF-context responses.
+    if ((!firstName || !surname) && metadata.student) {
+      const displayParts = String(metadata.student).trim().split(/\s+/).filter(Boolean);
+      if (!firstName && displayParts.length) firstName = displayParts[0];
+      if (!surname && displayParts.length > 1) surname = displayParts.slice(1).join(" ");
+    }
+
+    if (!firstName) firstName = safeStudentName();
+
+    const parts = [
+      surname,
+      firstName,
+      metadata.class_label || window.GLIPPdf?.getClassLabel(),
+      activityTitle || heading.activity
+    ].filter(Boolean);
+
     if (layout) {
-      return parts.filter(Boolean).map(function (part) {
+      return parts.map(function (part) {
         return layout.safeFilePart(part, fallback || "GLIP");
       }).join("_").replace(/\s+/g, "_") + ".pdf";
     }
-    return parts.filter(Boolean).join("_").replace(/[\\/:*?"<>|\s]+/g, "_") + ".pdf";
+
+    return parts.join("_").replace(/[\\/:*?"<>|\s]+/g, "_") + ".pdf";
   }
 
   async function preparePdfBase(pdf, state) {
@@ -80,7 +101,7 @@
     const pageHeight = pdf.internal.pageSize.getHeight();
     const state = { y: 18 };
 
-    await preparePdfBase(pdf, state);
+    const metadata = await preparePdfBase(pdf, state);
     layout.addWrappedText(pdf, state, "Quiz Result", { fontSize: 13, style: "bold", after: 6 });
 
     let score = 0;
@@ -121,7 +142,7 @@
       { fontSize: 12, style: "bold", bottom: 22, after: 0 });
 
     layout.addFooter(pdf);
-    pdf.save(buildLearnerFileName(heading.activity, options.fallbackName || "Quiz"));
+    pdf.save(buildLearnerFileName(metadata, heading.activity, options.fallbackName || "Quiz"));
     setPanelMessage(options.messageId || "pdfMessage", "Your PDF has been saved.", "success");
   }
 
@@ -167,7 +188,7 @@
     const pageHeight = pdf.internal.pageSize.getHeight();
     const state = { y: 18 };
 
-    await preparePdfBase(pdf, state);
+    const metadata = await preparePdfBase(pdf, state);
     layout.addWrappedText(pdf, state, "Fill in the Blanks Result", { fontSize: 13, style: "bold", after: 6 });
 
     let currentTask = "";
@@ -197,7 +218,7 @@
       { fontSize: 12, style: "bold", bottom: 22, after: 0 });
 
     layout.addFooter(pdf);
-    pdf.save(buildLearnerFileName(heading.activity, options.fallbackName || "Fill in the Blanks"));
+    pdf.save(buildLearnerFileName(metadata, heading.activity, options.fallbackName || "Fill in the Blanks"));
     setPanelMessage(options.messageId || "fillBlankPdfMessage", "Your PDF has been saved.", "success");
   }
 
