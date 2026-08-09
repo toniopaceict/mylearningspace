@@ -78,6 +78,23 @@ IMPORTANT:
       </div>
 
       <main class="wrap" id="mainContent">
+        <fieldset class="tracker-box no-print readable-section">
+          <legend>Draft</legend>
+
+          <p class="q">
+            Your draft is saved temporarily while this browser session remains open.
+            If you close the browser or tab, your draft may be lost.
+            If you want to keep a separate copy, copy and paste your answer into a document or Notepad.
+          </p>
+
+          <p
+            id="freeTextDraftMessage"
+            class="panel-message text-center"
+            role="status"
+            aria-live="polite"
+          ></p>
+        </fieldset>
+
         <!-- =================================================
              QUESTION 1
 
@@ -172,22 +189,6 @@ IMPORTANT:
           data-recommended-length
         =====================================================
         -->
-
-        <fieldset class="tracker-box no-print readable-section">
-          <legend>Draft</legend>
-
-          <p class="q free-text-draft-note" data-read>
-            Your draft is saved temporarily in this browser while this session remains open.
-            It may be lost if the browser or tab is closed, or if browser data is cleared.
-          </p>
-
-          <p
-            id="freeTextDraftMessage"
-            class="panel-message text-center"
-            role="status"
-            aria-live="polite"
-          ></p>
-        </fieldset>
 
         <fieldset class="tracker-box no-print readable-section">
           <legend>Save as PDF</legend>
