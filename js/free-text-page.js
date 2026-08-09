@@ -329,6 +329,18 @@
     const student = getStudentDetails();
     const filename = safeFileName(student.student_name) + "_" + safeFileName(activity) + ".pdf";
 
+    // html2canvas needs the source element to be attached to the document.
+    // Keep it far off-screen so students never see the temporary PDF layout.
+    const pdfSource = buildPdfContent();
+    pdfSource.style.position = "fixed";
+    pdfSource.style.left = "-10000px";
+    pdfSource.style.top = "0";
+    pdfSource.style.width = "190mm";
+    pdfSource.style.background = "#fff";
+    pdfSource.style.padding = "8mm";
+    pdfSource.setAttribute("aria-hidden", "true");
+    document.body.appendChild(pdfSource);
+
     window.html2pdf()
       .set({
         margin: 10,
@@ -338,13 +350,16 @@
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
         pagebreak: { mode: ["css", "legacy"] }
       })
-      .from(buildPdfContent())
+      .from(pdfSource)
       .save()
       .then(function () {
         setMessage("freeTextPdfMessage", "Your PDF has been saved.", "success");
       })
       .catch(function () {
         setMessage("freeTextPdfMessage", "Your PDF could not be created.", "error");
+      })
+      .finally(function () {
+        if (pdfSource.parentNode) pdfSource.parentNode.removeChild(pdfSource);
       });
   }
 
@@ -403,6 +418,24 @@
           data.message || "Your answers have been submitted and the activity has been marked as complete.",
           "success"
         );
+
+        if (window.GLIPProgressEngine && typeof window.GLIPProgressEngine.updateProgress === "function") {
+          window.GLIPProgressEngine.updateProgress({
+            subject_id: config.subjectId,
+            level: config.level,
+            topic_id: config.topicId,
+            activity_id: config.activityId,
+            status: "completed"
+          });
+        } else if (window.GLIPLearningSession) {
+          window.GLIPLearningSession.updateProgress({
+            subject_id: config.subjectId,
+            level: config.level,
+            topic_id: config.topicId,
+            activity_id: config.activityId,
+            status: "completed"
+          });
+        }
 
         window.dispatchEvent(new CustomEvent("glipProgressSaved", {
           detail: {

@@ -787,6 +787,22 @@ if (school) {
 
   window.addEventListener("glipProgressSaved", function (event) {
     const detail = event.detail || {};
+
+    // Let the progress engine resolve the canonical curriculum/subject before
+    // touching caches. This prevents a partial cache containing only the most
+    // recently completed activity from hiding the statuses of earlier ones.
+    if (window.GLIPProgressEngine && typeof window.GLIPProgressEngine.updateProgress === "function") {
+      window.GLIPProgressEngine.updateProgress({
+        subject_id: detail.subjectId || detail.subject_id || "",
+        level: detail.level || "",
+        topic_id: detail.topicId || detail.topic_id || "",
+        activity_id: detail.activityId || detail.activity_id || "",
+        status: detail.status || "completed"
+      });
+      updateMenuProgressBadges();
+      return;
+    }
+
     const pageContext = window.PAGE_MENU_CONTEXT || {};
     const studentId = sessionStorage.getItem("glipStudentId") || "";
     if (!studentId || !window.GLIP_CACHE) return;
@@ -805,8 +821,7 @@ if (school) {
       school: school,
       level: level,
       studentId: studentId,
-      subjectId: subjectId,
-      topicId: detail.topicId || ""
+      subjectId: subjectId
     }, {
       subject_id: subjectId,
       topic_id: detail.topicId || "",
