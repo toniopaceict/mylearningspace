@@ -722,6 +722,36 @@ if (school) {
     const subjectId = (window.PAGE_CONFIG && window.PAGE_CONFIG.subjectId) ||
       pageContext.subject || "";
 
+    // The learning session is the primary source of truth for learner-facing
+    // progress. It contains the complete curriculum progress loaded at login
+    // and is updated immediately whenever progress is saved. A browser cache
+    // may legitimately be partial (for example, after a new activity is
+    // added), so it must not hide an activity that exists in the session.
+    if (window.GLIPLearningSession) {
+      let sessionProgress = [];
+
+      if (subjectId && level) {
+        sessionProgress = window.GLIPLearningSession.getProgress({
+          subject_id: subjectId,
+          level: level
+        }) || [];
+      }
+
+      if (!sessionProgress.length) {
+        sessionProgress = window.GLIPLearningSession.getAllProgress() || [];
+      }
+
+      const sessionItem = sessionProgress.find(function (candidate) {
+        return String(candidate.activity_id) === String(activityId);
+      });
+
+      if (sessionItem) {
+        return normaliseProgressStatus(sessionItem.status);
+      }
+    }
+
+    // Cache remains a fallback for older/non-student contexts where a learning
+    // session is not available.
     let progress = [];
 
     if (window.GLIP_CACHE && studentId && subjectId && level) {
@@ -733,16 +763,19 @@ if (school) {
       }) || [];
     }
 
-    if (!progress.length && window.GLIP_CACHE) {
+    let item = progress.find(function (candidate) {
+      return String(candidate.activity_id) === String(activityId);
+    });
+
+    if (!item && window.GLIP_CACHE) {
       progress = window.GLIP_CACHE.readAllProgress({
         school: school,
         studentId: studentId
       }) || [];
+      item = progress.find(function (candidate) {
+        return String(candidate.activity_id) === String(activityId);
+      });
     }
-
-    const item = progress.find(function (candidate) {
-      return String(candidate.activity_id) === String(activityId);
-    });
 
     return normaliseProgressStatus(item && item.status);
   }
