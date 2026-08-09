@@ -405,6 +405,10 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
             </button>
           </div>
 
+          <p id="quizIncompleteNote" class="q text-center" hidden>
+            Submitted by mistake? Click “Mark as Incomplete” above.
+          </p>
+
           <div
             id="saveProgressBar"
             class="glip-loading"
@@ -597,6 +601,37 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
           });
         }
 
+        function isQuizActivityCompleted() {
+          const config = window.PAGE_CONFIG || {};
+          const activityId = String(config.activityId || "").trim();
+          if (!activityId) return false;
+          try {
+            const session = JSON.parse(sessionStorage.getItem("glipLearningSession") || "null");
+            if (!session || !Array.isArray(session.curricula)) return false;
+            return session.curricula.some(function (curriculum) {
+              return (Array.isArray(curriculum.progress) ? curriculum.progress : []).some(function (row) {
+                if (String(row.activity_id || row.activityId || "").trim() !== activityId) return false;
+                const status = String(row.status || "").trim().toLowerCase();
+                return status === "2" || status === "complete" || status === "completed";
+              });
+            });
+          } catch (_error) {
+            return false;
+          }
+        }
+
+        function setQuizCompletionState(isComplete) {
+          const button = document.getElementById("submitQuizResultBtn");
+          const note = document.getElementById("quizIncompleteNote");
+          if (button) {
+            button.dataset.completionMode = isComplete ? "incomplete" : "submit";
+            if (!button.disabled) {
+              button.textContent = isComplete ? "Mark as Incomplete" : "Submit and Mark as Complete";
+            }
+          }
+          if (note) note.hidden = !isComplete;
+        }
+
         function setQuizSavingState(isSaving) {
           const button = document.getElementById("submitQuizResultBtn");
           const progressBar = document.getElementById("saveProgressBar");
@@ -604,8 +639,8 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
           if (button) {
             button.disabled = isSaving;
             button.textContent = isSaving
-              ? "Saving..."
-              : "Submit and Mark as Complete";
+              ? (button.dataset.completionMode === "incomplete" ? "Updating..." : "Saving...")
+              : (button.dataset.completionMode === "incomplete" ? "Mark as Incomplete" : "Submit and Mark as Complete");
           }
 
           if (progressBar) {
@@ -704,6 +739,7 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
               }
 
               updateMenuIconAfterQuizSubmit();
+              setQuizCompletionState(true);
 
               setMessage(
                 data.message || "Your quiz has been submitted and marked as complete.",
@@ -721,12 +757,62 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
             });
         }
 
+        function markQuizIncomplete() {
+          const config = window.PAGE_CONFIG || {};
+          const studentId = sessionStorage.getItem("glipStudentId") || "";
+          const classId = sessionStorage.getItem("glipClassId") || "";
+          const webAppUrl = typeof window.getGlipWebAppUrl === "function"
+            ? window.getGlipWebAppUrl()
+            : config.webAppUrl || "";
+
+          if (!studentId) { setMessage("Student not logged in.", "error"); return; }
+          if (!webAppUrl) { setMessage("GLIP could not connect to the server.", "error"); return; }
+
+          setQuizSavingState(true);
+          setMessage("Marking the activity as incomplete...", "info");
+
+          fetch(webAppUrl, {
+            method: "POST",
+            body: JSON.stringify({
+              action: "setStudentProgressAsIncomplete",
+              student_id: studentId, class_id: classId,
+              subject_id: config.subjectId, level: config.level, activity_id: config.activityId
+            })
+          })
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+              if (data.status !== "success") throw new Error(data.message || "Could not update progress.");
+              if (window.GLIPProgressEngine) {
+                window.GLIPProgressEngine.updateProgress({
+                  subject_id: config.subjectId, level: config.level, topic_id: config.topicId,
+                  activity_id: config.activityId, status: "not_started"
+                });
+              }
+              window.dispatchEvent(new CustomEvent("glipProgressSaved", { detail: {
+                subjectId: config.subjectId, level: config.level, topicId: config.topicId,
+                activityId: config.activityId, status: "not_started"
+              }}));
+              setQuizCompletionState(false);
+              setMessage("Activity marked as incomplete.", "success");
+            })
+            .catch(function (error) { setMessage(error.message || "Could not update progress.", "error"); })
+            .finally(function () { setQuizSavingState(false); });
+        }
+
+        function handleQuizCompletionClick() {
+          const button = document.getElementById("submitQuizResultBtn");
+          if (button && button.dataset.completionMode === "incomplete") markQuizIncomplete();
+          else submitQuizResult();
+        }
+
         function initialiseQuizSubmission() {
           const button = document.getElementById("submitQuizResultBtn");
 
+          setQuizCompletionState(isQuizActivityCompleted());
+
           if (button && !button.dataset.quizSubmitReady) {
             button.dataset.quizSubmitReady = "true";
-            button.addEventListener("click", submitQuizResult);
+            button.addEventListener("click", handleQuizCompletionClick);
           }
         }
 

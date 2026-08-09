@@ -61,6 +61,38 @@
     message.className = "panel-message text-center" + (type ? " " + type : "");
   }
 
+  function isActivityCompleted() {
+    const config = getConfig();
+    const activityId = String(config.activityId || "").trim();
+    if (!activityId) return false;
+
+    try {
+      const session = JSON.parse(sessionStorage.getItem("glipLearningSession") || "null");
+      if (!session || !Array.isArray(session.curricula)) return false;
+      return session.curricula.some(function (curriculum) {
+        return (Array.isArray(curriculum.progress) ? curriculum.progress : []).some(function (row) {
+          if (String(row.activity_id || row.activityId || "").trim() !== activityId) return false;
+          const status = String(row.status || "").trim().toLowerCase();
+          return status === "2" || status === "complete" || status === "completed";
+        });
+      });
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  function setCompletionState(isComplete) {
+    const button = document.getElementById("submitFillBlankBtn");
+    const note = document.getElementById("fillBlankIncompleteNote");
+    if (button) {
+      button.dataset.completionMode = isComplete ? "incomplete" : "submit";
+      if (!button.disabled) {
+        button.textContent = isComplete ? "Mark as Incomplete" : "Submit Answers and Mark as Complete";
+      }
+    }
+    if (note) note.hidden = !isComplete;
+  }
+
   function setSubmitting(isSubmitting) {
     const button = document.getElementById("submitFillBlankBtn");
     const progress = document.getElementById("fillBlankSubmitProgress");
@@ -68,8 +100,8 @@
     if (button) {
       button.disabled = isSubmitting;
       button.textContent = isSubmitting
-        ? "Submitting..."
-        : "Submit Answers and Mark as Complete";
+        ? (button.dataset.completionMode === "incomplete" ? "Updating..." : "Submitting...")
+        : (button.dataset.completionMode === "incomplete" ? "Mark as Incomplete" : "Submit Answers and Mark as Complete");
     }
 
     if (progress) {
@@ -131,6 +163,7 @@
           data.message || "Your answers have been submitted and the activity has been marked as complete.",
           "success"
         );
+        setCompletionState(true);
 
         window.dispatchEvent(
           new CustomEvent("glipProgressSaved", {
@@ -152,6 +185,59 @@
       });
   }
 
+  function markFillBlankIncomplete() {
+    const config = getConfig();
+    const student = getStudentDetails();
+    if (!student.student_id) {
+      setMessage("Student not logged in.", "error");
+      return;
+    }
+
+    setSubmitting(true);
+    setMessage("Marking the activity as incomplete...", "info");
+
+    fetch(config.webAppUrl, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "setStudentProgressAsIncomplete",
+        student_id: student.student_id,
+        class_id: student.class_id,
+        subject_id: config.subjectId,
+        level: config.level,
+        activity_id: config.activityId
+      })
+    })
+      .then(function (response) { return response.json(); })
+      .then(function (data) {
+        if (data.status !== "success") throw new Error(data.message || "Could not update progress.");
+        if (window.GLIPProgressEngine) {
+          window.GLIPProgressEngine.updateProgress({
+            subject_id: config.subjectId, level: config.level, topic_id: config.topicId,
+            activity_id: config.activityId, status: "not_started"
+          });
+        }
+        window.dispatchEvent(new CustomEvent("glipProgressSaved", { detail: {
+          subjectId: config.subjectId, level: config.level, topicId: config.topicId,
+          activityId: config.activityId, status: "not_started"
+        }}));
+        setCompletionState(false);
+        setMessage("Activity marked as incomplete.", "success");
+      })
+      .catch(function (error) {
+        setMessage(error.message || "Could not update progress.", "error");
+      })
+      .finally(function () { setSubmitting(false); });
+  }
+
+  function handleFillBlankCompletionClick() {
+    const button = document.getElementById("submitFillBlankBtn");
+    if (button && button.dataset.completionMode === "incomplete") {
+      markFillBlankIncomplete();
+    } else {
+      submitFillBlankAnswers();
+    }
+  }
+
   function initialiseFillBlankPdf() {
     if (!window.TonioPdfExport || typeof window.TonioPdfExport.initFillBlankPdfExport !== "function") {
       return;
@@ -168,7 +254,7 @@
     const button = document.getElementById("submitFillBlankBtn");
     if (button && button.dataset.fillBlankSubmitReady !== "true") {
       button.dataset.fillBlankSubmitReady = "true";
-      button.addEventListener("click", submitFillBlankAnswers);
+      button.addEventListener("click", handleFillBlankCompletionClick);
     }
 
     if (document.documentElement.dataset.glipFillBlankPdfReady !== "true") {
@@ -176,6 +262,7 @@
       initialiseFillBlankPdf();
     }
 
+    setCompletionState(isActivityCompleted());
     updatePdfScore();
 
     if (document.documentElement.dataset.glipFillBlankScoreReady !== "true") {
