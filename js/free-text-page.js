@@ -196,11 +196,11 @@
     const status = question.querySelector(".free-text-speech-status");
 
     if (!answer) {
-      if (status) status.textContent = "There is no answer to read yet.";
+      if (status) { status.textContent = "There is no answer to read yet."; status.classList.remove("hidden"); }
       return;
     }
     if (!("speechSynthesis" in window)) {
-      if (status) status.textContent = "Read aloud is not available in this browser.";
+      if (status) { status.textContent = "Read aloud is not available in this browser."; status.classList.remove("hidden"); }
       return;
     }
 
@@ -209,13 +209,13 @@
     const requestedLanguage = text(question.dataset.speechLang);
     if (requestedLanguage) utterance.lang = requestedLanguage;
     utterance.onstart = function () {
-      if (status) status.textContent = "Reading your answer...";
+      if (status) { status.textContent = "Reading your answer..."; status.classList.remove("hidden"); }
     };
     utterance.onend = function () {
-      if (status) status.textContent = "";
+      if (status) { status.textContent = ""; status.classList.add("hidden"); }
     };
     utterance.onerror = function () {
-      if (status) status.textContent = "Your answer could not be read aloud.";
+      if (status) { status.textContent = "Your answer could not be read aloud."; status.classList.remove("hidden"); }
     };
     window.speechSynthesis.speak(utterance);
   }
@@ -257,7 +257,7 @@
     if (stopButton) stopButton.addEventListener("click", function () {
       stopSpeech();
       const status = question.querySelector(".free-text-speech-status");
-      if (status) status.textContent = "";
+      if (status) { status.textContent = ""; status.classList.add("hidden"); }
     });
 
     updateCounter(question);

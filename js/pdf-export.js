@@ -8,8 +8,9 @@
   function setPanelMessage(id, text, type) {
     const el = byId(id);
     if (!el) return;
-    el.textContent = text || "";
-    el.className = "panel-message text-center" + (type ? " " + type : "");
+    const value = text || "";
+    el.textContent = value;
+    el.className = "panel-message text-center" + (type ? " " + type : "") + (value ? "" : " hidden");
   }
 
   function getPageHeading() {

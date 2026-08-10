@@ -30,7 +30,7 @@
       '<div id="glipSubmissionProgress" class="glip-progress" aria-hidden="true">' +
       '<div class="glip-progress-bar"></div>' +
       '</div>' +
-      '<p id="glipSubmissionMessage" class="panel-message text-center" role="status" aria-live="polite"></p>';
+      '<p id="glipSubmissionMessage" class="panel-message text-center hidden" role="status" aria-live="polite"></p>';
 
     // Keep the submission fieldset inside the normal activity content wrapper.
     const mainContent = document.getElementById("mainContent") || document.querySelector(".page-shell .wrap");
@@ -46,8 +46,9 @@
   function setMessage(message, type) {
     const element = document.getElementById("glipSubmissionMessage");
     if (!element) return;
-    element.textContent = message || "";
-    element.className = "panel-message text-center" + (type ? " " + type : "");
+    const value = message || "";
+    element.textContent = value;
+    element.className = "panel-message text-center" + (type ? " " + type : "") + (value ? "" : " hidden");
   }
 
   function setUploading(isUploading) {

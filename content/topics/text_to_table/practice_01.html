@@ -228,7 +228,7 @@ Progress is stored using the immutable activity ID resolved automatically from t
 
           <p
             id="downloadMessage"
-            class="panel-message text-center"
+            class="panel-message text-center hidden"
             role="status"
             aria-live="polite"
           ></p>
@@ -445,7 +445,7 @@ Progress is stored using the immutable activity ID resolved automatically from t
 
           <p
             id="message"
-            class="panel-message text-center"
+            class="panel-message text-center hidden"
             role="status"
             aria-live="polite"
           ></p>
@@ -537,7 +537,7 @@ Progress is stored using the immutable activity ID resolved automatically from t
 
                 window.setTimeout(function () {
                   if (progressBar) progressBar.classList.remove("show");
-                  if (message) message.textContent = "";
+                  if (message) { message.textContent = ""; message.classList.add("hidden"); }
                 }, 3000);
               });
             });

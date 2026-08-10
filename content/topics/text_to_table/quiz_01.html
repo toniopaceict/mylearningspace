@@ -324,7 +324,7 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
 
           <p
             id="downloadMessage"
-            class="panel-message text-center"
+            class="panel-message text-center hidden"
             role="status"
             aria-live="polite"
           ></p>
@@ -377,7 +377,7 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
 
           <p
             id="pdfMessage"
-            class="panel-message text-center"
+            class="panel-message text-center hidden"
             role="status"
             aria-live="polite"
           ></p>
@@ -420,7 +420,7 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
 
           <p
             id="message"
-            class="panel-message text-center"
+            class="panel-message text-center hidden"
             role="status"
             aria-live="polite"
           ></p>
@@ -511,7 +511,7 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
 
                 window.setTimeout(function () {
                   if (progressBar) progressBar.classList.remove("show");
-                  if (message) message.textContent = "";
+                  if (message) { message.textContent = ""; message.classList.add("hidden"); }
                 }, 3000);
               });
             });
@@ -652,9 +652,10 @@ The immutable activity ID is resolved automatically from the HTML filename. Subj
           const message = document.getElementById("message");
           if (!message) return;
 
-          message.textContent = text || "";
+          const value = text || "";
+          message.textContent = value;
           message.className =
-            "panel-message text-center" + (type ? " " + type : "");
+            "panel-message text-center" + (type ? " " + type : "") + (value ? "" : " hidden");
         }
 
         function updateMenuIconAfterQuizSubmit() {

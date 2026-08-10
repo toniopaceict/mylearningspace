@@ -57,8 +57,9 @@
   function setMessage(text, type) {
     const message = document.getElementById("fillBlankSubmitMessage");
     if (!message) return;
-    message.textContent = text || "";
-    message.className = "panel-message text-center" + (type ? " " + type : "");
+    const value = text || "";
+    message.textContent = value;
+    message.className = "panel-message text-center" + (type ? " " + type : "") + (value ? "" : " hidden");
   }
 
   function isActivityCompleted() {

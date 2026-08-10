@@ -26,8 +26,9 @@ function setMessage(text, typeOrColour) {
   if (type === "#0b3c6f" || type === config.loadingColour || type === config.defaultColour) type = "info";
   if (["success", "error", "info"].indexOf(type) === -1) type = "info";
 
-  message.innerText = text || "";
-  message.className = "panel-message text-center " + type;
+  const value = text || "";
+  message.innerText = value;
+  message.className = "panel-message text-center " + type + (value ? "" : " hidden");
 
   if (text) {
     setTimeout(function () {
