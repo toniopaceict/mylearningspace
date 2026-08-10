@@ -147,10 +147,7 @@
 
     if (!section) return;
 
-    const readScope = String(button.dataset.readScope || "").trim();
-    const readableItems = readScope
-      ? section.querySelectorAll(`[data-read="${readScope}"]`)
-      : section.querySelectorAll("[data-read]");
+    const readableItems = section.querySelectorAll("[data-read]");
 
     const text =
       readableItems.length > 0

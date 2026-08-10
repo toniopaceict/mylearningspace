@@ -25,7 +25,7 @@
           type="radio"
           name="${escapeHtml(question.id)}"
           value="${escapeHtml(opt.value)}">
-        <span data-read="question">Option ${escapeHtml(opt.value)}: ${escapeHtml(opt.label)}</span>
+        <span data-read>Option ${escapeHtml(opt.value)}: ${escapeHtml(opt.label)}</span>
         <span class="symbol" aria-hidden="true"></span>
       </label>
     `,
@@ -71,7 +71,7 @@
       : "question-content-row no-question-image";
 
     return `
-      <p class="q" data-read="question">${escapeHtml(question.text || "")}</p>
+      <p class="q" data-read>${escapeHtml(question.text || "")}</p>
 
       <div class="${rowClass}">
         <div class="question-options-col">
@@ -93,13 +93,18 @@
         ${buildQuestionImageHtml(question)}
       </div>
 
+    `;
+  }
+
+
+  function buildFeedbackHtml(question) {
+    return `
       <div class="fb readable-section" id="fb-${escapeHtml(question.id)}" aria-live="polite">
-        <span id="fb-text-${escapeHtml(question.id)}" data-read="feedback"></span>
+        <span id="fb-text-${escapeHtml(question.id)}" data-read></span>
         <button
           type="button"
           class="speak-btn"
           onclick="speakSection(this)"
-          data-read-scope="feedback"
           aria-label="Read the feedback aloud">
           🔊
         </button>
@@ -110,7 +115,7 @@
   function setFeedback(feedback, className, text) {
     if (!feedback) return;
     feedback.className = `fb readable-section${className ? ` ${className}` : ""}`;
-    const textEl = feedback.querySelector('[data-read="feedback"]');
+    const textEl = feedback.querySelector('[data-read]');
     if (textEl) {
       textEl.textContent = text || "";
     }
@@ -133,20 +138,22 @@
         .map(
           (question) => `
         <fieldset
-          class="mcq readable-section"
+          class="mcq"
           data-qid="${escapeHtml(question.id)}"
           id="fs-${escapeHtml(question.id)}">
           <legend>${escapeHtml(question.title)}</legend>
+          <div class="readable-section">
           <button
             type="button"
             class="speak-btn"
             onclick="speakSection(this)"
-            data-read-scope="question"
             aria-label="Read this question and its options aloud">
             🔊
           </button>
           <p class="meta">${escapeHtml(question.meta || "")}</p>
           ${buildQuestionLayoutHtml(question, "")}
+          </div>
+          ${buildFeedbackHtml(question)}
         </fieldset>
       `,
         )
@@ -312,17 +319,19 @@
 
           return `
           ${showExtraInfo ? config.extraInstructionHtml : ""}
-          <fieldset class="task-box mcq readable-section" id="fs-${escapeHtml(question.id)}">
+          <fieldset class="task-box mcq" id="fs-${escapeHtml(question.id)}">
             <legend>${escapeHtml(question.title)} - ${markText}</legend>
+            <div class="readable-section">
             <button
               type="button"
               class="speak-btn no-print"
               onclick="speakSection(this)"
-              data-read-scope="question"
-              aria-label="Read this question and its options aloud">
+                aria-label="Read this question and its options aloud">
               🔊
             </button>
             ${buildQuestionLayoutHtml(question, "no-print")}
+            </div>
+            ${buildFeedbackHtml(question)}
           </fieldset>
         `;
         })
