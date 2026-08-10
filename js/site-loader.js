@@ -3,7 +3,7 @@
  
   
   
-  const GLIP_ASSET_VERSION = "455";
+  const GLIP_ASSET_VERSION = "456";
   const GLIP_BASE_URL = "https://toniopaceict.github.io/mylearningspace";
 
   const GLIP_PAGE_CHECK_CLASS = "glip-page-checking";
@@ -218,6 +218,10 @@ const managementScriptsByPage = {
       scripts.push("/js/activity-upload.js");
     }
 
+    if (pageKind === "lesson") {
+      scripts.push("/js/lesson-content-loader.js");
+    }
+
     if (pageKind === "lesson" || pageKind === "practice" || pageKind === "fillblank") {
       scripts.push("/js/mark-complete.js");
       scripts.push("/js/lesson-page.js");
@@ -275,7 +279,24 @@ const managementScriptsByPage = {
       });
     }
 
-    loadScriptList(deduplicate(scripts), callback);
+    loadScriptList(deduplicate(scripts), function () {
+      if (
+        pageKind === "lesson" &&
+        window.GLIPLessonContent &&
+        typeof window.GLIPLessonContent.load === "function"
+      ) {
+        Promise.resolve(window.GLIPLessonContent.load())
+          .catch(function (error) {
+            console.error("Lesson content could not be loaded.", error);
+          })
+          .finally(function () {
+            if (callback) callback();
+          });
+        return;
+      }
+
+      if (callback) callback();
+    });
   }
 
   function loadScriptList(paths, callback) {
