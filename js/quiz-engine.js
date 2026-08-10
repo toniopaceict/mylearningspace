@@ -25,7 +25,7 @@
           type="radio"
           name="${escapeHtml(question.id)}"
           value="${escapeHtml(opt.value)}">
-        <span>${escapeHtml(opt.value)}: ${escapeHtml(opt.label)}</span>
+        <span data-read="question">Option ${escapeHtml(opt.value)}: ${escapeHtml(opt.label)}</span>
         <span class="symbol" aria-hidden="true"></span>
       </label>
     `,
@@ -71,7 +71,7 @@
       : "question-content-row no-question-image";
 
     return `
-      <p class="q">${escapeHtml(question.text || "")}</p>
+      <p class="q" data-read="question">${escapeHtml(question.text || "")}</p>
 
       <div class="${rowClass}">
         <div class="question-options-col">
@@ -93,8 +93,27 @@
         ${buildQuestionImageHtml(question)}
       </div>
 
-      <div class="fb" id="fb-${escapeHtml(question.id)}" aria-live="polite"></div>
+      <div class="fb readable-section" id="fb-${escapeHtml(question.id)}" aria-live="polite">
+        <span id="fb-text-${escapeHtml(question.id)}" data-read="feedback"></span>
+        <button
+          type="button"
+          class="speak-btn"
+          onclick="speakSection(this)"
+          data-read-scope="feedback"
+          aria-label="Read the feedback aloud">
+          🔊
+        </button>
+      </div>
     `;
+  }
+
+  function setFeedback(feedback, className, text) {
+    if (!feedback) return;
+    feedback.className = `fb readable-section${className ? ` ${className}` : ""}`;
+    const textEl = feedback.querySelector('[data-read="feedback"]');
+    if (textEl) {
+      textEl.textContent = text || "";
+    }
   }
 
   /* =========================================================
@@ -114,10 +133,18 @@
         .map(
           (question) => `
         <fieldset
-          class="mcq"
+          class="mcq readable-section"
           data-qid="${escapeHtml(question.id)}"
           id="fs-${escapeHtml(question.id)}">
           <legend>${escapeHtml(question.title)}</legend>
+          <button
+            type="button"
+            class="speak-btn"
+            onclick="speakSection(this)"
+            data-read-scope="question"
+            aria-label="Read this question and its options aloud">
+            🔊
+          </button>
           <p class="meta">${escapeHtml(question.meta || "")}</p>
           ${buildQuestionLayoutHtml(question, "")}
         </fieldset>
@@ -182,18 +209,22 @@
       clearSymbols(fieldset);
 
       if (!selected) {
-        feedback.className = "fb err";
-        feedback.textContent =
-          "Please choose an answer, then click Submit Answer.";
+        setFeedback(
+          feedback,
+          "err",
+          "Please choose an answer, then click Submit Answer.",
+        );
         return;
       }
 
       if (selected === question.correct) {
-        feedback.className = "fb ok";
-        feedback.textContent = question.fbOk;
+        setFeedback(feedback, "ok", question.fbOk);
       } else {
-        feedback.className = "fb err";
-        feedback.textContent = `${question.fbBad} The correct answer is ${question.correct}.`;
+        setFeedback(
+          feedback,
+          "err",
+          `${question.fbBad} The correct answer is ${question.correct}.`,
+        );
       }
 
       showSymbols(fieldset, selected, question.correct);
@@ -281,8 +312,16 @@
 
           return `
           ${showExtraInfo ? config.extraInstructionHtml : ""}
-          <fieldset class="task-box mcq" id="fs-${escapeHtml(question.id)}">
+          <fieldset class="task-box mcq readable-section" id="fs-${escapeHtml(question.id)}">
             <legend>${escapeHtml(question.title)} - ${markText}</legend>
+            <button
+              type="button"
+              class="speak-btn no-print"
+              onclick="speakSection(this)"
+              data-read-scope="question"
+              aria-label="Read this question and its options aloud">
+              🔊
+            </button>
             ${buildQuestionLayoutHtml(question, "no-print")}
           </fieldset>
         `;
@@ -349,9 +388,11 @@
       if (!feedback) return;
 
       if (!selected) {
-        feedback.className = "fb err";
-        feedback.textContent =
-          "Please choose an answer, then click Submit Answer.";
+        setFeedback(
+          feedback,
+          "err",
+          "Please choose an answer, then click Submit Answer.",
+        );
         return;
       }
 
@@ -359,12 +400,14 @@
 
       if (selected === question.correct) {
         status[questionId] = 1;
-        feedback.className = "fb ok";
-        feedback.textContent = question.fbOk;
+        setFeedback(feedback, "ok", question.fbOk);
       } else {
         status[questionId] = 0;
-        feedback.className = "fb err";
-        feedback.textContent = `${question.fbBad} The correct answer is ${question.correct}.`;
+        setFeedback(
+          feedback,
+          "err",
+          `${question.fbBad} The correct answer is ${question.correct}.`,
+        );
       }
 
       showSymbol(questionId, selected, question.correct);
@@ -382,8 +425,7 @@
       questions.forEach((question) => {
         const feedback = document.getElementById(`fb-${question.id}`);
         if (feedback) {
-          feedback.className = "fb";
-          feedback.textContent = "";
+          setFeedback(feedback, "", "");
         }
         clearSymbols(question.id);
         setQuestionLocked(question.id, false);
