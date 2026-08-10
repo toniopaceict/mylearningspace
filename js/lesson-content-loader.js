@@ -2,6 +2,7 @@
   "use strict";
 
   let loadPromise = null;
+  let contentUrl = "";
 
   function text(value) {
     return String(value == null ? "" : value).trim();
@@ -12,22 +13,63 @@
   }
 
   function getContentFileName() {
-    const configured = text(window.PAGE_CONFIG && window.PAGE_CONFIG.contentFile);
+    const page = window.PAGE_CONFIG || {};
+    const configured = text(page.contentFile);
     if (configured) return configured;
 
-    const pageName = decodeURIComponent(
-      (window.location.pathname || "").split("/").pop() || ""
-    );
-
-    if (!/\.html?$/i.test(pageName)) {
-      return "";
-    }
-
-    return pageName.replace(/\.html?$/i, "_content.html");
+    const activityCode = text(page.activityCode);
+    return activityCode ? activityCode + "_content.html" : "";
   }
 
-  function buildContentUrl(fileName) {
-    return new URL(fileName, window.location.href).toString();
+  function getContentUrl() {
+    const page = window.PAGE_CONFIG || {};
+    const configuredUrl = text(page.contentUrl);
+    if (configuredUrl) return configuredUrl;
+
+    const fileName = getContentFileName();
+    const topicCode = text(page.topicCode);
+    const baseUrl = text(window.GLIP_BASE_URL).replace(/\/$/, "");
+
+    if (!fileName || !topicCode || !baseUrl) return "";
+
+    return (
+      baseUrl +
+      "/content/topics/" +
+      encodeURIComponent(topicCode) +
+      "/" +
+      encodeURIComponent(fileName)
+    );
+  }
+
+  function resolveUrl(value, baseUrl) {
+    const source = text(value);
+    if (!source) return "";
+
+    try {
+      return new URL(source, baseUrl).toString();
+    } catch (_error) {
+      return source;
+    }
+  }
+
+  /*
+   * Content files live in the topic folder while the shared Lesson page
+   * lives under /shared/activities/. Resolve relative links before content
+   * is copied into the shared page so images and links continue to point to
+   * the lesson's own topic folder.
+   */
+  function resolveRelativeContentUrls(root, baseUrl) {
+    if (!root || !baseUrl) return;
+
+    root.querySelectorAll("[src]").forEach(function (element) {
+      const value = element.getAttribute("src");
+      if (value) element.setAttribute("src", resolveUrl(value, baseUrl));
+    });
+
+    root.querySelectorAll("[href]").forEach(function (element) {
+      const value = element.getAttribute("href");
+      if (value) element.setAttribute("href", resolveUrl(value, baseUrl));
+    });
   }
 
   function makeReadable(container, options) {
@@ -60,15 +102,13 @@
   }
 
   function readFileSettings(root) {
-    const files = [1, 2, 3].map(function (number) {
+    return [1, 2, 3].map(function (number) {
       const source = root.querySelector('[data-file-number="' + number + '"]');
       return {
         link: source ? text(source.getAttribute("href")) : "",
         buttonText: source ? text(source.getAttribute("data-button-text")) : ""
       };
     });
-
-    return files;
   }
 
   function applyFileSettings(root) {
@@ -105,13 +145,8 @@
     const section = byId("requiredFilesSection");
     const legend = byId("requiredFilesLegend");
 
-    if (section) {
-      section.style.display = visibleCount > 0 ? "" : "none";
-    }
-
-    if (legend) {
-      legend.textContent = visibleCount === 1 ? "Required File" : "Required Files";
-    }
+    if (section) section.style.display = visibleCount > 0 ? "" : "none";
+    if (legend) legend.textContent = visibleCount === 1 ? "Required File" : "Required Files";
 
     bindAdditionalDownloadProgress();
   }
@@ -149,12 +184,8 @@
     const posterSource = root.querySelector("[data-video-poster]");
     const videoSource = root.querySelector("[data-video-url]");
 
-    const posterImagePath = posterSource
-      ? text(posterSource.getAttribute("src"))
-      : "";
-    const videoUrl = videoSource
-      ? text(videoSource.getAttribute("href"))
-      : "";
+    const posterImagePath = posterSource ? text(posterSource.getAttribute("src")) : "";
+    const videoUrl = videoSource ? text(videoSource.getAttribute("href")) : "";
 
     const poster = byId("videoPoster");
     const posterImage = byId("videoPosterImage");
@@ -175,9 +206,7 @@
       posterImage.alt = "Preview image for the " + activityTitle + " video lesson";
     }
 
-    if (playButton) {
-      playButton.setAttribute("aria-label", videoLabel);
-    }
+    if (playButton) playButton.setAttribute("aria-label", videoLabel);
 
     if (videoFrame) {
       videoFrame.title = videoTitle;
@@ -195,12 +224,14 @@
     }
   }
 
-  function applyContent(documentRoot) {
+  function applyContent(documentRoot, sourceUrl) {
     const root = documentRoot.querySelector("#lessonContentData");
 
     if (!root) {
       throw new Error("The lesson content file does not contain #lessonContentData.");
     }
+
+    resolveRelativeContentUrls(root, sourceUrl);
 
     copyContent(
       root.querySelector('[data-lesson-content="overview"]'),
@@ -223,7 +254,10 @@
 
     document.dispatchEvent(
       new CustomEvent("glipLessonContentLoaded", {
-        detail: { fileName: getContentFileName() }
+        detail: {
+          fileName: getContentFileName(),
+          url: sourceUrl
+        }
       })
     );
   }
@@ -245,27 +279,25 @@
     if (loadPromise) return loadPromise;
 
     const fileName = getContentFileName();
+    const url = getContentUrl();
+    contentUrl = url;
 
-    if (!fileName) {
+    if (!fileName || !url) {
       loadPromise = Promise.reject(
-        new Error("The lesson content filename could not be determined.")
+        new Error("The lesson content file could not be determined.")
       );
       return loadPromise;
     }
 
-    const url = buildContentUrl(fileName);
-
     loadPromise = fetch(url, { cache: "no-cache" })
       .then(function (response) {
-        if (!response.ok) {
-          throw new Error("Could not load " + fileName + ".");
-        }
+        if (!response.ok) throw new Error("Could not load " + fileName + ".");
         return response.text();
       })
       .then(function (html) {
         const parser = new DOMParser();
         const documentRoot = parser.parseFromString(html, "text/html");
-        applyContent(documentRoot);
+        applyContent(documentRoot, url);
         return true;
       })
       .catch(function (error) {
@@ -281,6 +313,7 @@
 
   window.GLIPLessonContent = {
     load: load,
-    getContentFileName: getContentFileName
+    getContentFileName: getContentFileName,
+    getContentUrl: function () { return contentUrl || getContentUrl(); }
   };
 })(window);

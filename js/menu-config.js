@@ -99,12 +99,21 @@
       const type = String(activity.activity_type_code || "").toLowerCase().replace(/_/g, "-");
       let url;
 
+      const baseUrl = String(window.GLIP_BASE_URL || "").replace(/\/$/, "");
+
       if (type === "reflection") {
-        url = "../../../shared/reflection.html?" + new URLSearchParams({
+        url = (baseUrl || "../../..") + "/shared/reflection.html?" + new URLSearchParams({
           school: school,
           subject: subject,
           level: pad2(level),
           topic: pad2(topicCode),
+          curriculum_id: curriculumId,
+          topic_id: topicId,
+          activity_id: activity.activity_id || ""
+        }).toString();
+      } else if (type === "lesson") {
+        url = (baseUrl || "../../..") + "/shared/activities/lesson.html?" + new URLSearchParams({
+          school: school,
           curriculum_id: curriculumId,
           topic_id: topicId,
           activity_id: activity.activity_id || ""
@@ -116,7 +125,10 @@
           topic_id: topicId,
           activity_id: activity.activity_id || ""
         }).toString();
-        url = activityFileName(activity) + (activityQuery ? "?" + activityQuery : "");
+        const topicBase = baseUrl
+          ? baseUrl + "/content/topics/" + encodeURIComponent(topicCode) + "/"
+          : "";
+        url = (topicBase || "") + activityFileName(activity) + (activityQuery ? "?" + activityQuery : "");
       }
 
       return {

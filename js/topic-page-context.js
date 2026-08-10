@@ -276,10 +276,12 @@
     config.subjectId = topicData.subject_id || "";
     config.level = topicData.level_code || "";
     config.topicId = topicData.topic_id || "";
+    config.topicCode = topicData.topic_code || "";
     config.topicName = topicData.topic_name || "";
     config.activityId = activity
       ? activity.activity_id
       : configuredActivityId;
+    config.activityCode = activity ? activity.activity_code : text(config.activityCode);
 
     // The branding statement remains consistent on every GLIP page.
     // Topic pages show only the topic. Activity pages show topic + activity.
