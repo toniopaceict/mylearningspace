@@ -80,7 +80,8 @@
     const level = context.level || "";
     const curriculumId = context.curriculumId || "";
     const topicId = context.topicId || "";
-    const backToTopicsUrl = "../../../schools/" + school + "/topics-home.html";
+    const baseUrl = String(window.GLIP_BASE_URL || "").replace(/\/$/, "");
+    const backToTopicsUrl = (baseUrl || "../../..") + "/schools/" + school + "/topics-home.html";
     const query = new URLSearchParams({
       school: school,
       curriculum_id: curriculumId,
@@ -98,8 +99,6 @@
     const items = activities.map(function (activity) {
       const type = String(activity.activity_type_code || "").toLowerCase().replace(/_/g, "-");
       let url;
-
-      const baseUrl = String(window.GLIP_BASE_URL || "").replace(/\/$/, "");
 
       if (type === "reflection") {
         url = (baseUrl || "../../..") + "/shared/reflection.html?" + new URLSearchParams({
