@@ -110,8 +110,12 @@
           topic_id: topicId,
           activity_id: activity.activity_id || ""
         }).toString();
-      } else if (type === "lesson" || type === "practice") {
-        const sharedFile = type === "lesson" ? "lesson.html" : "practice.html";
+       } else if (type === "lesson" || type === "practice" || type === "free-text") {
+        const sharedFile = type === "lesson"
+          ? "lesson.html"
+          : type === "practice"
+            ? "practice.html"
+            : "free-text.html";
         url = (baseUrl || "../../..") + "/shared/activities/" + sharedFile + "?" + new URLSearchParams({
           school: school,
           curriculum_id: curriculumId,

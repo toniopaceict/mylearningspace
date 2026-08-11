@@ -572,4 +572,5 @@
   }
 
   document.addEventListener("glipReady", initialise);
+  document.addEventListener("glipFreeTextContentLoaded", initialise);
 })();
