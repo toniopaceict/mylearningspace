@@ -222,6 +222,10 @@ const managementScriptsByPage = {
       scripts.push("/js/lesson-content-loader.js");
     }
 
+    if (pageKind === "practice") {
+      scripts.push("/js/practice-content-loader.js");
+    }
+
     if (pageKind === "lesson" || pageKind === "practice" || pageKind === "fillblank") {
       scripts.push("/js/mark-complete.js");
       scripts.push("/js/lesson-page.js");
@@ -288,6 +292,21 @@ const managementScriptsByPage = {
         Promise.resolve(window.GLIPLessonContent.load())
           .catch(function (error) {
             console.error("Lesson content could not be loaded.", error);
+          })
+          .finally(function () {
+            if (callback) callback();
+          });
+        return;
+      }
+
+      if (
+        pageKind === "practice" &&
+        window.GLIPPracticeContent &&
+        typeof window.GLIPPracticeContent.load === "function"
+      ) {
+        Promise.resolve(window.GLIPPracticeContent.load())
+          .catch(function (error) {
+            console.error("Practice content could not be loaded.", error);
           })
           .finally(function () {
             if (callback) callback();

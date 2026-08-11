@@ -108,11 +108,12 @@
       }).toString();
     }
 
-    if (type === "lesson") {
+    if (type === "lesson" || type === "practice") {
       const baseUrl = text(window.GLIP_BASE_URL).replace(/\/$/, "");
       const sharedBase = baseUrl || text(context.base_url || "").replace(/\/$/, "");
+      const sharedFile = type === "lesson" ? "lesson.html" : "practice.html";
       return sharedBase
-        ? sharedBase + "/shared/activities/lesson.html" + (query ? "?" + query : "")
+        ? sharedBase + "/shared/activities/" + sharedFile + (query ? "?" + query : "")
         : "";
     }
 
