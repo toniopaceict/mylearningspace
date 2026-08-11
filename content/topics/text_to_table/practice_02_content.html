@@ -1,0 +1,182 @@
+<!--
+=========================================================
+GLIP PRACTICE CONTENT
+
+Practice: practice_02
+
+THIS IS THE OWNER-EDITABLE FILE.
+
+For a new practice:
+1. Copy this file.
+2. Rename it to match the Activity Code followed by _content.html.
+   Example: practice_02_content.html
+3. Edit the required file links and educational content below.
+
+You do NOT need to edit:
+• practice page structure
+• JavaScript
+• reader buttons
+• progress controls
+• submission controls
+• header/footer
+• activity IDs
+
+The shared Practice template automatically loads this file by matching
+the Activity Code from Google Sheets. No practice_02.html page is needed.
+=========================================================
+-->
+
+<div id="practiceContentData">
+  <!-- =====================================================
+       REQUIRED FILES
+
+       Leave href empty to hide a file button.
+       Up to three files may be supplied.
+       ===================================================== -->
+  <div data-practice-settings="files">
+    <a
+      data-file-number="1"
+      href=""
+      data-button-text="Download File"
+    ></a>
+
+    <a
+      data-file-number="2"
+      href=""
+      data-button-text="Download File 2"
+    ></a>
+
+    <a
+      data-file-number="3"
+      href=""
+      data-button-text="Download File 3"
+    ></a>
+  </div>
+
+  <!-- =====================================================
+       REQUIRED FILE INSTRUCTIONS
+
+       This section is used only when at least one required
+       file has been supplied above.
+       ===================================================== -->
+  <section data-practice-content="required-files">
+    <p>
+      Download the required file two before starting this practice activity.
+    </p>
+  </section>
+
+  <!-- =====================================================
+       PRACTICE SECTIONS
+
+       Add, remove or reorder sections as required.
+       The data-title value becomes the fieldset heading.
+       Reader buttons and readable formatting are added
+       automatically by the shared Practice template.
+       ===================================================== -->
+  <section data-practice-section data-title="Scenario">
+    <p>
+      You work as a course coordinator supporting the Institute Director.
+      The director wants to understand how students’ assessment marks
+      relate to two factors: classroom attendance and the number of hours
+      spent studying at home each week.
+    </p>
+
+    <p>
+      In the Data sheet, you have a dataset for 25 students. For the first
+      20 students, the assessment mark is known. For the final 5 students,
+      the assessment mark is blank.
+    </p>
+
+    <p>
+      Your job is to use multiple linear regression in Excel to build a
+      forecasting formula that predicts assessment marks using classroom
+      attendance and hours of study at home as the independent variables.
+    </p>
+  </section>
+
+  <section data-practice-section data-title="Task 1">
+    <p>
+      Go to the sheet containing the student data and use the Data Analysis
+      ToolPak to perform a Regression analysis.
+    </p>
+
+    <ol type="i" class="tasklist">
+      <li>
+        Set the Input Y Range to the Assessment Mark (%) column for the
+        first 20 students.
+      </li>
+      <li>
+        Set the Input X Range to the Attendance (%) and Home Study
+        (hours/week) columns.
+      </li>
+      <li>Select the Labels option.</li>
+      <li>Place the output in an empty area of the worksheet.</li>
+    </ol>
+
+    <p>
+      From the regression output, check that the following values were
+      obtained:
+    </p>
+
+    <ul class="tasklist">
+      <li>Intercept (β₀) ≈ 19.43.</li>
+      <li>Attendance coefficient (β₁) ≈ 0.54.</li>
+      <li>Home study coefficient (β₂) ≈ 2.40.</li>
+    </ul>
+  </section>
+
+  <section data-practice-section data-title="Task 2">
+    <p>
+      Input the multiple linear regression equation to predict assessment
+      marks for the five students with missing results.
+    </p>
+
+    <p class="formula-line">
+      Predicted Mark = β₀ + (β₁ × Attendance) + (β₂ × Home Study Hours)
+    </p>
+
+    <p>
+      If your working is correct, the predicted marks should be as follows:
+    </p>
+
+    <div class="table-wrap">
+      <table class="scenario-table">
+        <thead>
+          <tr>
+            <th scope="col">Student</th>
+            <th scope="col">Predicted Assessment Mark (%)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Student 21</td>
+            <td>30</td>
+          </tr>
+          <tr>
+            <td>Student 22</td>
+            <td>98</td>
+          </tr>
+          <tr>
+            <td>Student 23</td>
+            <td>262</td>
+          </tr>
+          <tr>
+            <td>Student 24</td>
+            <td>90</td>
+          </tr>
+          <tr>
+            <td>Student 25</td>
+            <td>72</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section data-practice-section data-title="Next Step">
+    <p>
+      Leave the Excel file open and continue with the next activity from
+      the menu.
+    </p>
+  </section>
+</div>
