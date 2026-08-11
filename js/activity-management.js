@@ -845,8 +845,8 @@
       "<td>" + esc(activity.subject_name || activity.subject_code) + "</td>" +
       "<td>" + esc(activity.topic_name) + "</td>" +
       "<td>" + esc(activity.activity_type_name || activity.activity_type_code) + "</td>" +
-      "<td>" + esc(activity.activity_code) + "</td>" +
       "<td>" + esc(activity.activity_title) + "</td>" +
+      "<td>" + esc(activity.sort_order == null ? "" : activity.sort_order) + "</td>" +
       "<td>" + (activity.active ? "Active" : "Inactive") + "</td>" +
       "<td>" + (activity.requires_submission ? "Required" : "Not required") + "</td>" +
       "</tr>"
