@@ -276,10 +276,15 @@
   }
 
   function load() {
-    if (loadPromise) return loadPromise;
-
     const fileName = getContentFileName();
     const url = getContentUrl();
+
+    // A shared activity page can first render from cached topic metadata and
+    // then receive authoritative metadata from Apps Script. Reuse the current
+    // promise only when it belongs to the same resolved content file.
+    if (loadPromise && url && url === contentUrl) return loadPromise;
+
+    loadPromise = null;
     contentUrl = url;
 
     if (!fileName || !url) {
@@ -301,6 +306,10 @@
         return true;
       })
       .catch(function (error) {
+        // Do not permanently cache a failed load. A fresh topic-context
+        // response may arrive immediately afterwards and should be allowed
+        // to retry the content file.
+        loadPromise = null;
         console.error("Could not load lesson content.", error);
         showLoadError(
           "The lesson content could not be loaded. Please contact your teacher."
@@ -310,6 +319,15 @@
 
     return loadPromise;
   }
+
+  document.addEventListener("glipTopicContextRefreshed", function () {
+    // If the authoritative refresh resolves a different activity/content
+    // file, load() will replace the cached render. If nothing changed, the
+    // existing promise is reused and no duplicate fetch is made.
+    Promise.resolve(load()).catch(function () {
+      // The normal load() error UI already explains the problem to the user.
+    });
+  });
 
   window.GLIPLessonContent = {
     load: load,

@@ -239,7 +239,17 @@
 
   function applyPageConfig(topicData) {
     const config = window.PAGE_CONFIG || (window.PAGE_CONFIG = {});
-    const configuredActivityId = text(config.activityId || topicData.activity_id);
+
+    // The activity_id in the current URL is authoritative. Shared activity
+    // templates (lesson.html, practice.html, etc.) are reused by many
+    // activities, so a PAGE_CONFIG value left from an earlier cached render
+    // must never override the activity the user actually selected.
+    const queryActivityId = text(
+      new URLSearchParams(window.location.search || "").get("activity_id")
+    );
+    const configuredActivityId = text(
+      queryActivityId || topicData.activity_id || config.activityId
+    );
     const pageFile = text(topicData.page_file).toLowerCase();
 
     const currentPageStem = fileStem(pageFile);
