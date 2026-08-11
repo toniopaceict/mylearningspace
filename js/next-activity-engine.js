@@ -108,14 +108,16 @@
       }).toString();
     }
 
-    if (type === "lesson" || type === "practice" || type === "free-text" || type === "fill-blanks" || type === "fillblank") {
+    if (type === "lesson" || type === "practice" || type === "quiz" || type === "free-text" || type === "fill-blanks" || type === "fillblank") {
       const baseUrl = text(window.GLIP_BASE_URL).replace(/\/$/, "");
       const sharedBase = baseUrl || text(context.base_url || "").replace(/\/$/, "");
       const sharedFile = type === "lesson"
         ? "lesson.html"
         : type === "practice"
           ? "practice.html"
-          : type === "free-text"
+          : type === "quiz"
+            ? "quiz.html"
+            : type === "free-text"
             ? "free-text.html"
             : "fill-blanks.html";
       return sharedBase

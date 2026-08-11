@@ -3,7 +3,7 @@
  
    
   
-  const GLIP_ASSET_VERSION = "466";
+  const GLIP_ASSET_VERSION = "467";
   const GLIP_BASE_URL = "https://toniopaceict.github.io/mylearningspace";
 
   const GLIP_PAGE_CHECK_CLASS = "glip-page-checking";
@@ -230,6 +230,10 @@ const managementScriptsByPage = {
       scripts.push("/js/free-text-content-loader.js");
     }
 
+    if (pageKind === "quiz") {
+      scripts.push("/js/quiz-content-loader.js");
+    }
+
     if (pageKind === "fillblank") {
       scripts.push("/js/fill-blank-content-loader.js");
     }
@@ -346,6 +350,21 @@ const managementScriptsByPage = {
         Promise.resolve(window.GLIPFillBlankContent.load())
           .catch(function (error) {
             console.error("Fill in the Blanks content could not be loaded.", error);
+          })
+          .finally(function () {
+            if (callback) callback();
+          });
+        return;
+      }
+
+      if (
+        pageKind === "quiz" &&
+        window.GLIPQuizContent &&
+        typeof window.GLIPQuizContent.load === "function"
+      ) {
+        Promise.resolve(window.GLIPQuizContent.load())
+          .catch(function (error) {
+            console.error("Quiz content could not be loaded.", error);
           })
           .finally(function () {
             if (callback) callback();

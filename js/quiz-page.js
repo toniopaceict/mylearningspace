@@ -207,13 +207,19 @@
 
   function initialiseQuizPage() {
     if (document.documentElement.dataset.glipQuizPageReady === "true") return;
+
+    const questions = Array.isArray(window.QUESTIONS) ? window.QUESTIONS : [];
+    if (!questions.length) return;
+
     document.documentElement.dataset.glipQuizPageReady = "true";
-    initPage(window.PAGE_CONFIG, window.QUESTIONS, window.EXTRA_BOX);
+    initPage(window.PAGE_CONFIG, questions, window.EXTRA_BOX);
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initialiseQuizPage, { once: true });
+    document.addEventListener("DOMContentLoaded", initialiseQuizPage);
   } else {
     initialiseQuizPage();
   }
+
+  document.addEventListener("glipQuizContentLoaded", initialiseQuizPage);
 })();
