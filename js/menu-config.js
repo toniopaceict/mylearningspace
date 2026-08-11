@@ -110,12 +110,14 @@
           topic_id: topicId,
           activity_id: activity.activity_id || ""
         }).toString();
-       } else if (type === "lesson" || type === "practice" || type === "free-text") {
+       } else if (type === "lesson" || type === "practice" || type === "free-text" || type === "fill-blanks" || type === "fillblank") {
         const sharedFile = type === "lesson"
           ? "lesson.html"
           : type === "practice"
             ? "practice.html"
-            : "free-text.html";
+            : type === "free-text"
+              ? "free-text.html"
+              : "fill-blanks.html";
         url = (baseUrl || "../../..") + "/shared/activities/" + sharedFile + "?" + new URLSearchParams({
           school: school,
           curriculum_id: curriculumId,

@@ -1,10 +1,14 @@
 (function () {
   "use strict";
 
-  function setupDragAndDropQuestions() {
-    const questions = document.querySelectorAll(".drag-drop-question");
+  function setupDragAndDropQuestions(root) {
+    const scope = root && root.querySelectorAll ? root : document;
+    const questions = scope.querySelectorAll(".drag-drop-question");
 
     questions.forEach(question => {
+      if (question.dataset.glipDragDropReady === "true") return;
+      question.dataset.glipDragDropReady = "true";
+
       const options = question.querySelectorAll(".drag-option");
       const zones = question.querySelectorAll(".drop-zone");
       const feedback = question.querySelector(".drag-drop-feedback");
@@ -191,9 +195,15 @@
     });
   }
 
+  window.GLIPDragDrop = {
+    setup: setupDragAndDropQuestions
+  };
+
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", setupDragAndDropQuestions, { once: true });
+    document.addEventListener("DOMContentLoaded", function () {
+      setupDragAndDropQuestions(document);
+    }, { once: true });
   } else {
-    setupDragAndDropQuestions();
+    setupDragAndDropQuestions(document);
   }
 })();

@@ -3,7 +3,7 @@
  
    
   
-  const GLIP_ASSET_VERSION = "465";
+  const GLIP_ASSET_VERSION = "466";
   const GLIP_BASE_URL = "https://toniopaceict.github.io/mylearningspace";
 
   const GLIP_PAGE_CHECK_CLASS = "glip-page-checking";
@@ -230,6 +230,10 @@ const managementScriptsByPage = {
       scripts.push("/js/free-text-content-loader.js");
     }
 
+    if (pageKind === "fillblank") {
+      scripts.push("/js/fill-blank-content-loader.js");
+    }
+
     if (pageKind === "lesson" || pageKind === "practice" || pageKind === "fillblank") {
       scripts.push("/js/mark-complete.js");
       scripts.push("/js/lesson-page.js");
@@ -261,6 +265,7 @@ const managementScriptsByPage = {
       scripts.push("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
       scripts.push("/js/glip-pdf.js");
       scripts.push("/js/pdf-export.js");
+      scripts.push("/js/fill-blank-page.js");
     }
 
 
@@ -326,6 +331,21 @@ const managementScriptsByPage = {
         Promise.resolve(window.GLIPFreeTextContent.load())
           .catch(function (error) {
             console.error("Free Text content could not be loaded.", error);
+          })
+          .finally(function () {
+            if (callback) callback();
+          });
+        return;
+      }
+
+      if (
+        pageKind === "fillblank" &&
+        window.GLIPFillBlankContent &&
+        typeof window.GLIPFillBlankContent.load === "function"
+      ) {
+        Promise.resolve(window.GLIPFillBlankContent.load())
+          .catch(function (error) {
+            console.error("Fill in the Blanks content could not be loaded.", error);
           })
           .finally(function () {
             if (callback) callback();
