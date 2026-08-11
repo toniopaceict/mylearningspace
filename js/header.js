@@ -413,13 +413,33 @@ function closeMobileMenu() {
 
 function highlightCurrentPage() {
   const currentFile = window.location.pathname.split("/").pop();
+  const currentParams = new URLSearchParams(window.location.search || "");
+  const currentActivityId = String(currentParams.get("activity_id") || "").trim();
   const links = document.querySelectorAll(".side-nav-link");
 
   links.forEach(function (link) {
     const menuUrl = link.getAttribute("data-menu-url") || "";
     const linkFile = menuUrl.split("?")[0].split("/").pop();
 
-    if (linkFile === currentFile) {
+    let linkActivityId = "";
+    try {
+      const parsedUrl = new URL(menuUrl, window.location.href);
+      linkActivityId = String(parsedUrl.searchParams.get("activity_id") || "").trim();
+    } catch (_error) {
+      linkActivityId = "";
+    }
+
+    const isCurrentActivity =
+      currentActivityId &&
+      linkActivityId &&
+      currentActivityId === linkActivityId;
+
+    const isCurrentPageWithoutActivityId =
+      !currentActivityId &&
+      !linkActivityId &&
+      linkFile === currentFile;
+
+    if (isCurrentActivity || isCurrentPageWithoutActivityId) {
       link.classList.add("active");
     }
   });
