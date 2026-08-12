@@ -12,8 +12,8 @@ For a new Matching activity:
    Example: matching_02_content.html
 3. Edit the required files, instructions and matching questions below.
 
-Each question may contain a different number of matching pairs and a
-different total mark value.
+Each question may contain a different number of matching pairs.
+Add one formative feedback paragraph to explain the concepts in the whole question.
 
 You do NOT need to edit the shared Matching page, JavaScript, reader
 buttons, PDF controls, submission controls or activity IDs.
@@ -47,16 +47,12 @@ buttons, PDF controls, submission controls or activity IDs.
   <!-- =====================================================
        QUESTION 1
 
-       data-marks is the total number of marks for this question.
-       GLIP awards partial marks in proportion to the number of correct pairs.
-
        Copy a data-pair block to add another matching pair.
        ===================================================== -->
   <section
     data-matching-question
     data-question-id="q1"
     data-title="Question 1"
-    data-marks="4"
   >
     <p data-prompt>
       Match each keyboard shortcut with its action in Microsoft Word.
@@ -83,6 +79,11 @@ buttons, PDF controls, submission controls or activity IDs.
         <span data-right>Save the document</span>
       </div>
     </div>
+
+    <p data-feedback>
+      Remember that Ctrl + C copies selected content, Ctrl + V pastes copied content,
+      Ctrl + Z reverses the previous action and Ctrl + S saves the document.
+    </p>
   </section>
 
   <!-- =====================================================
@@ -95,7 +96,6 @@ buttons, PDF controls, submission controls or activity IDs.
     data-matching-question
     data-question-id="q2"
     data-title="Question 2"
-    data-marks="4"
   >
     <p data-prompt>
       Match each table feature with its correct description.
@@ -122,5 +122,10 @@ buttons, PDF controls, submission controls or activity IDs.
         <span data-right>Adjusts column width to suit the contents</span>
       </div>
     </div>
+
+    <p data-feedback>
+      Remember that a header row identifies column contents, Merge Cells combines cells,
+      Split Cells divides a cell and AutoFit adjusts a column to suit its contents.
+    </p>
   </section>
 </div>

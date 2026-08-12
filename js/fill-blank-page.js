@@ -110,11 +110,15 @@
     }
   }
 
-  function updatePdfScore() {
-    const scoreBox = document.getElementById("fillBlankPdfScore");
-    if (!scoreBox) return;
+  function updatePdfScore() {}
+
+  function updateMasterySubmissionState() {
+    const button = document.getElementById("submitFillBlankBtn");
+    if (!button || button.dataset.completionMode === "incomplete") return;
     const result = collectFillBlankAnswers();
-    scoreBox.textContent = "Score: " + result.score + " / " + result.total_marks;
+    const ready = result.answers.length > 0 && isComplete(result) && result.answers.every(function (answer) { return answer.is_correct; });
+    button.disabled = !ready;
+    button.title = ready ? "" : "Check your answers and correct all blanks before submitting.";
   }
 
   function submitFillBlankAnswers() {
@@ -130,6 +134,11 @@
 
     if (!isComplete(result)) {
       setMessage("Please fill in all blanks before submitting.", "error");
+      return;
+    }
+
+    if (!result.answers.every(function (answer) { return answer.is_correct; })) {
+      setMessage("Please check your answers and correct all blanks before submitting.", "error");
       return;
     }
 
@@ -149,8 +158,8 @@
         topic_name: config.topicName,
         activity_id: config.activityId,
         activity_name: config.subTitle || "Fill in the Blanks",
-        score: result.score,
-        total_marks: result.total_marks,
+        score: 0,
+        total_marks: 0,
         answers_json: JSON.stringify(result.answers)
       })
     })
@@ -265,6 +274,7 @@
 
     setCompletionState(isActivityCompleted());
     updatePdfScore();
+    updateMasterySubmissionState();
 
     if (document.documentElement.dataset.glipFillBlankScoreReady !== "true") {
       document.documentElement.dataset.glipFillBlankScoreReady = "true";
@@ -285,5 +295,7 @@
     initialiseFillBlankPage();
   }
 
+  document.addEventListener("glipFillBlankChanged", updateMasterySubmissionState);
+  document.addEventListener("glipFillBlankChecked", updateMasterySubmissionState);
   document.addEventListener("glipReady", initialiseFillBlankPage);
 })();

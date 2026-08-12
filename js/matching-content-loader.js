@@ -144,7 +144,8 @@
   function questionMarkup(source, index) {
     const questionId = text(source.getAttribute("data-question-id")) || "q" + (index + 1);
     const title = text(source.getAttribute("data-title")) || "Question " + (index + 1);
-    const marks = Math.max(0, Number(source.getAttribute("data-marks") || 0));
+    const feedbackSource = source.querySelector("[data-feedback]");
+    const formativeFeedback = feedbackSource ? text(feedbackSource.textContent) : "Review the ideas in this question and try again.";
     const promptSource = source.querySelector("[data-prompt]");
     const prompt = promptSource ? text(promptSource.textContent) : "Match the items below.";
     const pairSources = Array.from(source.querySelectorAll("[data-pair]"));
@@ -167,7 +168,6 @@
     });
 
     const options = shuffledCopy(pairs);
-    const markText = marks + " " + (marks === 1 ? "mark" : "marks");
     const readableItems = pairs.map(function (pair, pairIndex) {
       return "Item " + (pairIndex + 1) + ": " + pair.left;
     }).join(". ");
@@ -214,8 +214,8 @@
         data-matching-question-rendered
         data-question-id="${escapeHtml(questionId)}"
         data-question-title="${escapeHtml(title)}"
-        data-question-marks="${marks}">
-        <legend>${escapeHtml(title)} - ${escapeHtml(markText)}</legend>
+        data-formative-feedback="${escapeHtml(formativeFeedback)}">
+        <legend>${escapeHtml(title)}</legend>
 
         <button
           type="button"
@@ -240,7 +240,6 @@
         <div class="drag-actions no-print">
           <button type="button" class="glip-btn check-matching-btn">Check Answers</button>
           <button type="button" class="glip-btn glip-btn-secondary reset-matching-btn">Reset</button>
-          <span class="tracker-score matching-question-score">Score: 0 / ${marks}</span>
         </div>
 
         <div class="matching-feedback readable-section hidden" aria-live="polite">

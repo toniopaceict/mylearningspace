@@ -17,64 +17,26 @@
 
   function questionResult(question) {
     const zones = Array.from(question.querySelectorAll("[data-match-zone]"));
-    const marks = number(question.dataset.questionMarks);
     let correctCount = 0;
-
     const pairs = zones.map(function (zone, index) {
       const selectedKey = String(zone.dataset.selectedKey || "");
       const correctKey = String(zone.dataset.correctKey || "");
       const selectedText = String(zone.dataset.selectedValue || "");
       const isCorrect = !!selectedKey && selectedKey === correctKey;
       if (isCorrect) correctCount += 1;
-
       const item = zone.parentElement ? zone.parentElement.querySelector("span:first-child") : null;
       const correctOption = question.querySelector('[data-match-option][data-match-key="' + correctKey + '"]');
-
-      return {
-        pair_number: index + 1,
-        left_text: item ? item.textContent.trim() : "Item " + (index + 1),
-        selected_answer: selectedText,
-        correct_answer: correctOption ? correctOption.dataset.value || correctOption.textContent.trim() : "",
-        is_correct: isCorrect
-      };
+      return { pair_number:index+1, left_text:item ? item.textContent.trim() : "Item " + (index+1), selected_answer:selectedText, correct_answer:correctOption ? correctOption.dataset.value || correctOption.textContent.trim() : "", is_correct:isCorrect };
     });
-
-    const pairCount = zones.length;
-    const awarded = pairCount > 0 ? roundMark(marks * correctCount / pairCount) : 0;
-
-    return {
-      question_id: question.dataset.questionId || "",
-      question_title: question.dataset.questionTitle || "Question",
-      question_marks: marks,
-      awarded_marks: awarded,
-      correct_pairs: correctCount,
-      total_pairs: pairCount,
-      pairs: pairs
-    };
+    return { question_id:question.dataset.questionId || "", question_title:question.dataset.questionTitle || "Question", correct_pairs:correctCount, total_pairs:zones.length, all_correct:zones.length > 0 && correctCount === zones.length, pairs:pairs };
   }
 
   function getResult(root) {
     const scope = root && root.querySelectorAll ? root : document;
-    const questions = Array.from(scope.querySelectorAll(".matching-question"));
-    const results = questions.map(questionResult);
-
-    const totalMarks = roundMark(results.reduce(function (sum, q) {
-      return sum + number(q.question_marks);
-    }, 0));
-    const score = roundMark(results.reduce(function (sum, q) {
-      return sum + number(q.awarded_marks);
-    }, 0));
-    const complete = results.length > 0 && results.every(function (q) {
-      return q.pairs.every(function (pair) { return !!pair.selected_answer; });
-    });
-
-    return {
-      questions: results,
-      score: score,
-      total_marks: totalMarks,
-      percentage: totalMarks > 0 ? Math.round((score / totalMarks) * 100) : 0,
-      complete: complete
-    };
+    const results = Array.from(scope.querySelectorAll(".matching-question")).map(questionResult);
+    const complete = results.length > 0 && results.every(function (q) { return q.pairs.every(function (pair) { return !!pair.selected_answer; }); });
+    const allCorrect = complete && results.every(function (q) { return q.all_correct; });
+    return { questions:results, complete:complete, all_correct:allCorrect };
   }
 
   function setupQuestion(question) {
@@ -85,7 +47,6 @@
     const zones = Array.from(question.querySelectorAll("[data-match-zone]"));
     const checkBtn = question.querySelector(".check-matching-btn");
     const resetBtn = question.querySelector(".reset-matching-btn");
-    const scoreBox = question.querySelector(".matching-question-score");
     const feedback = question.querySelector(".matching-feedback");
     const feedbackText = question.querySelector(".matching-feedback-text");
     let selectedKey = "";
@@ -213,17 +174,15 @@
       });
 
       const result = questionResult(question);
-      if (scoreBox) {
-        scoreBox.textContent = "Score: " + formatMark(result.awarded_marks) + " / " + formatMark(result.question_marks);
-      }
       if (feedbackText) {
-        feedbackText.textContent = result.correct_pairs === result.total_pairs
-          ? "Correct. All items have been matched correctly."
+        const summary = result.all_correct
+          ? "You matched all " + result.total_pairs + " items correctly."
           : "You matched " + result.correct_pairs + " out of " + result.total_pairs + " items correctly.";
+        const explanation = String(question.dataset.formativeFeedback || "").trim();
+        feedbackText.textContent = summary + (explanation ? " " + explanation : "");
       }
       if (feedback) feedback.classList.remove("hidden");
-      lock(true);
-      document.dispatchEvent(new CustomEvent("glipMatchingChecked"));
+      document.dispatchEvent(new CustomEvent("glipMatchingChecked", { detail: { allCorrect: result.all_correct } }));
     }
 
     function resetAnswers() {
@@ -233,9 +192,6 @@
         option.classList.remove("selected");
         option.style.opacity = "";
       });
-      if (scoreBox) {
-        scoreBox.textContent = "Score: 0 / " + formatMark(number(question.dataset.questionMarks));
-      }
       clearFeedback();
       lock(false);
       document.dispatchEvent(new CustomEvent("glipMatchingChanged"));

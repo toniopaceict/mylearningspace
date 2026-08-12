@@ -12,7 +12,7 @@
       const options = question.querySelectorAll(".drag-option");
       const zones = question.querySelectorAll(".drop-zone");
       const feedback = question.querySelector(".drag-drop-feedback");
-      const scoreBox = question.querySelector(".drag-drop-score");
+      const feedbackBox = question.querySelector(".drag-feedback-box");
       const checkBtn = question.querySelector(".check-drag-drop-btn");
       const resetBtn = question.querySelector(".reset-drag-drop-btn");
 
@@ -75,94 +75,39 @@
         if (feedback) {
           feedback.textContent = "";
           feedback.style.color = "#0b3c6f";
+          if (feedbackBox) feedbackBox.classList.add("hidden");
         }
+        document.dispatchEvent(new CustomEvent("glipFillBlankChanged"));
       }
 
       function checkAnswers() {
-      const total = zones.length;
-    
-      const unfilledZones = [...zones].filter(
-        zone => !(zone.dataset.selected || "").trim()
-      );
-    
-      zones.forEach(zone => {
-        zone.classList.remove("missing");
-      });
-    
-      unfilledZones.forEach(zone => {
-        zone.classList.add("missing");
-      });
-    
-      if (unfilledZones.length > 0) {
+        const total = zones.length;
+        const unfilledZones = [...zones].filter(zone => !(zone.dataset.selected || "").trim());
+        zones.forEach(zone => zone.classList.remove("missing"));
+        unfilledZones.forEach(zone => zone.classList.add("missing"));
+        if (unfilledZones.length > 0) {
+          if (feedback) { feedback.textContent = `Please complete all ${total} blanks before checking your answers.`; feedback.style.color = "#b3261e"; }
+          if (feedbackBox) feedbackBox.classList.remove("hidden");
+          return;
+        }
+        let correctCount = 0;
+        zones.forEach(zone => {
+          const selected = (zone.dataset.selected || "").trim().toLowerCase();
+          const correct = (zone.dataset.correct || "").trim().toLowerCase();
+          const isCorrect = selected === correct;
+          zone.classList.toggle("correct", isCorrect);
+          zone.classList.toggle("incorrect", !isCorrect);
+          if (isCorrect) correctCount += 1;
+        });
         if (feedback) {
-          feedback.textContent =
-            `Please complete all ${total} blanks before checking your answers.`;
-    
-          feedback.style.color = "#b3261e";
+          const summary = correctCount === total ? `You completed all ${total} blanks correctly.` : `You completed ${correctCount} out of ${total} blanks correctly.`;
+          const explanation = (question.dataset.formativeFeedback || "").trim();
+          feedback.textContent = summary + (explanation ? " " + explanation : "");
+          feedback.style.color = correctCount === total ? "#137333" : "#b3261e";
         }
-    
-        return;
+        if (feedbackBox) feedbackBox.classList.remove("hidden");
+        document.dispatchEvent(new CustomEvent("glipFillBlankChecked", { detail: { allCorrect: correctCount === total } }));
       }
-    
-      let score = 0;
-    
-      zones.forEach(zone => {
-        const selected = (zone.dataset.selected || "").trim().toLowerCase();
-        const correct = (zone.dataset.correct || "").trim().toLowerCase();
-    
-        const isCorrect = selected === correct;
-    
-        zone.classList.toggle("correct", isCorrect);
-        zone.classList.toggle("incorrect", !isCorrect);
-    
-        if (isCorrect) score += 1;
-      });
-    
-      if (scoreBox) {
-        scoreBox.textContent = `Score: ${score} / ${total}`;
-      }
-    
-      if (feedback) {
-        if (score === total) {
-          feedback.textContent =
-            "Correct. All answers are in the correct blanks.";
-    
-          feedback.style.color = "#137333";
-        } else {
-          feedback.textContent =
-            `You scored ${score} out of ${total}. Review the highlighted blanks before moving on.`;
-    
-          feedback.style.color = "#b3261e";
-        }
-      }
-    
-      /* Lock only this question */
-    
-      zones.forEach(zone => {
-        zone.setAttribute("aria-disabled", "true");
-        zone.style.pointerEvents = "none";
-      });
-    
-      options.forEach(option => {
-        option.setAttribute("aria-disabled", "true");
-        option.draggable = false;
-        option.style.pointerEvents = "none";
-        option.style.opacity = "0.65";
-      });
-    
-      if (checkBtn) {
-        checkBtn.disabled = true;
-      }
-    
-      if (resetBtn) {
-        resetBtn.style.display = "none";
-      }
-    }
-
-
-
-
-      
 
       function resetAnswers() {
         zones.forEach((zone, index) => {
@@ -181,13 +126,9 @@
         selectedValue = "";
         options.forEach(item => item.classList.remove("selected"));
 
-        if (scoreBox) {
-          scoreBox.textContent = `Score: 0 / ${zones.length}`;
-        }
-
-        if (feedback) {
-          feedback.textContent = "";
-        }
+        if (feedback) feedback.textContent = "";
+        if (feedbackBox) feedbackBox.classList.add("hidden");
+        document.dispatchEvent(new CustomEvent("glipFillBlankChanged"));
       }
 
       if (checkBtn) checkBtn.addEventListener("click", checkAnswers);

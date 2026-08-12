@@ -151,6 +151,8 @@
     const instructionsSource = source.querySelector("[data-instructions]");
     const sentenceSource = source.querySelector("[data-sentence]");
     const optionsSource = source.querySelector("[data-options]");
+    const feedbackSource = source.querySelector("[data-feedback]");
+    const formativeFeedback = feedbackSource ? text(feedbackSource.textContent) : "Review the ideas in this task and try again.";
 
     if (!sentenceSource) {
       throw new Error(title + " does not contain a data-sentence element.");
@@ -177,7 +179,7 @@
     }).join("");
 
     return `
-      <fieldset class="task-box readable-section drag-drop-question">
+      <fieldset class="task-box readable-section drag-drop-question" data-formative-feedback="${escapeHtml(formativeFeedback)}">
         <legend>${escapeHtml(title)}</legend>
 
         <button
@@ -206,10 +208,12 @@
           <div class="drag-actions no-print">
             <button type="button" class="glip-btn check-drag-drop-btn">Check Answers</button>
             <button type="button" class="glip-btn glip-btn-secondary reset-drag-drop-btn">Reset</button>
-            <span class="tracker-score drag-drop-score">Score: 0 / ${sentence.blankCount}</span>
           </div>
 
-          <p class="drag-feedback drag-drop-feedback" role="status" aria-live="polite"></p>
+          <div class="drag-feedback-box readable-section hidden">
+            <button type="button" class="speak-btn no-print" onclick="speakSection(this)" aria-label="Read the feedback aloud">🔊</button>
+            <p class="drag-feedback drag-drop-feedback" data-read role="status" aria-live="polite"></p>
+          </div>
         </div>
       </fieldset>
     `;

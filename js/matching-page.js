@@ -28,15 +28,7 @@
     message.className = "panel-message text-center" + (type ? " " + type : "") + (value ? "" : " hidden");
   }
 
-  function updatePdfScore() {
-    const scoreBox = document.getElementById("matchingPdfScore");
-    if (!scoreBox) return;
-    const result = getResult();
-    const format = window.GLIPMatching && window.GLIPMatching.formatMark
-      ? window.GLIPMatching.formatMark
-      : function (value) { return String(value || 0); };
-    scoreBox.textContent = "Score: " + format(result.score) + " / " + format(result.total_marks);
-  }
+  function updatePdfScore() {}
 
   function isActivityCompleted() {
     const config = getConfig();
@@ -85,6 +77,14 @@
     if (progress) progress.classList.toggle("show", isSubmitting);
   }
 
+  function updateMasterySubmissionState() {
+    const button = document.getElementById("submitMatchingBtn");
+    if (!button || button.dataset.completionMode === "incomplete") return;
+    const result = getResult();
+    button.disabled = !result.all_correct;
+    button.title = result.all_correct ? "" : "Check your answers and correct all matches before submitting.";
+  }
+
   function submitMatchingAnswers() {
     const config = getConfig();
     const student = getStudentDetails();
@@ -120,9 +120,9 @@
         topic_name: config.topicName,
         activity_id: config.activityId,
         activity_title: config.subTitle || "Matching",
-        score: result.score,
-        total_marks: result.total_marks,
-        percentage: result.percentage,
+        score: 0,
+        total_marks: 0,
+        percentage: 0,
         answers_json: JSON.stringify(result.questions)
       })
     })
@@ -243,6 +243,7 @@
 
     setCompletionState(isActivityCompleted());
     updatePdfScore();
+    updateMasterySubmissionState();
     initialisePdf();
   }
 
@@ -253,8 +254,8 @@
     updatePdfScore();
     initialisePdf();
   });
-  document.addEventListener("glipMatchingChanged", updatePdfScore);
-  document.addEventListener("glipMatchingChecked", updatePdfScore);
+  document.addEventListener("glipMatchingChanged", function () { updatePdfScore(); updateMasterySubmissionState(); });
+  document.addEventListener("glipMatchingChecked", function () { updatePdfScore(); updateMasterySubmissionState(); });
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initialise, { once: true });

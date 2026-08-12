@@ -210,11 +210,14 @@
       setPanelMessage(options.messageId || "fillBlankPdfMessage", "Please complete all blanks before saving the PDF.", "error");
       return;
     }
+    if (answers.some(function (a) { return !a.isCorrect; })) {
+      setPanelMessage(options.messageId || "fillBlankPdfMessage", "Please correct all blanks before saving the PDF.", "error");
+      return;
+    }
 
     setPanelMessage(options.messageId || "fillBlankPdfMessage", "Preparing your PDF...", "info");
 
     const heading = getPageHeading();
-    const score = answers.filter(function (a) { return a.isCorrect; }).length;
     const pdf = new JsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
     const pageHeight = pdf.internal.pageSize.getHeight();
     const state = { y: 18 };
@@ -244,10 +247,6 @@
         { x: 18, maxWidth: 172, fontSize: 9, after: 4 });
     }
 
-    layout.addWrappedText(pdf, state,
-      "Score: " + score + " / " + answers.length,
-      { fontSize: 12, style: "bold", bottom: 22, after: 0 });
-
     layout.addFooter(pdf);
     pdf.save(buildLearnerFileName(metadata, heading.activity, options.fallbackName || "Fill in the Blanks"));
     setPanelMessage(options.messageId || "fillBlankPdfMessage", "Your PDF has been saved.", "success");
@@ -273,6 +272,10 @@
     const result = collectMatchingResult();
     if (!result.questions.length || !result.complete) {
       setPanelMessage(options.messageId || "matchingPdfMessage", "Please complete all matches before saving the PDF.", "error");
+      return;
+    }
+    if (!result.all_correct) {
+      setPanelMessage(options.messageId || "matchingPdfMessage", "Please correct all matches before saving the PDF.", "error");
       return;
     }
 
@@ -415,12 +418,7 @@
     pdf.setTextColor(18, 54, 91);
     pdf.text("Matching Result", left, state.y);
     pdf.setFontSize(11);
-    pdf.text(
-      "Score: " + result.score + " / " + result.total_marks + " (" + result.percentage + "%)",
-      pageWidth - right,
-      state.y,
-      { align: "right" }
-    );
+    pdf.text("Completed", pageWidth - right, state.y, { align: "right" });
     state.y += 3.2;
     pdf.setDrawColor(18, 54, 91);
     pdf.setLineWidth(0.35);
@@ -431,9 +429,7 @@
     const columnWidths = [50, 108, 22];
 
     result.questions.forEach(function (question, questionIndex) {
-      const questionHeading =
-        question.question_title +
-        " (" + question.awarded_marks + " / " + question.question_marks + " marks)";
+      const questionHeading = question.question_title + " – All " + question.total_pairs + " matches correct";
 
       // Give each new question breathing room from the previous table,
       // while keeping its own heading close to its table.
