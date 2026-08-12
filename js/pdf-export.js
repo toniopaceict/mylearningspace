@@ -251,31 +251,149 @@
     const heading = getPageHeading();
     const pdf = new JsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
     const pageHeight = pdf.internal.pageSize.getHeight();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const left = 15;
+    const right = 15;
+    const usableWidth = pageWidth - left - right;
     const state = { y: 18 };
     const metadata = await preparePdfBase(pdf, state);
-    layout.addWrappedText(pdf, state, "Matching Result", { fontSize: 13, style: "bold", after: 6 });
 
-    result.questions.forEach(function (question) {
-      if (state.y > pageHeight - 45) {
-        pdf.addPage();
-        state.y = 18;
+    function newPage() {
+      pdf.addPage();
+      state.y = 18;
+    }
+
+    function ensureSpace(requiredHeight) {
+      if (state.y + requiredHeight > pageHeight - 22) {
+        newPage();
+      }
+    }
+
+    function normalTextLines(value, width, size) {
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(size || 9.2);
+      return pdf.splitTextToSize(String(value == null ? "" : value), width);
+    }
+
+    function drawResultSymbol(isCorrect, x, y, width, height) {
+      const cx = x + width / 2;
+      const cy = y + height / 2;
+      pdf.setLineWidth(0.65);
+      pdf.setDrawColor(18, 54, 91);
+
+      if (isCorrect) {
+        pdf.line(cx - 3.2, cy, cx - 0.8, cy + 2.5);
+        pdf.line(cx - 0.8, cy + 2.5, cx + 4.0, cy - 3.0);
+      } else {
+        pdf.line(cx - 2.8, cy - 2.8, cx + 2.8, cy + 2.8);
+        pdf.line(cx + 2.8, cy - 2.8, cx - 2.8, cy + 2.8);
+      }
+    }
+
+    function drawTableHeader(columnWidths) {
+      const headers = ["Item", "Match selected", "Result"];
+      const headerHeight = 9;
+      ensureSpace(headerHeight + 4);
+
+      let x = left;
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(9);
+      pdf.setTextColor(18, 54, 91);
+      pdf.setFillColor(238, 244, 249);
+      pdf.setDrawColor(204, 216, 228);
+      pdf.setLineWidth(0.25);
+
+      headers.forEach(function (header, index) {
+        const w = columnWidths[index];
+        pdf.rect(x, state.y, w, headerHeight, "FD");
+        if (index === 2) {
+          pdf.text(header, x + w / 2, state.y + 5.8, { align: "center" });
+        } else {
+          pdf.text(header, x + 2.2, state.y + 5.8);
+        }
+        x += w;
+      });
+
+      state.y += headerHeight;
+    }
+
+    function drawMatchingRow(pair, columnWidths) {
+      const itemWidth = columnWidths[0] - 4.4;
+      const selectedWidth = columnWidths[1] - 4.4;
+      const itemLines = normalTextLines(pair.left_text, itemWidth, 9.2);
+      const selectedLines = normalTextLines(pair.selected_answer, selectedWidth, 9.2);
+      const correctLines = pair.is_correct
+        ? []
+        : normalTextLines("Correct match: " + pair.correct_answer, selectedWidth, 8.5);
+
+      const lineHeight = 4.2;
+      const selectedCount = selectedLines.length + correctLines.length;
+      const rowHeight = Math.max(
+        10,
+        4.2 + Math.max(itemLines.length, selectedCount) * lineHeight
+      );
+
+      if (state.y + rowHeight > pageHeight - 22) {
+        newPage();
+        drawTableHeader(columnWidths);
       }
 
-      layout.addWrappedText(pdf, state,
-        question.question_title + " - " + question.awarded_marks + " / " + question.question_marks + " marks",
-        { fontSize: 11, style: "bold", after: 4 });
-
-      question.pairs.forEach(function (pair) {
-        if (state.y > pageHeight - 32) {
-          pdf.addPage();
-          state.y = 18;
-        }
-        layout.addWrappedText(pdf, state, pair.left_text + " → " + pair.selected_answer,
-          { x: 18, maxWidth: 172, fontSize: 9.5, style: "bold", after: 1.5 });
-        layout.addWrappedText(pdf, state,
-          "Correct match: " + pair.correct_answer + " | " + (pair.is_correct ? "Correct" : "Incorrect"),
-          { x: 18, maxWidth: 172, fontSize: 9, after: 4 });
+      let x = left;
+      pdf.setDrawColor(204, 216, 228);
+      pdf.setLineWidth(0.25);
+      columnWidths.forEach(function (w) {
+        pdf.rect(x, state.y, w, rowHeight);
+        x += w;
       });
+
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(9.2);
+      pdf.setTextColor(18, 54, 91);
+      pdf.text(itemLines, left + 2.2, state.y + 5.3);
+      pdf.text(selectedLines, left + columnWidths[0] + 2.2, state.y + 5.3);
+
+      if (!pair.is_correct && correctLines.length) {
+        pdf.setFontSize(8.5);
+        pdf.text(
+          correctLines,
+          left + columnWidths[0] + 2.2,
+          state.y + 5.3 + selectedLines.length * lineHeight
+        );
+      }
+
+      drawResultSymbol(
+        !!pair.is_correct,
+        left + columnWidths[0] + columnWidths[1],
+        state.y,
+        columnWidths[2],
+        rowHeight
+      );
+
+      state.y += rowHeight;
+    }
+
+    layout.addWrappedText(pdf, state, "Matching Result", { fontSize: 13, style: "bold", after: 6 });
+
+    const columnWidths = [50, 108, 22];
+
+    result.questions.forEach(function (question) {
+      const questionHeading =
+        question.question_title +
+        " (" + question.awarded_marks + " / " + question.question_marks + " marks)";
+
+      ensureSpace(24);
+      layout.addWrappedText(pdf, state, questionHeading, {
+        fontSize: 11,
+        style: "bold",
+        maxWidth: usableWidth,
+        after: 4
+      });
+
+      drawTableHeader(columnWidths);
+      question.pairs.forEach(function (pair) {
+        drawMatchingRow(pair, columnWidths);
+      });
+      state.y += 7;
     });
 
     layout.addWrappedText(pdf, state,
