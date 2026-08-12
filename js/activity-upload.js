@@ -258,7 +258,7 @@
     // own controls. They must not also show the generic file-upload fieldset.
     const pageKind = String(config.pageKind || "").toLowerCase();
     const usesStructuredSubmission =
-      pageKind === "quiz" || pageKind === "fillblank" || pageKind === "reflection" || pageKind === "free-text";
+      pageKind === "quiz" || pageKind === "fillblank" || pageKind === "reflection" || pageKind === "free-text" || pageKind === "matching";
 
     const shouldShow =
       pageKind !== "topic-home" &&

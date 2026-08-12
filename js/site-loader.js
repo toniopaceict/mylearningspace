@@ -3,7 +3,7 @@
  
    
   
-  const GLIP_ASSET_VERSION = "468";
+  const GLIP_ASSET_VERSION = "469";
   const GLIP_BASE_URL = "https://toniopaceict.github.io/mylearningspace";
 
   const GLIP_PAGE_CHECK_CLASS = "glip-page-checking";
@@ -65,7 +65,7 @@
 
     if (pageKind !== "topic-home" && pageKind !== "lesson" &&
         pageKind !== "practice" && pageKind !== "quiz" &&
-        pageKind !== "fillblank" && pageKind !== "free-text") {
+        pageKind !== "fillblank" && pageKind !== "free-text" && pageKind !== "matching") {
       callback();
       return;
     }
@@ -119,6 +119,7 @@
     if (path.indexOf("topic-") !== -1 && path.indexOf("-home") !== -1) return "topic-home";
     if (path.indexOf("reflection") !== -1) return "reflection";
     if (path.indexOf("free_text") !== -1 || path.indexOf("free-text") !== -1) return "free-text";
+    if (path.indexOf("matching") !== -1) return "matching";
 
     return "";
   }
@@ -214,7 +215,7 @@ const managementScriptsByPage = {
 
     scripts.push("/js/accessibility.js");
 
-    if (["lesson", "practice", "quiz", "fillblank", "reflection", "free-text"].indexOf(pageKind) !== -1) {
+    if (["lesson", "practice", "quiz", "fillblank", "reflection", "free-text", "matching"].indexOf(pageKind) !== -1) {
       scripts.push("/js/activity-upload.js");
     }
 
@@ -236,6 +237,10 @@ const managementScriptsByPage = {
 
     if (pageKind === "fillblank") {
       scripts.push("/js/fill-blank-content-loader.js");
+    }
+
+    if (pageKind === "matching") {
+      scripts.push("/js/matching-content-loader.js");
     }
 
     if (pageKind === "lesson" || pageKind === "practice" || pageKind === "fillblank") {
@@ -276,6 +281,14 @@ const managementScriptsByPage = {
     if (pageKind === "free-text") {
       scripts.push("https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js");
       scripts.push("/js/free-text-page.js");
+    }
+
+    if (pageKind === "matching") {
+      scripts.push("/js/matching-engine.js");
+      scripts.push("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+      scripts.push("/js/glip-pdf.js");
+      scripts.push("/js/pdf-export.js");
+      scripts.push("/js/matching-page.js");
     }
 
     if (pageKind === "topic-home") {
@@ -365,6 +378,21 @@ const managementScriptsByPage = {
         Promise.resolve(window.GLIPQuizContent.load())
           .catch(function (error) {
             console.error("Quiz content could not be loaded.", error);
+          })
+          .finally(function () {
+            if (callback) callback();
+          });
+        return;
+      }
+
+      if (
+        pageKind === "matching" &&
+        window.GLIPMatchingContent &&
+        typeof window.GLIPMatchingContent.load === "function"
+      ) {
+        Promise.resolve(window.GLIPMatchingContent.load())
+          .catch(function (error) {
+            console.error("Matching content could not be loaded.", error);
           })
           .finally(function () {
             if (callback) callback();

@@ -223,6 +223,70 @@
     setPanelMessage(options.messageId || "fillBlankPdfMessage", "Your PDF has been saved.", "success");
   }
 
+
+  function collectMatchingResult() {
+    if (!window.GLIPMatching || typeof window.GLIPMatching.getResult !== "function") {
+      return { questions: [], score: 0, total_marks: 0, complete: false };
+    }
+    return window.GLIPMatching.getResult(document);
+  }
+
+  async function downloadMatchingPDF(options) {
+    options = options || {};
+    const layout = window.GLIPPdf;
+    const JsPDF = layout && layout.getJsPDF();
+    if (!JsPDF) {
+      setPanelMessage(options.messageId || "matchingPdfMessage", "PDF generation is not available. Please refresh the page and try again.", "error");
+      return;
+    }
+
+    const result = collectMatchingResult();
+    if (!result.questions.length || !result.complete) {
+      setPanelMessage(options.messageId || "matchingPdfMessage", "Please complete all matches before saving the PDF.", "error");
+      return;
+    }
+
+    setPanelMessage(options.messageId || "matchingPdfMessage", "Preparing your PDF...", "info");
+
+    const heading = getPageHeading();
+    const pdf = new JsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const state = { y: 18 };
+    const metadata = await preparePdfBase(pdf, state);
+    layout.addWrappedText(pdf, state, "Matching Result", { fontSize: 13, style: "bold", after: 6 });
+
+    result.questions.forEach(function (question) {
+      if (state.y > pageHeight - 45) {
+        pdf.addPage();
+        state.y = 18;
+      }
+
+      layout.addWrappedText(pdf, state,
+        question.question_title + " - " + question.awarded_marks + " / " + question.question_marks + " marks",
+        { fontSize: 11, style: "bold", after: 4 });
+
+      question.pairs.forEach(function (pair) {
+        if (state.y > pageHeight - 32) {
+          pdf.addPage();
+          state.y = 18;
+        }
+        layout.addWrappedText(pdf, state, pair.left_text + " → " + pair.selected_answer,
+          { x: 18, maxWidth: 172, fontSize: 9.5, style: "bold", after: 1.5 });
+        layout.addWrappedText(pdf, state,
+          "Correct match: " + pair.correct_answer + " | " + (pair.is_correct ? "Correct" : "Incorrect"),
+          { x: 18, maxWidth: 172, fontSize: 9, after: 4 });
+      });
+    });
+
+    layout.addWrappedText(pdf, state,
+      "Score: " + result.score + " / " + result.total_marks + " (" + result.percentage + "%)",
+      { fontSize: 12, style: "bold", bottom: 22, after: 0 });
+
+    layout.addFooter(pdf);
+    pdf.save(buildLearnerFileName(metadata, heading.activity, options.fallbackName || "Matching"));
+    setPanelMessage(options.messageId || "matchingPdfMessage", "Your PDF has been saved.", "success");
+  }
+
   function bindButton(buttonId, handler) {
     const button = document.getElementById(buttonId);
     if (!button || button.dataset.tonioPdfBound === "true") return;
@@ -242,10 +306,18 @@
     return { download: function () { downloadFillBlankPDF(options); } };
   }
 
+  function initMatchingPdfExport(config) {
+    const options = Object.assign({ buttonId: "saveMatchingPdfBtn", fallbackName: "Matching", messageId: "matchingPdfMessage" }, config || {});
+    bindButton(options.buttonId, function () { downloadMatchingPDF(options); });
+    return { download: function () { downloadMatchingPDF(options); } };
+  }
+
   window.TonioPdfExport = {
     initQuizPdfExport: initQuizPdfExport,
     initFillBlankPdfExport: initFillBlankPdfExport,
+    initMatchingPdfExport: initMatchingPdfExport,
     downloadQuizPDF: downloadQuizPDF,
-    downloadFillBlankPDF: downloadFillBlankPDF
+    downloadFillBlankPDF: downloadFillBlankPDF,
+    downloadMatchingPDF: downloadMatchingPDF
   };
 })(window);
