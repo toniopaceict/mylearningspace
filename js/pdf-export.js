@@ -278,15 +278,15 @@
     function drawResultSymbol(isCorrect, x, y, width, height) {
       const cx = x + width / 2;
       const cy = y + height / 2;
-      pdf.setLineWidth(0.4);
+      pdf.setLineWidth(0.3);
       pdf.setDrawColor(18, 54, 91);
 
       if (isCorrect) {
-        pdf.line(cx - 1.8, cy, cx - 0.5, cy + 1.4);
-        pdf.line(cx - 0.5, cy + 1.4, cx + 2.3, cy - 1.8);
+        pdf.line(cx - 1.3, cy, cx - 0.3, cy + 1.0);
+        pdf.line(cx - 0.3, cy + 1.0, cx + 1.6, cy - 1.2);
       } else {
-        pdf.line(cx - 1.7, cy - 1.7, cx + 1.7, cy + 1.7);
-        pdf.line(cx + 1.7, cy - 1.7, cx - 1.7, cy + 1.7);
+        pdf.line(cx - 1.2, cy - 1.2, cx + 1.2, cy + 1.2);
+        pdf.line(cx + 1.2, cy - 1.2, cx - 1.2, cy + 1.2);
       }
     }
 
@@ -412,8 +412,11 @@
         fontSize: 11,
         style: "bold",
         maxWidth: usableWidth,
-        after: 1.5
+        after: 0
       });
+
+      // Keep the question title visually attached to its own table.
+      state.y = Math.max(18, state.y - 2);
 
       drawTableHeader(columnWidths);
       question.pairs.forEach(function (pair) {
