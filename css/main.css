@@ -4246,3 +4246,85 @@ body.glip-management-page::before {
   font-size: 0.85rem;
   color: #425b73;
 }
+
+
+/* =========================================================
+   SORTING ACTIVITY
+   ========================================================= */
+.sorting-list {
+  list-style: none;
+  margin: var(--space-md) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.sorting-item {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto 28px;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 9px 10px;
+  border: 1px solid rgba(11, 60, 111, 0.22);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.12s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.sorting-item:hover { box-shadow: var(--shadow-md); }
+.sorting-item:active, .sorting-item.dragging { cursor: grabbing; }
+.sorting-item.dragging { opacity: 0.65; transform: scale(0.99); }
+.sorting-item.correct { border-color: var(--color-success); background: #eaf5ee; }
+.sorting-item.incorrect { border-color: var(--color-danger); background: #fce8e6; }
+
+.sorting-handle {
+  font-size: 1.15rem;
+  line-height: 1;
+  color: rgba(11, 60, 111, 0.65);
+}
+
+.sorting-position { font-weight: 700; min-width: 24px; }
+.sorting-item-text { min-width: 0; overflow-wrap: anywhere; }
+
+.sorting-move-controls { display: inline-flex; gap: 4px; }
+.sorting-move-btn {
+  width: 32px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(11, 60, 111, 0.25);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  color: var(--color-primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+}
+.sorting-move-btn:hover:not(:disabled) { background: var(--color-panel-bg); }
+.sorting-move-btn:disabled { opacity: 0.35; cursor: default; }
+.sorting-result-symbol { text-align: center; font-weight: 700; font-size: 1rem; }
+.sorting-item.correct .sorting-result-symbol { color: var(--color-success); }
+.sorting-item.incorrect .sorting-result-symbol { color: var(--color-danger); }
+
+@media (max-width: 600px) {
+  .sorting-item {
+    grid-template-columns: auto auto minmax(0, 1fr) 28px;
+  }
+  .sorting-move-controls {
+    grid-column: 3 / 4;
+    margin-top: 2px;
+  }
+  .sorting-result-symbol { grid-column: 4 / 5; grid-row: 1 / span 2; }
+}
+
+@media print {
+  .sorting-handle,
+  .sorting-move-controls { display: none !important; }
+}

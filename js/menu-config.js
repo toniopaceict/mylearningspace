@@ -49,6 +49,7 @@
       reflection: "End-of-Topic Reflection",
       "free-text": "Free Text",
       matching: "Matching",
+      sorting: "Sorting",
       checkpoint: "CheckPoint"
     };
     return labels[normalised] || normalised.replace(/(^|-)([a-z])/g, function (_, dash, letter) {
@@ -111,7 +112,7 @@
           topic_id: topicId,
           activity_id: activity.activity_id || ""
         }).toString();
-       } else if (type === "lesson" || type === "practice" || type === "quiz" || type === "free-text" || type === "fill-blanks" || type === "fillblank" || type === "matching") {
+       } else if (type === "lesson" || type === "practice" || type === "quiz" || type === "free-text" || type === "fill-blanks" || type === "fillblank" || type === "matching" || type === "sorting") {
         const sharedFile = type === "lesson"
           ? "lesson.html"
           : type === "practice"
@@ -122,7 +123,9 @@
               ? "free-text.html"
               : type === "matching"
                 ? "matching.html"
-                : "fill-blanks.html";
+                : type === "sorting"
+                  ? "sorting.html"
+                  : "fill-blanks.html";
         url = (baseUrl || "../../..") + "/shared/activities/" + sharedFile + "?" + new URLSearchParams({
           school: school,
           curriculum_id: curriculumId,

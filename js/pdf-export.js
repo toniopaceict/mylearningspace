@@ -547,6 +547,126 @@
     setPanelMessage(options.messageId || "matchingPdfMessage", "Your PDF has been saved.", "success");
   }
 
+
+  function collectSortingResult() {
+    if (!window.GLIPSorting || typeof window.GLIPSorting.getResult !== "function") {
+      return { questions: [], complete: false, all_correct: false };
+    }
+    return window.GLIPSorting.getResult(document);
+  }
+
+  async function downloadSortingPDF(options) {
+    options = options || {};
+    const layout = window.GLIPPdf;
+    const JsPDF = layout && layout.getJsPDF();
+    if (!JsPDF) {
+      setPanelMessage(options.messageId || "sortingPdfMessage", "PDF generation is not available. Please refresh the page and try again.", "error");
+      return;
+    }
+
+    const result = collectSortingResult();
+    if (!result.questions.length || !result.all_correct) {
+      setPanelMessage(options.messageId || "sortingPdfMessage", "Please correctly order all items before saving the PDF.", "error");
+      return;
+    }
+
+    setPanelMessage(options.messageId || "sortingPdfMessage", "Preparing your PDF...", "info");
+
+    const heading = getPageHeading();
+    const pdf = new JsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const left = 15;
+    const right = 15;
+    const usableWidth = pageWidth - left - right;
+    const state = { y: 18 };
+    const metadata = await preparePdfBase(pdf, state);
+
+    function newPage() { pdf.addPage(); state.y = 18; }
+    function ensureSpace(requiredHeight) { if (state.y + requiredHeight > pageHeight - 22) newPage(); }
+
+    function drawTick(x, y, width, height) {
+      const cx = x + width / 2;
+      const cy = y + height / 2;
+      pdf.setLineWidth(0.3);
+      pdf.setDrawColor(18, 54, 91);
+      pdf.line(cx - 1.3, cy, cx - 0.3, cy + 1.0);
+      pdf.line(cx - 0.3, cy + 1.0, cx + 1.6, cy - 1.2);
+    }
+
+    function drawHeader(columnWidths) {
+      const headers = ["Position", "Item", "Result"];
+      const headerHeight = 9;
+      ensureSpace(headerHeight + 4);
+      let x = left;
+      headers.forEach(function (header, index) {
+        const w = columnWidths[index];
+        pdf.setFillColor(238, 244, 249);
+        pdf.setDrawColor(204, 216, 228);
+        pdf.setTextColor(18, 54, 91);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(9);
+        pdf.rect(x, state.y, w, headerHeight, "FD");
+        if (index === 0 || index === 2) pdf.text(header, x + w / 2, state.y + 5.8, { align: "center" });
+        else pdf.text(header, x + 2.2, state.y + 5.8);
+        x += w;
+      });
+      state.y += headerHeight;
+    }
+
+    function drawRow(item, columnWidths) {
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(9.2);
+      const itemLines = pdf.splitTextToSize(String(item.item_text || ""), columnWidths[1] - 4.4);
+      const rowHeight = Math.max(10, 4.2 + itemLines.length * 4.2);
+      if (state.y + rowHeight > pageHeight - 22) {
+        newPage();
+        drawHeader(columnWidths);
+      }
+      let x = left;
+      pdf.setDrawColor(204, 216, 228);
+      pdf.setLineWidth(0.25);
+      columnWidths.forEach(function (w) { pdf.rect(x, state.y, w, rowHeight); x += w; });
+      pdf.setTextColor(18, 54, 91);
+      pdf.text(String(item.selected_position || ""), left + columnWidths[0] / 2, state.y + 5.3, { align: "center" });
+      pdf.text(itemLines, left + columnWidths[0] + 2.2, state.y + 5.3);
+      drawTick(left + columnWidths[0] + columnWidths[1], state.y, columnWidths[2], rowHeight);
+      state.y += rowHeight;
+    }
+
+    ensureSpace(14);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(13);
+    pdf.setTextColor(18, 54, 91);
+    pdf.text("Sorting Result", left, state.y);
+    pdf.setFontSize(11);
+    pdf.text("Completed", pageWidth - right, state.y, { align: "right" });
+    state.y += 3.2;
+    pdf.setDrawColor(18, 54, 91);
+    pdf.setLineWidth(0.35);
+    pdf.line(left, state.y, pageWidth - right, state.y);
+    state.y += 10.5;
+
+    const columnWidths = [28, 130, 22];
+    result.questions.forEach(function (question, questionIndex) {
+      if (questionIndex > 0) state.y += 10;
+      ensureSpace(22);
+      layout.addWrappedText(pdf, state,
+        question.question_title + " – All " + question.total_items + " items correctly ordered",
+        { fontSize: 11, style: "bold", maxWidth: usableWidth, after: 0 }
+      );
+      state.y = Math.max(18, state.y - 2);
+      drawHeader(columnWidths);
+      question.items.forEach(function (item) { drawRow(item, columnWidths); });
+    });
+
+    layout.addFooter(pdf);
+    const fileName = buildLearnerFileName(metadata, heading.activity, options.fallbackName || "Sorting")
+      .replace(/\.pdf$/i, "_v1.pdf");
+    pdf.save(fileName);
+    setPanelMessage(options.messageId || "sortingPdfMessage", "Your PDF has been saved.", "success");
+  }
+
   function bindButton(buttonId, handler) {
     const button = document.getElementById(buttonId);
     if (!button || button.dataset.tonioPdfBound === "true") return;
@@ -572,12 +692,20 @@
     return { download: function () { downloadMatchingPDF(options); } };
   }
 
+  function initSortingPdfExport(config) {
+    const options = Object.assign({ buttonId: "saveSortingPdfBtn", fallbackName: "Sorting", messageId: "sortingPdfMessage" }, config || {});
+    bindButton(options.buttonId, function () { downloadSortingPDF(options); });
+    return { download: function () { downloadSortingPDF(options); } };
+  }
+
   window.TonioPdfExport = {
     initQuizPdfExport: initQuizPdfExport,
     initFillBlankPdfExport: initFillBlankPdfExport,
     initMatchingPdfExport: initMatchingPdfExport,
+    initSortingPdfExport: initSortingPdfExport,
     downloadQuizPDF: downloadQuizPDF,
     downloadFillBlankPDF: downloadFillBlankPDF,
-    downloadMatchingPDF: downloadMatchingPDF
+    downloadMatchingPDF: downloadMatchingPDF,
+    downloadSortingPDF: downloadSortingPDF
   };
 })(window);

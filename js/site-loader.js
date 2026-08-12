@@ -3,7 +3,7 @@
  
    
   
-  const GLIP_ASSET_VERSION = "478";
+  const GLIP_ASSET_VERSION = "479";
   const GLIP_BASE_URL = "https://toniopaceict.github.io/mylearningspace";
 
   const GLIP_PAGE_CHECK_CLASS = "glip-page-checking";
@@ -65,7 +65,7 @@
 
     if (pageKind !== "topic-home" && pageKind !== "lesson" &&
         pageKind !== "practice" && pageKind !== "quiz" &&
-        pageKind !== "fillblank" && pageKind !== "free-text" && pageKind !== "matching") {
+        pageKind !== "fillblank" && pageKind !== "free-text" && pageKind !== "matching" && pageKind !== "sorting") {
       callback();
       return;
     }
@@ -120,6 +120,7 @@
     if (path.indexOf("reflection") !== -1) return "reflection";
     if (path.indexOf("free_text") !== -1 || path.indexOf("free-text") !== -1) return "free-text";
     if (path.indexOf("matching") !== -1) return "matching";
+    if (path.indexOf("sorting") !== -1) return "sorting";
 
     return "";
   }
@@ -215,7 +216,7 @@ const managementScriptsByPage = {
 
     scripts.push("/js/accessibility.js");
 
-    if (["lesson", "practice", "quiz", "fillblank", "reflection", "free-text", "matching"].indexOf(pageKind) !== -1) {
+    if (["lesson", "practice", "quiz", "fillblank", "reflection", "free-text", "matching", "sorting"].indexOf(pageKind) !== -1) {
       scripts.push("/js/activity-upload.js");
     }
 
@@ -241,6 +242,10 @@ const managementScriptsByPage = {
 
     if (pageKind === "matching") {
       scripts.push("/js/matching-content-loader.js");
+    }
+
+    if (pageKind === "sorting") {
+      scripts.push("/js/sorting-content-loader.js");
     }
 
     if (pageKind === "lesson" || pageKind === "practice" || pageKind === "fillblank") {
@@ -289,6 +294,14 @@ const managementScriptsByPage = {
       scripts.push("/js/glip-pdf.js");
       scripts.push("/js/pdf-export.js");
       scripts.push("/js/matching-page.js");
+    }
+
+    if (pageKind === "sorting") {
+      scripts.push("/js/sorting-engine.js");
+      scripts.push("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+      scripts.push("/js/glip-pdf.js");
+      scripts.push("/js/pdf-export.js");
+      scripts.push("/js/sorting-page.js");
     }
 
     if (pageKind === "topic-home") {
@@ -393,6 +406,21 @@ const managementScriptsByPage = {
         Promise.resolve(window.GLIPMatchingContent.load())
           .catch(function (error) {
             console.error("Matching content could not be loaded.", error);
+          })
+          .finally(function () {
+            if (callback) callback();
+          });
+        return;
+      }
+
+      if (
+        pageKind === "sorting" &&
+        window.GLIPSortingContent &&
+        typeof window.GLIPSortingContent.load === "function"
+      ) {
+        Promise.resolve(window.GLIPSortingContent.load())
+          .catch(function (error) {
+            console.error("Sorting content could not be loaded.", error);
           })
           .finally(function () {
             if (callback) callback();

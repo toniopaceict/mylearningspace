@@ -108,7 +108,7 @@
       }).toString();
     }
 
-    if (type === "lesson" || type === "practice" || type === "quiz" || type === "free-text" || type === "fill-blanks" || type === "fillblank" || type === "matching") {
+    if (type === "lesson" || type === "practice" || type === "quiz" || type === "free-text" || type === "fill-blanks" || type === "fillblank" || type === "matching" || type === "sorting") {
       const baseUrl = text(window.GLIP_BASE_URL).replace(/\/$/, "");
       const sharedBase = baseUrl || text(context.base_url || "").replace(/\/$/, "");
       const sharedFile = type === "lesson"
@@ -121,7 +121,9 @@
             ? "free-text.html"
             : type === "matching"
               ? "matching.html"
-              : "fill-blanks.html";
+              : type === "sorting"
+                ? "sorting.html"
+                : "fill-blanks.html";
       return sharedBase
         ? sharedBase + "/shared/activities/" + sharedFile + (query ? "?" + query : "")
         : "";
