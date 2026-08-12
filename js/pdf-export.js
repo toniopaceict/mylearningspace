@@ -66,6 +66,36 @@
   async function preparePdfBase(pdf, state) {
     const layout = window.GLIPPdf;
     const metadata = await layout.getActivityMetadata();
+
+    // If the richer server PDF context is unavailable or incomplete,
+    // complete the student identity from the login session.
+    const sessionFirstName = String(
+      sessionStorage.getItem("glipStudentName") || ""
+    ).trim();
+    const sessionSurname = String(
+      sessionStorage.getItem("glipStudentSurname") || ""
+    ).trim();
+    const sessionFullName = String(
+      sessionStorage.getItem("glipStudentFullName") || ""
+    ).trim();
+
+    if (!String(metadata.student_name || "").trim() && sessionFirstName) {
+      metadata.student_name = sessionFirstName;
+    }
+
+    if (!String(metadata.student_surname || "").trim() && sessionSurname) {
+      metadata.student_surname = sessionSurname;
+    }
+
+    if (!String(metadata.student || "").trim()) {
+      metadata.student =
+        sessionFullName ||
+        [metadata.student_name, metadata.student_surname]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+    }
+
     state.y = await layout.addHeader(pdf, {
       title: "GLIP Activity Submission",
       subtitle: "Guided Learning for Independent Progress"
@@ -395,7 +425,8 @@
     pdf.setDrawColor(18, 54, 91);
     pdf.setLineWidth(0.35);
     pdf.line(left, state.y, pageWidth - right, state.y);
-    state.y += 6.5;
+    // Leave a clear visual gap between the result heading and Question 1.
+    state.y += 10.5;
 
     const columnWidths = [50, 108, 22];
 
@@ -406,7 +437,7 @@
 
       // Give each new question breathing room from the previous table,
       // while keeping its own heading close to its table.
-      if (questionIndex > 0) state.y += 6;
+      if (questionIndex > 0) state.y += 10;
       ensureSpace(22);
       layout.addWrappedText(pdf, state, questionHeading, {
         fontSize: 11,
