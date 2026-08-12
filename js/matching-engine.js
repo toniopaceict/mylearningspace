@@ -57,9 +57,16 @@
       });
     }
 
+    function setFeedbackState(type) {
+      if (!feedback) return;
+      feedback.classList.remove("hidden", "ok", "err");
+      if (type === "ok" || type === "err") feedback.classList.add(type);
+      else feedback.classList.add("hidden");
+    }
+
     function clearFeedback() {
       if (feedbackText) feedbackText.textContent = "";
-      if (feedback) feedback.classList.add("hidden");
+      setFeedbackState("");
     }
 
     function selectOption(option) {
@@ -163,7 +170,7 @@
 
       if (missing.length) {
         if (feedbackText) feedbackText.textContent = "Please complete all matches before checking your answers.";
-        if (feedback) feedback.classList.remove("hidden");
+        setFeedbackState("err");
         return;
       }
 
@@ -181,7 +188,7 @@
         const explanation = String(question.dataset.formativeFeedback || "").trim();
         feedbackText.textContent = summary + (explanation ? " " + explanation : "");
       }
-      if (feedback) feedback.classList.remove("hidden");
+      setFeedbackState(result.all_correct ? "ok" : "err");
       document.dispatchEvent(new CustomEvent("glipMatchingChecked", { detail: { allCorrect: result.all_correct } }));
     }
 

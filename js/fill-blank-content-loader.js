@@ -210,9 +210,9 @@
             <button type="button" class="glip-btn glip-btn-secondary reset-drag-drop-btn">Reset</button>
           </div>
 
-          <div class="drag-feedback-box readable-section hidden">
+          <div class="drag-feedback-box fb readable-section hidden">
             <button type="button" class="speak-btn no-print" onclick="speakSection(this)" aria-label="Read the feedback aloud">🔊</button>
-            <p class="drag-feedback drag-drop-feedback" data-read role="status" aria-live="polite"></p>
+            <span class="drag-drop-feedback" data-read role="status" aria-live="polite"></span>
           </div>
         </div>
       </fieldset>

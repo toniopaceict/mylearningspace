@@ -59,6 +59,13 @@
         });
       });
 
+      function setFeedbackState(type) {
+        if (!feedbackBox) return;
+        feedbackBox.classList.remove("hidden", "ok", "err");
+        if (type === "ok" || type === "err") feedbackBox.classList.add(type);
+        else feedbackBox.classList.add("hidden");
+      }
+
       function setZoneAnswer(zone, value) {
         zone.classList.remove(
           "drag-over",
@@ -72,11 +79,8 @@
 
         zone.classList.add("filled");
 
-        if (feedback) {
-          feedback.textContent = "";
-          feedback.style.color = "#0b3c6f";
-          if (feedbackBox) feedbackBox.classList.add("hidden");
-        }
+        if (feedback) feedback.textContent = "";
+        setFeedbackState("");
         document.dispatchEvent(new CustomEvent("glipFillBlankChanged"));
       }
 
@@ -86,8 +90,8 @@
         zones.forEach(zone => zone.classList.remove("missing"));
         unfilledZones.forEach(zone => zone.classList.add("missing"));
         if (unfilledZones.length > 0) {
-          if (feedback) { feedback.textContent = `Please complete all ${total} blanks before checking your answers.`; feedback.style.color = "#b3261e"; }
-          if (feedbackBox) feedbackBox.classList.remove("hidden");
+          if (feedback) feedback.textContent = `Please complete all ${total} blanks before checking your answers.`;
+          setFeedbackState("err");
           return;
         }
         let correctCount = 0;
@@ -103,9 +107,8 @@
           const summary = correctCount === total ? `You completed all ${total} blanks correctly.` : `You completed ${correctCount} out of ${total} blanks correctly.`;
           const explanation = (question.dataset.formativeFeedback || "").trim();
           feedback.textContent = summary + (explanation ? " " + explanation : "");
-          feedback.style.color = correctCount === total ? "#137333" : "#b3261e";
         }
-        if (feedbackBox) feedbackBox.classList.remove("hidden");
+        setFeedbackState(correctCount === total ? "ok" : "err");
         document.dispatchEvent(new CustomEvent("glipFillBlankChecked", { detail: { allCorrect: correctCount === total } }));
       }
 
@@ -127,7 +130,7 @@
         options.forEach(item => item.classList.remove("selected"));
 
         if (feedback) feedback.textContent = "";
-        if (feedbackBox) feedbackBox.classList.add("hidden");
+        setFeedbackState("");
         document.dispatchEvent(new CustomEvent("glipFillBlankChanged"));
       }
 

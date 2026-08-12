@@ -242,7 +242,7 @@
           <button type="button" class="glip-btn glip-btn-secondary reset-matching-btn">Reset</button>
         </div>
 
-        <div class="matching-feedback readable-section hidden" aria-live="polite">
+        <div class="matching-feedback fb readable-section hidden" aria-live="polite">
           <button
             type="button"
             class="speak-btn no-print"
@@ -250,7 +250,7 @@
             aria-label="Read the feedback aloud">
             🔊
           </button>
-          <p class="drag-feedback matching-feedback-text" data-read></p>
+          <span class="matching-feedback-text" data-read></span>
         </div>
       </fieldset>
     `;
