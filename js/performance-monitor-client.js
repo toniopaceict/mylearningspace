@@ -306,12 +306,15 @@
       beginTransactionUi(transactionId, payload.action);
     }
 
-    const amended = Object.assign({}, init, { body: JSON.stringify(payload) });
+    const amendedBody = JSON.stringify(payload);
+    const amended = Object.assign({}, init, { body: amendedBody });
+    const requestBytes = new Blob([amendedBody]).size;
     const started = performance.now();
     let parsed = null;
     let status = "success";
     let httpResult = "response";
     let errorMessage = "";
+    let responseBytes = 0;
 
     try {
       const response = await nativeFetch(input, amended);
@@ -319,6 +322,7 @@
       const clone = response.clone();
       try {
         parsed = await clone.json();
+        try { responseBytes = new Blob([JSON.stringify(parsed)]).size; } catch (_) { responseBytes = 0; }
         if (!parsed || parsed.status !== "success") {
           status = "failure";
           errorMessage = String((parsed && parsed.message) || "");
@@ -398,7 +402,14 @@
         warm_job_id: String(payload.performance_warm_job_id || ""),
         transaction_id: transactionId,
         page_instance_id: PAGE_INSTANCE_ID,
-        committed: parsed && parsed.committed === true ? "true" : ""
+        committed: parsed && parsed.committed === true ? "true" : "",
+        processing_ms: server.processing_ms === undefined ? "" : server.processing_ms,
+        lock_wait_ms: server.lock_wait_ms === undefined ? "" : server.lock_wait_ms,
+        spreadsheet_read_calls: server.spreadsheet_read_calls === undefined ? "" : server.spreadsheet_read_calls,
+        spreadsheet_write_calls: server.spreadsheet_write_calls === undefined ? "" : server.spreadsheet_write_calls,
+        request_bytes: requestBytes,
+        response_bytes: responseBytes,
+        network_overhead_ms: server.server_duration_ms === undefined || server.server_duration_ms === "" ? "" : Math.max(0, Math.round((performance.now() - started) - Number(server.server_duration_ms || 0)))
       });
       return responseToReturn;
     } catch (error) {
@@ -451,7 +462,14 @@
         warm_job_id: String(payload.performance_warm_job_id || ""),
         transaction_id: transactionId,
         page_instance_id: PAGE_INSTANCE_ID,
-        committed: parsed && parsed.committed === true ? "true" : ""
+        committed: parsed && parsed.committed === true ? "true" : "",
+        processing_ms: "",
+        lock_wait_ms: "",
+        spreadsheet_read_calls: "",
+        spreadsheet_write_calls: "",
+        request_bytes: requestBytes,
+        response_bytes: responseBytes,
+        network_overhead_ms: ""
       });
       throw error;
     }
