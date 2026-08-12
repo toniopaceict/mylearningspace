@@ -5,6 +5,7 @@
   const GLIP_LINE = [216, 227, 239];
   const DEFAULT_LOGO_URL =
     "https://toniopaceict.github.io/mylearningspace/assets/GLIP-icon-transparent-cropped.png";
+  const PDF_CONTEXT_TIMEOUT_MS = 5000;
 
   function getJsPDF() {
     return window.jspdf && window.jspdf.jsPDF ? window.jspdf.jsPDF : null;
@@ -112,11 +113,24 @@
     if (!webAppUrl) return fallback;
 
     try {
-      const response = await fetch(webAppUrl, {
+      const requestPromise = fetch(webAppUrl, {
         method: "POST",
         body: JSON.stringify(Object.assign({ action: "getGeneratedActivityPdfContext" }, currentPageDetails()))
+      })
+        .then(function (response) {
+          return response.json();
+        })
+        .catch(function () {
+          return null;
+        });
+
+      const timeoutPromise = new Promise(function (resolve) {
+        window.setTimeout(function () {
+          resolve(null);
+        }, PDF_CONTEXT_TIMEOUT_MS);
       });
-      const data = await response.json();
+
+      const data = await Promise.race([requestPromise, timeoutPromise]);
       if (!data || data.status !== "success" || !data.pdf_context) return fallback;
       return Object.assign({}, fallback, data.pdf_context);
     } catch (error) {

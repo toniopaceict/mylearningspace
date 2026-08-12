@@ -3,7 +3,7 @@
  
    
   
-  const GLIP_ASSET_VERSION = "470";
+  const GLIP_ASSET_VERSION = "471";
   const GLIP_BASE_URL = "https://toniopaceict.github.io/mylearningspace";
 
   const GLIP_PAGE_CHECK_CLASS = "glip-page-checking";
