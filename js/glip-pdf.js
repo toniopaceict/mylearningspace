@@ -5,7 +5,7 @@
   const GLIP_LINE = [216, 227, 239];
   const DEFAULT_LOGO_URL =
     "https://toniopaceict.github.io/mylearningspace/assets/GLIP-icon-transparent-cropped.png";
-  const PDF_CONTEXT_TIMEOUT_MS = 5000;
+  const PDF_CONTEXT_TIMEOUT_MS = 8000;
 
   function getJsPDF() {
     return window.jspdf && window.jspdf.jsPDF ? window.jspdf.jsPDF : null;
@@ -93,13 +93,20 @@
 
   async function getActivityMetadata() {
     const config = window.PAGE_CONFIG || {};
-    const fallbackStudent = getStudentName();
+    const fallbackFirstName = safeText(sessionStorage.getItem("glipStudentName")) || getStudentName();
+    const fallbackSurname = safeText(sessionStorage.getItem("glipStudentSurname"));
+    const fallbackFullName = safeText(sessionStorage.getItem("glipStudentFullName")) ||
+      [fallbackFirstName, fallbackSurname].filter(Boolean).join(" ") || fallbackFirstName;
     const fallback = {
-      student: fallbackStudent,
-      student_name: fallbackStudent,
-      student_surname: "",
+      student: fallbackFullName,
+      student_name: fallbackFirstName,
+      student_surname: fallbackSurname,
       class_label: getClassLabel(),
-      subject: safeText(config.subjectName || config.subject || document.getElementById("heroTopline")?.textContent),
+      subject: safeText(
+        config.subjectName ||
+        config.subject ||
+        sessionStorage.getItem("glipSubjectName")
+      ),
       topic: safeText(config.topicName || document.getElementById("heroMainTitle")?.textContent),
       activity: safeText(config.subTitle || document.getElementById("heroSubTitle")?.textContent),
       teacher: safeText(sessionStorage.getItem("glipSubmissionTeacherDisplayName")),

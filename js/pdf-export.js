@@ -220,38 +220,124 @@
     const heading = getPageHeading();
     const pdf = new JsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
     const pageHeight = pdf.internal.pageSize.getHeight();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const left = 15;
+    const right = 15;
     const state = { y: 18 };
 
     const metadata = await preparePdfBase(pdf, state);
-    layout.addWrappedText(pdf, state, "Fill in the Blanks Result", { fontSize: 13, style: "bold", after: 6 });
 
-    let currentTask = "";
-    for (let i = 0; i < answers.length; i++) {
-      const answer = answers[i];
-      if (state.y > pageHeight - 38) {
-        pdf.addPage();
-        state.y = 18;
-        currentTask = "";
-      }
-
-      if (answer.task !== currentTask) {
-        currentTask = answer.task;
-        layout.addWrappedText(pdf, state, currentTask, { fontSize: 11, style: "bold", after: 4 });
-      }
-
-      layout.addWrappedText(pdf, state,
-        answer.blank + ": " + answer.selected,
-        { x: 18, maxWidth: 172, fontSize: 9.5, style: "bold", after: 1.5 });
-      layout.addWrappedText(pdf, state,
-        "Correct answer: " + answer.correct + " | " + (answer.isCorrect ? "Correct" : "Incorrect"),
-        { x: 18, maxWidth: 172, fontSize: 9, after: 4 });
+    function newPage() {
+      pdf.addPage();
+      state.y = 18;
     }
 
+    function ensureSpace(requiredHeight) {
+      if (state.y + requiredHeight > pageHeight - 22) newPage();
+    }
+
+    function drawResultSymbol(x, y, width, height) {
+      const cx = x + width / 2;
+      const cy = y + height / 2;
+      pdf.setLineWidth(0.3);
+      pdf.setDrawColor(18, 54, 91);
+      pdf.line(cx - 1.3, cy, cx - 0.3, cy + 1.0);
+      pdf.line(cx - 0.3, cy + 1.0, cx + 1.6, cy - 1.2);
+    }
+
+    function drawTableHeader(columnWidths) {
+      const headers = ["Blank", "Answer selected", "Result"];
+      const headerHeight = 9;
+      ensureSpace(headerHeight + 4);
+      let x = left;
+      headers.forEach(function (header, index) {
+        const w = columnWidths[index];
+        pdf.setFillColor(238, 244, 249);
+        pdf.setDrawColor(204, 216, 228);
+        pdf.setTextColor(18, 54, 91);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(9);
+        pdf.rect(x, state.y, w, headerHeight, "FD");
+        if (index === 2) pdf.text(header, x + w / 2, state.y + 5.8, { align: "center" });
+        else pdf.text(header, x + 2.2, state.y + 5.8);
+        x += w;
+      });
+      state.y += headerHeight;
+    }
+
+    function drawAnswerRow(answer, columnWidths) {
+      const blankLines = pdf.splitTextToSize(String(answer.blank || ""), columnWidths[0] - 4.4);
+      const answerLines = pdf.splitTextToSize(String(answer.selected || ""), columnWidths[1] - 4.4);
+      const rowHeight = Math.max(10, 4.2 + Math.max(blankLines.length, answerLines.length) * 4.2);
+      if (state.y + rowHeight > pageHeight - 22) {
+        newPage();
+        drawTableHeader(columnWidths);
+      }
+      let x = left;
+      pdf.setDrawColor(204, 216, 228);
+      pdf.setLineWidth(0.25);
+      columnWidths.forEach(function (w) {
+        pdf.rect(x, state.y, w, rowHeight);
+        x += w;
+      });
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(9.2);
+      pdf.setTextColor(18, 54, 91);
+      pdf.text(blankLines, left + 2.2, state.y + 5.3);
+      pdf.text(answerLines, left + columnWidths[0] + 2.2, state.y + 5.3);
+      drawResultSymbol(left + columnWidths[0] + columnWidths[1], state.y, columnWidths[2], rowHeight);
+      state.y += rowHeight;
+    }
+
+    ensureSpace(14);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(13);
+    pdf.setTextColor(18, 54, 91);
+    pdf.text("Fill in the Blanks Result", left, state.y);
+    pdf.setFontSize(11);
+    pdf.text("Completed", pageWidth - right, state.y, { align: "right" });
+    state.y += 3.2;
+    pdf.setDrawColor(18, 54, 91);
+    pdf.setLineWidth(0.35);
+    pdf.line(left, state.y, pageWidth - right, state.y);
+    state.y += 10.5;
+
+    const columnWidths = [45, 113, 22];
+    const taskGroups = [];
+    answers.forEach(function (answer) {
+      let group = taskGroups.find(function (item) { return item.task === answer.task; });
+      if (!group) {
+        group = { task: answer.task, answers: [] };
+        taskGroups.push(group);
+      }
+      group.answers.push(answer);
+    });
+
+    taskGroups.forEach(function (group, index) {
+      if (index > 0) state.y += 10;
+      ensureSpace(22);
+      layout.addWrappedText(pdf, state, group.task || "Task", {
+        fontSize: 11,
+        style: "bold",
+        maxWidth: pageWidth - left - right,
+        after: 0
+      });
+      state.y = Math.max(18, state.y - 2);
+      drawTableHeader(columnWidths);
+      group.answers.forEach(function (answer) {
+        drawAnswerRow(answer, columnWidths);
+      });
+    });
+
     layout.addFooter(pdf);
-    pdf.save(buildLearnerFileName(metadata, heading.activity, options.fallbackName || "Fill in the Blanks"));
+    const fillBlankFileName = buildLearnerFileName(
+      metadata,
+      heading.activity,
+      options.fallbackName || "Fill in the Blanks"
+    ).replace(/\.pdf$/i, "_v1.pdf");
+    pdf.save(fillBlankFileName);
     setPanelMessage(options.messageId || "fillBlankPdfMessage", "Your PDF has been saved.", "success");
   }
-
 
   function collectMatchingResult() {
     if (!window.GLIPMatching || typeof window.GLIPMatching.getResult !== "function") {
