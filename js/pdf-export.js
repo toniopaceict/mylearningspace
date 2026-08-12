@@ -278,15 +278,15 @@
     function drawResultSymbol(isCorrect, x, y, width, height) {
       const cx = x + width / 2;
       const cy = y + height / 2;
-      pdf.setLineWidth(0.65);
+      pdf.setLineWidth(0.4);
       pdf.setDrawColor(18, 54, 91);
 
       if (isCorrect) {
-        pdf.line(cx - 3.2, cy, cx - 0.8, cy + 2.5);
-        pdf.line(cx - 0.8, cy + 2.5, cx + 4.0, cy - 3.0);
+        pdf.line(cx - 1.8, cy, cx - 0.5, cy + 1.4);
+        pdf.line(cx - 0.5, cy + 1.4, cx + 2.3, cy - 1.8);
       } else {
-        pdf.line(cx - 2.8, cy - 2.8, cx + 2.8, cy + 2.8);
-        pdf.line(cx + 2.8, cy - 2.8, cx - 2.8, cy + 2.8);
+        pdf.line(cx - 1.7, cy - 1.7, cx + 1.7, cy + 1.7);
+        pdf.line(cx + 1.7, cy - 1.7, cx - 1.7, cy + 1.7);
       }
     }
 
@@ -305,6 +305,12 @@
 
       headers.forEach(function (header, index) {
         const w = columnWidths[index];
+        // Reapply the same header styling for every cell.
+        pdf.setFillColor(238, 244, 249);
+        pdf.setDrawColor(204, 216, 228);
+        pdf.setTextColor(18, 54, 91);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(9);
         pdf.rect(x, state.y, w, headerHeight, "FD");
         if (index === 2) {
           pdf.text(header, x + w / 2, state.y + 5.8, { align: "center" });
@@ -372,36 +378,56 @@
       state.y += rowHeight;
     }
 
-    layout.addWrappedText(pdf, state, "Matching Result", { fontSize: 13, style: "bold", after: 6 });
+    // Main result heading and score share one line, followed by a divider.
+    ensureSpace(14);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(13);
+    pdf.setTextColor(18, 54, 91);
+    pdf.text("Matching Result", left, state.y);
+    pdf.setFontSize(11);
+    pdf.text(
+      "Score: " + result.score + " / " + result.total_marks + " (" + result.percentage + "%)",
+      pageWidth - right,
+      state.y,
+      { align: "right" }
+    );
+    state.y += 3.2;
+    pdf.setDrawColor(18, 54, 91);
+    pdf.setLineWidth(0.35);
+    pdf.line(left, state.y, pageWidth - right, state.y);
+    state.y += 6.5;
 
     const columnWidths = [50, 108, 22];
 
-    result.questions.forEach(function (question) {
+    result.questions.forEach(function (question, questionIndex) {
       const questionHeading =
         question.question_title +
         " (" + question.awarded_marks + " / " + question.question_marks + " marks)";
 
-      ensureSpace(24);
+      // Give each new question breathing room from the previous table,
+      // while keeping its own heading close to its table.
+      if (questionIndex > 0) state.y += 6;
+      ensureSpace(22);
       layout.addWrappedText(pdf, state, questionHeading, {
         fontSize: 11,
         style: "bold",
         maxWidth: usableWidth,
-        after: 4
+        after: 1.5
       });
 
       drawTableHeader(columnWidths);
       question.pairs.forEach(function (pair) {
         drawMatchingRow(pair, columnWidths);
       });
-      state.y += 7;
     });
 
-    layout.addWrappedText(pdf, state,
-      "Score: " + result.score + " / " + result.total_marks + " (" + result.percentage + "%)",
-      { fontSize: 12, style: "bold", bottom: 22, after: 0 });
-
     layout.addFooter(pdf);
-    pdf.save(buildLearnerFileName(metadata, heading.activity, options.fallbackName || "Matching"));
+    const matchingFileName = buildLearnerFileName(
+      metadata,
+      heading.activity,
+      options.fallbackName || "Matching"
+    ).replace(/\.pdf$/i, "_v1.pdf");
+    pdf.save(matchingFileName);
     setPanelMessage(options.messageId || "matchingPdfMessage", "Your PDF has been saved.", "success");
   }
 
