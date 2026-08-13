@@ -601,7 +601,7 @@ function renderTeacherEditRow(teacher) {
     rows.forEach(function (row) {
       const teacherId = row.dataset.teacherRow;
       const originalTeacher = currentTeachers.find(function (teacher) {
-        return teacher.teacher_id === teacherId;
+        return String(teacher.teacher_id) === String(teacherId);
       });
 
       if (!originalTeacher) return;
@@ -672,6 +672,10 @@ function resyncTeachersSilently() {
   
 
   function saveTeacherChanges() {
+    const previousTeachers = currentTeachers.map(function (teacher) {
+      return Object.assign({}, teacher);
+    });
+
     const rows = document.querySelectorAll("[data-teacher-row]"); const teachersToSave = [];
     rows.forEach(function (row) {
       const teacher = { teacher_id: row.dataset.teacherRow };
