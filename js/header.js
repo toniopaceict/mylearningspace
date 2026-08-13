@@ -108,12 +108,11 @@ function buildRoleFooterLinks(existingSettingsItems) {
   const permissions = getTeacherPermissions();
 
   if (!role) return [];
-  if (isStudent()) {
-    return [
-      { text: "⌂ Subjects", url: `/mylearningspace/schools/${school}/subjects-home.html` },
-      { text: "▧ Resources", url: `/mylearningspace/schools/management/class-resources.html` }
-    ];
-  }
+if (isStudent()) {
+  return [
+    { text: "▧ Resources", url: `/mylearningspace/schools/management/class-resources.html` }
+  ];
+}
 
   const links = [];
 
