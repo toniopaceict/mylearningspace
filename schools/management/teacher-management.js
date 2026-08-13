@@ -78,7 +78,7 @@ function getWebAppUrl() {
     if (typeof window.setupGlipCsvAdminTools === "function") {
       window.setupGlipCsvAdminTools({
         tableKey: "teachers",
-        tableName: "Teachers",
+        tableName: "Staff Members",
         messageElementId: "teacherManagementMessage",
         refresh: loadTeachers,
         refreshAfterClear: false,
@@ -184,7 +184,7 @@ function getWebAppUrl() {
 
     if (saveTeacherBtn) {
       saveTeacherBtn.disabled = isSaving;
-      saveTeacherBtn.textContent = isSaving ? "Saving..." : "Save Teacher";
+      saveTeacherBtn.textContent = isSaving ? "Saving..." : "Save Staff Member";
     }
 
     if (progressBox) {
@@ -202,7 +202,7 @@ function saveTeacher() {
   const sendCodeEmail = document.getElementById("sendTeacherCodeOnCreate")?.checked || false;
 
   if (!teacherName || !teacherSurname || !code || !email || !role) {
-    setAddTeacherMessage("Teacher name, surname, login code, email and role are required.", "error");
+    setAddTeacherMessage("Staff member name, surname, login code, email and role are required.", "error");
     return;
   }
 
@@ -211,7 +211,7 @@ function saveTeacher() {
   });
 
   if (duplicateCode) {
-    setAddTeacherMessage("This teacher login code already exists.", "error");
+    setAddTeacherMessage("This staff member login code already exists.", "error");
     return;
   }
 
@@ -226,7 +226,7 @@ function saveTeacher() {
     teacher_name: teacherName,
     teacher_surname: teacherSurname,
     full_name: (teacherName + " " + teacherSurname).trim(),
-    code: code.toUpperCase(),
+    code: code,
     email: email,
     role: role,
     active: true,
@@ -248,7 +248,7 @@ function saveTeacher() {
         send_code_email: sendCodeEmail
       });
     },
-    failureMessage: "Could not add teacher.",
+    failureMessage: "Could not add staff member.",
     apply: function (result) {
       const saved = result.teacher || {};
       currentTeachers.push(Object.assign({}, confirmedTeacher, saved, {
@@ -258,11 +258,11 @@ function saveTeacher() {
       renderTeachers(currentTeachers);
     },
     onSuccess: function (result) {
-      setAddTeacherMessage(result.message || "Teacher added successfully.", "success");
+      setAddTeacherMessage(result.message || "Staff member added successfully.", "success");
     },
     resync: resyncTeachersSilently,
     onFailure: function (error) {
-      setAddTeacherMessage(error.message || "Could not add teacher.", "error");
+      setAddTeacherMessage(error.message || "Could not add staff member.", "error");
     }
   }).finally(function () {
     pendingTeacherSaves = Math.max(0, pendingTeacherSaves - 1);
@@ -354,7 +354,7 @@ function loadTeachers() {
   })
     .then(function (result) {
       if (!result || result.status !== "success") {
-        throw new Error(result.message || "Could not load teachers.");
+        throw new Error(result.message || "Could not load staff members.");
       }
 
       setTeachersLoadingState(false);
@@ -375,12 +375,12 @@ function loadTeachers() {
     .catch(function (error) {
       console.error(error);
       setTeachersLoadingState(false);
-      setMessage(error.message || "Could not load teachers.", "error");
+      setMessage(error.message || "Could not load staff members.", "error");
 
       tbody.innerHTML = `
         <tr>
           <td colspan="6">${escapeHtml(
-            error.message || "Could not load teachers."
+            error.message || "Could not load staff members."
           )}</td>
         </tr>
       `;
@@ -392,7 +392,7 @@ function loadTeachers() {
   function toggleTeachersEditMode() {
     if (pendingTeacherSaves > 0) {
       setMessage(
-        "Please wait until the new teacher has finished saving.",
+        "Please wait until the new staff member has finished saving.",
         "info"
       );
       return;
@@ -433,17 +433,17 @@ function loadTeachers() {
 
       sendSelectedTeacherCodesBtn.disabled = hasPendingSaves;
       sendSelectedTeacherCodesBtn.title = hasPendingSaves
-        ? "Please wait until the new teacher has finished saving."
+        ? "Please wait until the new staff member has finished saving."
         : "";
     }
 
     editTeachersBtn.disabled = hasPendingSaves;
     editTeachersBtn.textContent = teachersEditMode
       ? "Save Changes"
-      : "Edit Teachers";
+      : "Edit Staff";
 
     editTeachersBtn.title = hasPendingSaves
-      ? "Please wait until the new teacher has finished saving."
+      ? "Please wait until the new staff member has finished saving."
       : "";
 
     let cancelBtn = document.getElementById("cancelTeachersEditBtn");
@@ -479,7 +479,7 @@ function loadTeachers() {
 
       tbody.innerHTML = `
         <tr>
-          <td colspan="6">No teachers found.</td>
+          <td colspan="6">No staff members found.</td>
         </tr>
       `;
       return;
@@ -693,7 +693,7 @@ function resyncTeachersSilently() {
       });
 
       if (String(teacher.role || "").toLowerCase() === "owner") {
-        setMessage("The Owner role cannot be assigned from Teacher Management.", "error");
+        setMessage("The Owner role cannot be assigned from Staff Management.", "error");
         return;
       }
 
@@ -701,12 +701,12 @@ function resyncTeachersSilently() {
     });
     GLIPOptimisticUpdate.run({
       request: function () { return postToGlip({ action: "updateTeachersAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), teachers: teachersToSave }); },
-      failureMessage: "Could not save teacher changes.",
+      failureMessage: "Could not save staff member changes.",
       apply: function () { applyTeacherUpdatesLocally(teachersToSave); teachersEditMode = false; updateEditTeachersButton(); renderTeachers(currentTeachers); },
-      onSuccess: function (result) { setMessage(result.message || "Teacher changes saved.", "success"); },
+      onSuccess: function (result) { setMessage(result.message || "Staff member changes saved.", "success"); },
       resync: resyncTeachersSilently,
       rollback: function () { currentTeachers = previousTeachers; renderTeachers(currentTeachers); },
-      onFailure: function (error) { setMessage(error.message || "Could not save teacher changes. The previous values were restored.", "error"); }
+      onFailure: function (error) { setMessage(error.message || "Could not save staff member changes. The previous values were restored.", "error"); }
     });
   }
 
@@ -722,7 +722,7 @@ function resyncTeachersSilently() {
         ? "Saving..."
         : teachersEditMode
           ? "Save Changes"
-          : "Edit Teachers";
+          : "Edit Staff";
     }
 
     if (cancelTeachersEditBtn) {
@@ -784,7 +784,7 @@ function resyncTeachersSilently() {
 function sendSelectedTeacherCodes() {
   if (pendingTeacherSaves > 0) {
     setMessage(
-      "Please wait until the new teacher has finished saving.",
+      "Please wait until the new staff member has finished saving.",
       "info"
     );
     return;
@@ -793,7 +793,7 @@ function sendSelectedTeacherCodes() {
   const teacherIdsToSend = getSelectedTeacherIds();
 
   if (teacherIdsToSend.length === 0) {
-    setMessage("Please select at least one teacher.", "error");
+    setMessage("Please select at least one staff member.", "error");
     return;
   }
 
@@ -803,7 +803,7 @@ function sendSelectedTeacherCodes() {
       "<p>Send GLIP access codes by email to " +
       teacherIdsToSend.length +
       " selected " +
-      (teacherIdsToSend.length === 1 ? "teacher" : "teachers") +
+      (teacherIdsToSend.length === 1 ? "staff member" : "staff members") +
       "?</p>",
     noConfirmationInput: true,
     extraButtonText: "Send codes"

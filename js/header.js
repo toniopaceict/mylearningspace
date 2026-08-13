@@ -139,7 +139,7 @@ if (isStudent()) {
         url: `/mylearningspace/schools/management/topic-management.html`
       },
       {
-        text: "⌘ Teacher Management",
+        text: "⌘ Staff Management",
         url: `/mylearningspace/schools/management/teacher-management.html`
       },
       {
