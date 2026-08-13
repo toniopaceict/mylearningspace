@@ -155,9 +155,8 @@
           data-sort-item
           data-sort-key="${escapeHtml(item.key)}"
           data-correct-position="${item.correctPosition}"
-          aria-label="Position ${displayIndex + 1}: ${escapeHtml(item.value)}">
+          aria-label="Sortable item: ${escapeHtml(item.value)}">
           <span class="sorting-handle" aria-hidden="true">☰</span>
-          <span class="sorting-position" aria-hidden="true">${displayIndex + 1}.</span>
           <span class="sorting-item-text" data-read>${escapeHtml(item.value)}</span>
           <span class="sorting-move-controls no-print">
             <button type="button" class="sorting-move-btn sorting-move-up" aria-label="Move ${escapeHtml(item.value)} up" title="Move up">▲</button>

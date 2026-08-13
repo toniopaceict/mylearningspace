@@ -69,8 +69,10 @@
     const button = document.getElementById("submitSortingBtn");
     if (!button || button.dataset.completionMode === "incomplete") return;
     const result = getResult();
-    button.disabled = !result.all_correct;
-    button.title = result.all_correct ? "" : "Check your answers and correctly order all items before submitting.";
+    button.disabled = !result.mastery_confirmed;
+    button.title = result.mastery_confirmed
+      ? ""
+      : "Correctly order all items and use Check Answers before submitting.";
   }
 
   function submitSortingAnswers() {
@@ -80,7 +82,10 @@
 
     if (!student.student_id) { setMessage("Student not logged in.", "error"); return; }
     if (!result.questions.length) { setMessage("No sorting questions were found.", "error"); return; }
-    if (!result.all_correct) { setMessage("Please correct all sorting questions before submitting.", "error"); return; }
+    if (!result.mastery_confirmed) {
+      setMessage("Please correctly order all items and use Check Answers before submitting.", "error");
+      return;
+    }
 
     setSubmitting(true);
     setMessage("Submitting answers and marking the activity as complete...", "info");

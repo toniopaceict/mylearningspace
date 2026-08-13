@@ -565,8 +565,12 @@
     }
 
     const result = collectSortingResult();
-    if (!result.questions.length || !result.all_correct) {
-      setPanelMessage(options.messageId || "sortingPdfMessage", "Please correctly order all items before saving the PDF.", "error");
+    if (!result.questions.length || !result.mastery_confirmed) {
+      setPanelMessage(
+        options.messageId || "sortingPdfMessage",
+        "Please correctly order all items and use Check Answers before saving the PDF.",
+        "error"
+      );
       return;
     }
 

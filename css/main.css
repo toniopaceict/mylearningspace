@@ -4261,7 +4261,7 @@ body.glip-management-page::before {
 
 .sorting-item {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr) auto 28px;
+  grid-template-columns: auto minmax(0, 1fr) auto 28px;
   align-items: center;
   gap: 10px;
   min-height: 48px;
@@ -4288,7 +4288,6 @@ body.glip-management-page::before {
   color: rgba(11, 60, 111, 0.65);
 }
 
-.sorting-position { font-weight: 700; min-width: 24px; }
 .sorting-item-text { min-width: 0; overflow-wrap: anywhere; }
 
 .sorting-move-controls { display: inline-flex; gap: 4px; }
@@ -4315,13 +4314,13 @@ body.glip-management-page::before {
 
 @media (max-width: 600px) {
   .sorting-item {
-    grid-template-columns: auto auto minmax(0, 1fr) 28px;
+    grid-template-columns: auto minmax(0, 1fr) 28px;
   }
   .sorting-move-controls {
-    grid-column: 3 / 4;
+    grid-column: 2 / 3;
     margin-top: 2px;
   }
-  .sorting-result-symbol { grid-column: 4 / 5; grid-row: 1 / span 2; }
+  .sorting-result-symbol { grid-column: 3 / 4; grid-row: 1 / span 2; }
 }
 
 @media print {

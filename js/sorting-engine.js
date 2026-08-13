@@ -23,12 +23,16 @@
       };
     });
 
+    const allCorrect = items.length > 0 && correctCount === items.length;
+    const masteryConfirmed = allCorrect && question.dataset.masteryConfirmed === "true";
+
     return {
       question_id: question.dataset.questionId || "",
       question_title: question.dataset.questionTitle || "Question",
       correct_items: correctCount,
       total_items: items.length,
-      all_correct: items.length > 0 && correctCount === items.length,
+      all_correct: allCorrect,
+      mastery_confirmed: masteryConfirmed,
       items: orderedItems
     };
   }
@@ -38,7 +42,13 @@
     const questions = Array.from(scope.querySelectorAll(".sorting-question")).map(questionResult);
     const complete = questions.length > 0 && questions.every(function (question) { return question.items.length > 0; });
     const allCorrect = complete && questions.every(function (question) { return question.all_correct; });
-    return { questions: questions, complete: complete, all_correct: allCorrect };
+    const masteryConfirmed = allCorrect && questions.every(function (question) { return question.mastery_confirmed; });
+    return {
+      questions: questions,
+      complete: complete,
+      all_correct: allCorrect,
+      mastery_confirmed: masteryConfirmed
+    };
   }
 
   function setupQuestion(question) {
@@ -74,10 +84,8 @@
     function updatePositions() {
       const items = currentItems();
       items.forEach(function (item, index) {
-        const position = item.querySelector(".sorting-position");
         const text = String(item.querySelector(".sorting-item-text")?.textContent || "").trim();
-        if (position) position.textContent = (index + 1) + ".";
-        item.setAttribute("aria-label", "Position " + (index + 1) + ": " + text);
+        item.setAttribute("aria-label", "Sortable item: " + text);
         const up = item.querySelector(".sorting-move-up");
         const down = item.querySelector(".sorting-move-down");
         if (up) up.disabled = index === 0;
@@ -94,6 +102,7 @@
     }
 
     function changed() {
+      question.dataset.masteryConfirmed = "false";
       clearMarks();
       clearFeedback();
       updatePositions();
@@ -116,20 +125,34 @@
     function checkAnswers() {
       clearMarks();
       const result = questionResult(question);
-      currentItems().forEach(function (item, index) {
-        const isCorrect = index + 1 === Number(item.dataset.correctPosition || 0);
-        item.classList.add(isCorrect ? "correct" : "incorrect");
-        const symbol = item.querySelector(".sorting-result-symbol");
-        if (symbol) symbol.textContent = isCorrect ? "✓" : "✗";
-      });
-
       const feedbackCopy = String(question.dataset.formativeFeedback || "").trim();
-      const lead = result.all_correct
-        ? "You placed all " + result.total_items + " items in the correct order."
-        : "You placed " + result.correct_items + " out of " + result.total_items + " items in the correct position.";
-      if (feedbackText) feedbackText.textContent = lead + (feedbackCopy ? " " + feedbackCopy : "");
-      setFeedbackState(result.all_correct ? "ok" : "err");
-      document.dispatchEvent(new CustomEvent("glipSortingChecked", { detail: result }));
+
+      if (result.all_correct) {
+        question.dataset.masteryConfirmed = "true";
+        currentItems().forEach(function (item) {
+          item.classList.add("correct");
+          const symbol = item.querySelector(".sorting-result-symbol");
+          if (symbol) symbol.textContent = "✓";
+        });
+        if (feedbackText) {
+          feedbackText.textContent =
+            "Correct. All items are in the correct order." +
+            (feedbackCopy ? " " + feedbackCopy : "");
+        }
+        setFeedbackState("ok");
+      } else {
+        question.dataset.masteryConfirmed = "false";
+        if (feedbackText) {
+          feedbackText.textContent =
+            "The sequence is not yet correct." +
+            (feedbackCopy ? " " + feedbackCopy : "");
+        }
+        setFeedbackState("err");
+      }
+
+      document.dispatchEvent(new CustomEvent("glipSortingChecked", {
+        detail: questionResult(question)
+      }));
     }
 
     function reset() {
