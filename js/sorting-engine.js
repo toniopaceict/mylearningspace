@@ -60,6 +60,9 @@
     const resetBtn = question.querySelector(".reset-sorting-btn");
     const feedback = question.querySelector(".sorting-feedback");
     const feedbackText = question.querySelector(".sorting-feedback-text");
+    const attemptCounter = question.querySelector(".sorting-attempt-counter");
+    const attemptAim = Math.max(1, Number(question.dataset.attemptAim || 3) || 3);
+    let attemptCount = 0;
     if (!list) return;
 
     const initialOrder = Array.from(list.querySelectorAll("[data-sort-item]")).map(function (item) {
@@ -122,7 +125,15 @@
       }
     }
 
+    function updateAttemptCounter() {
+      if (attemptCounter) {
+        attemptCounter.textContent = "Attempts: " + attemptCount + " — Aim: " + attemptAim + " or fewer";
+      }
+    }
+
     function checkAnswers() {
+      attemptCount += 1;
+      updateAttemptCounter();
       clearMarks();
       const result = questionResult(question);
       const feedbackCopy = String(question.dataset.formativeFeedback || "").trim();
@@ -156,6 +167,8 @@
     }
 
     function reset() {
+      attemptCount = 0;
+      updateAttemptCounter();
       const byKey = {};
       currentItems().forEach(function (item) { byKey[item.dataset.sortKey || ""] = item; });
       initialOrder.forEach(function (key) {
@@ -219,6 +232,8 @@
       draggedItem = null;
       changed();
     });
+
+    updateAttemptCounter();
 
     if (checkBtn) checkBtn.addEventListener("click", checkAnswers);
     if (resetBtn) resetBtn.addEventListener("click", reset);

@@ -130,6 +130,8 @@
     const prompt = promptSource ? text(promptSource.textContent) : "Arrange the items in the correct order.";
     const feedbackSource = source.querySelector("[data-feedback]");
     const formativeFeedback = feedbackSource ? text(feedbackSource.textContent) : "Review the sequence and try again.";
+    const attemptAimRaw = Number(source.getAttribute("data-attempt-aim"));
+    const attemptAim = Number.isFinite(attemptAimRaw) && attemptAimRaw > 0 ? Math.floor(attemptAimRaw) : 3;
     const itemSources = Array.from(source.querySelectorAll("[data-sorting-items] > li"));
 
     if (itemSources.length < 2) {
@@ -172,7 +174,8 @@
         data-sorting-question-rendered
         data-question-id="${escapeHtml(questionId)}"
         data-question-title="${escapeHtml(title)}"
-        data-formative-feedback="${escapeHtml(formativeFeedback)}">
+        data-formative-feedback="${escapeHtml(formativeFeedback)}"
+        data-attempt-aim="${attemptAim}">
         <legend>${escapeHtml(title)}</legend>
 
         <button
@@ -193,6 +196,7 @@
           <button type="button" class="glip-btn check-sorting-btn">Check Answers</button>
           <button type="button" class="glip-btn glip-btn-secondary reset-sorting-btn">Reset</button>
         </div>
+        <p class="sorting-attempt-counter no-print" aria-live="polite">Attempts: 0 — Aim: ${attemptAim} or fewer</p>
 
         <div class="sorting-feedback fb readable-section hidden" aria-live="polite">
           <button
