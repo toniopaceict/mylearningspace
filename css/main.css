@@ -4327,3 +4327,48 @@ body.glip-management-page::before {
   .sorting-handle,
   .sorting-move-controls { display: none !important; }
 }
+
+/* =========================================================
+   LOGIN CODE RECOVERY
+   ========================================================= */
+
+.login-secondary-action {
+  margin-top: 10px;
+  text-align: left;
+}
+
+.login-link-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font: inherit;
+  font-size: 0.92rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.login-link-button:hover,
+.login-link-button:focus-visible {
+  text-decoration-thickness: 2px;
+}
+
+.login-recovery-view[hidden] {
+  display: none;
+}
+
+.login-recovery-note {
+  margin-top: 8px;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.login-message.error {
+  color: var(--color-danger, #b3261e);
+}
+
+.login-message.success {
+  color: var(--color-success);
+}

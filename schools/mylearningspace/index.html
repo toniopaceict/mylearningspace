@@ -40,23 +40,6 @@ Help file:
     </script>
     <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
 
-    <style>
-      .login-staff-option {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        margin-top: 12px;
-        font-size: 0.95rem;
-        cursor: pointer;
-      }
-
-      .login-staff-option input {
-        width: 18px;
-        height: 18px;
-        margin: 0;
-      }
-    </style>
 
   </head>
 
@@ -89,32 +72,64 @@ Help file:
 
       <div class="wrap">
         <fieldset class="task-box login-box">
-          <legend>Enter your code to continue</legend>
+          <legend id="loginLegend">Enter your code to continue</legend>
 
-          <p>Use your student or teacher code to access the platform.</p>
+          <div id="codeLoginView">
+            <p>Use your student or teacher code to access the platform.</p>
 
-          <div class="login-row">
-            <input
-              type="text"
-              id="codeInput"
-              class="login-input code-mask-input"
-              placeholder="Enter your code"
-              autocomplete="off"
-              autocorrect="off"
-              autocapitalize="off"
-              spellcheck="false"
-            />
+            <div class="login-row">
+              <input
+                type="text"
+                id="codeInput"
+                class="login-input code-mask-input"
+                placeholder="Enter your code"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+              />
 
-            <button id="loginBtn" class="login-btn glip-btn">Continue</button>
+              <button id="loginBtn" class="login-btn glip-btn">Continue</button>
+            </div>
+
+            <div class="login-secondary-action">
+              <button id="forgotCodeBtn" type="button" class="login-link-button">Forgot code?</button>
+            </div>
+
+            <p id="loginMessage" class="login-message"></p>
+
+            <div id="loginProgress" class="glip-progress">
+              <div class="glip-progress-bar"></div>
+            </div>
+
+            <ul id="loginLog" class="login-log"></ul>
           </div>
 
-          <p id="loginMessage" class="login-message"></p>
+          <div id="forgotCodeView" class="login-recovery-view" hidden>
+            <p>Enter the email address registered with GLIP.</p>
+            <p class="login-recovery-note">Students can use this feature only if an email address has been added to their GLIP account. If no email is registered, please contact your teacher or administrator.</p>
 
-          <div id="loginProgress" class="glip-progress">
-            <div class="glip-progress-bar"></div>
+            <div class="login-row">
+              <input
+                type="email"
+                id="forgotEmailInput"
+                class="login-input"
+                placeholder="Enter your email address"
+                autocomplete="email"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+              />
+
+              <button id="sendCodeBtn" type="button" class="login-btn glip-btn">Send my code</button>
+            </div>
+
+            <p id="forgotCodeMessage" class="login-message"></p>
+
+            <div class="login-secondary-action">
+              <button id="backToLoginBtn" type="button" class="login-link-button">← Back to sign in</button>
+            </div>
           </div>
-
-          <ul id="loginLog" class="login-log"></ul>
         </fieldset>
       </div>
     </div>
@@ -135,10 +150,16 @@ Help file:
         }
       });
 
+      function setLoginMessage(element, text, type) {
+        if (!element) return;
+        element.textContent = text || "";
+        element.classList.remove("error", "success");
+        if (type === "error") element.classList.add("error");
+        if (type === "success") element.classList.add("success");
+      }
+
       function showMessage(text, type) {
-        const el = document.getElementById("loginMessage");
-        el.textContent = text;
-        el.style.color = type === "error" ? "red" : "#0b3c6f";
+        setLoginMessage(document.getElementById("loginMessage"), text, type);
       }
 
       function showLoginProgress() {
@@ -849,6 +870,72 @@ sessionStorage.setItem("glipSupportOnly", String(Boolean(teacher.capability_cont
         }
       }
 
+      function showForgotCodeView() {
+        document.getElementById("codeLoginView").hidden = true;
+        document.getElementById("forgotCodeView").hidden = false;
+        document.getElementById("loginLegend").textContent = "Forgot your code?";
+        setLoginMessage(document.getElementById("forgotCodeMessage"), "");
+        document.getElementById("forgotEmailInput").focus();
+      }
+
+      function showCodeLoginView(message, type) {
+        document.getElementById("forgotCodeView").hidden = true;
+        document.getElementById("codeLoginView").hidden = false;
+        document.getElementById("loginLegend").textContent = "Enter your code to continue";
+        setLoginMessage(document.getElementById("forgotCodeMessage"), "");
+        if (message) showMessage(message, type || "success");
+        document.getElementById("codeInput").focus();
+      }
+
+      async function requestForgotCode() {
+        const emailInput = document.getElementById("forgotEmailInput");
+        const sendButton = document.getElementById("sendCodeBtn");
+        const message = document.getElementById("forgotCodeMessage");
+        const email = String(emailInput.value || "").trim();
+
+        if (!email || !emailInput.checkValidity()) {
+          setLoginMessage(message, "Please enter a valid email address.", "error");
+          emailInput.focus();
+          return;
+        }
+
+        sendButton.disabled = true;
+        emailInput.disabled = true;
+        setLoginMessage(message, "Sending your request...");
+
+        try {
+          const result = await postToGlip({
+            action: "requestForgotCode",
+            email: email,
+            performance_category: "login_recovery",
+            performance_initiator: "forgot_code",
+            performance_target: "code_recovery"
+          });
+
+          if (!result || result.status !== "success") {
+            setLoginMessage(
+              message,
+              (result && result.message) || "We could not process the request at the moment. Please try again shortly.",
+              "error"
+            );
+            return;
+          }
+
+          emailInput.value = "";
+          showCodeLoginView(result.message, "success");
+        } catch (error) {
+          console.error("Forgot code request failed:", error);
+          setLoginMessage(
+            message,
+            "We could not process the request at the moment. Please try again shortly.",
+            "error"
+          );
+        } finally {
+          sendButton.disabled = false;
+          emailInput.disabled = false;
+        }
+      }
+
       async function wakeUpAppsScript() {
         try {
           await fetch(getWebAppUrl() + "?action=ping", {
@@ -910,6 +997,11 @@ if (
       });
 
       document.getElementById("loginBtn").addEventListener("click", login);
+      document.getElementById("forgotCodeBtn").addEventListener("click", showForgotCodeView);
+      document.getElementById("backToLoginBtn").addEventListener("click", function () {
+        showCodeLoginView();
+      });
+      document.getElementById("sendCodeBtn").addEventListener("click", requestForgotCode);
 
       document
         .getElementById("codeInput")
@@ -917,9 +1009,15 @@ if (
           if (e.key === "Enter") login();
         });
 
+      document
+        .getElementById("forgotEmailInput")
+        .addEventListener("keypress", function (e) {
+          if (e.key === "Enter") requestForgotCode();
+        });
+
       document.addEventListener("DOMContentLoaded", function () {
-  document.getElementById("codeInput")?.focus();
-});
+        document.getElementById("codeInput")?.focus();
+      });
       
     </script>
 </body>
