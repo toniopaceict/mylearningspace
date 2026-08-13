@@ -389,7 +389,7 @@ wrapper.appendChild(fileInput);
         }
 
         downloadText(result.filename || (options.tableKey + ".csv"), result.csv || "");
-        setMessage(options.messageElementId, "CSV exported successfully.", "success");
+        setMessage(options.messageElementId, "Sheet-format CSV exported successfully.", "success");
       }).catch(function (error) {
         console.error(error);
         setMessage(options.messageElementId, error.message || "Could not export CSV.", "error");
@@ -406,7 +406,7 @@ wrapper.appendChild(fileInput);
       if (!file) return;
 
       readFileAsText(file).then(function (csvText) {
-        setMessage(options.messageElementId, "Validating CSV before import...", "info");
+        setMessage(options.messageElementId, "Validating sheet-format CSV before import...", "info");
 
         return postToGlip({
           action: "validateAdminTableCsvImport",
@@ -472,7 +472,7 @@ wrapper.appendChild(fileInput);
 
         setMessage(
           options.messageElementId,
-          "CSV imported successfully. A backup CSV was downloaded first.",
+          "Sheet-format CSV imported successfully. A backup CSV was downloaded first.",
           "success"
         );
 

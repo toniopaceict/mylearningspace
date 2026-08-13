@@ -83,8 +83,7 @@
         tableName: "TeachingAssignments",
         messageElementId: "classTeacherManagementMessage",
         refresh: loadAssignments,
-        hideClear: true,
-        hideImport: true
+        hideClear: true
       });
     }
   }
