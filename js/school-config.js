@@ -2,9 +2,9 @@
   "use strict";
 
   const SCHOOL_CONFIG = {
-    michael: {
-      label: "St Michael's School",
-      webAppUrl: "https://script.google.com/macros/s/AKfycby8gBQU17qcDvWDMLKxcdhzWRcgtscTS7_mr5OYEeQKRoY6l_645znyqaBUhSqIk8Td/exec"
+    toniopace_school: {
+      label: "Tonio Pace",
+      webAppUrl: "https://script.google.com/macros/s/AKfycbyRMUoeoT-jPTjMSWEk4eTj4CLo6OYYehMegXnw4OciwpdcYvtLMUrS4r5NtCd0QEILOA/exec"
     },
  
     raphael: {
