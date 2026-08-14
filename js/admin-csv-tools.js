@@ -59,6 +59,15 @@ function postToGlip(data) {
     message.style.display = text ? "block" : "none";
   }
 
+  function setImportBusyState(options, isBusy, text) {
+    if (options && typeof options.onImportBusyStateChange === "function") {
+      options.onImportBusyStateChange({
+        busy: isBusy === true,
+        text: text || ""
+      });
+    }
+  }
+
   function downloadText(filename, text) {
     const blob = new Blob([text], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -451,6 +460,7 @@ wrapper.appendChild(fileInput);
             }
 
             setMessage(options.messageElementId, "Downloading backup and importing CSV...", "info");
+            setImportBusyState(options, true, "Saving...");
 
             return downloadCurrentTableBackup(options).then(function () {
               return postToGlip({
@@ -476,11 +486,14 @@ wrapper.appendChild(fileInput);
           "success"
         );
 
+        setImportBusyState(options, false, "");
+
         if (typeof options.refresh === "function") {
           options.refresh();
         }
       }).catch(function (error) {
         console.error(error);
+        setImportBusyState(options, false, "");
         setMessage(options.messageElementId, error.message || "Could not import CSV.", "error");
       });
     });

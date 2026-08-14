@@ -53,7 +53,21 @@
         tableKey: "curriculum",
         tableName: "SubjectAssignments",
         messageElementId: "curriculumManagementMessage",
-        refresh: loadCurriculumData
+        refresh: loadCurriculumData,
+        onImportBusyStateChange: function (state) {
+          const box = document.getElementById("curriculumLoadingProgress");
+          const text = document.getElementById("curriculumProgressText");
+
+          if (text) {
+            text.textContent = state.busy
+              ? (state.text || "Saving...")
+              : "Loading subject assignments...";
+          }
+
+          if (box) {
+            box.style.display = state.busy ? "block" : "none";
+          }
+        }
       });
     }
   }
@@ -572,13 +586,8 @@ function markChangedField(field) {
       progressText.textContent = "Loading subject assignments...";
     }
 
-    if (loadingBox) {
-      loadingBox.style.display = isLoading ? "block" : "none";
-    }
-
-    if (table) {
-      table.style.visibility = isLoading ? "hidden" : "visible";
-    }
+    if (loadingBox) loadingBox.style.display = isLoading ? "block" : "none";
+    if (table) table.style.visibility = isLoading ? "hidden" : "visible";
   }
 
   function setAddSavingState(isSaving) {
