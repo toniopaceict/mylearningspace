@@ -384,6 +384,7 @@ btn.title = hasPendingSaves
     cancelBtn.className =
       "glip-btn glip-btn-secondary teacher-cancel-btn";
     cancelBtn.textContent = "Cancel";
+    cancelBtn.style.marginLeft = "8px";
 
     cancelBtn.addEventListener("click", function () {
       editMode = false;
