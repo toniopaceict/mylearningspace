@@ -87,7 +87,21 @@
         tableKey: "students",
         tableName: "Students",
         messageElementId: "studentManagementMessage",
-        refresh: loadStudents
+        refresh: loadStudents,
+        onImportBusyStateChange: function (state) {
+          const box = document.getElementById("studentsLoadingProgress");
+          const text = document.getElementById("studentsProgressText");
+
+          if (text) {
+            text.textContent = state.busy
+              ? (state.text || "Saving...")
+              : "Loading students...";
+          }
+
+          if (box) {
+            box.style.display = state.busy ? "block" : "none";
+          }
+        }
       });
     }
   }
