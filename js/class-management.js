@@ -422,7 +422,8 @@ function loadLevelsDropdown() {
       pending_save: true
     };
 
-        pendingClassSaves += 1;
+    setClassSavingState(true);
+    pendingClassSaves += 1;
     updateEditClassesButton();
 
     GLIPOptimisticUpdate.run({
@@ -480,6 +481,8 @@ function loadLevelsDropdown() {
           "error"
         );
       }
+    }).finally(function () {
+      setClassSavingState(false);
     });
   }
 
@@ -804,6 +807,10 @@ return `
   }
 
   function saveClassChanges() {
+    const previousClasses = currentClasses.map(function (item) {
+      return Object.assign({}, item);
+    });
+
     const rows = document.querySelectorAll("[data-class-row]"); const classes = [];
     rows.forEach(function (row) {
       const item = { original_level: row.dataset.originalLevel, original_class_id: row.dataset.originalClassId };
