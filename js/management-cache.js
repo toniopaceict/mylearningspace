@@ -911,6 +911,20 @@
             // period. Student Subjects and Work Folders remain invalidated and
             // will load authoritatively when their pages are opened.
             const primaryAction = POST_SAVE_PRIMARY_ACTION[action] || "";
+            const skipAutomaticPostSaveWarm =
+              action === "applyAdminTableCsvImport" ||
+              action === "clearAdminTableRows";
+
+            // Generic table-maintenance writes are followed by an explicit
+            // authoritative page reload in admin-csv-tools.js. Starting a
+            // background warm for the same dataset here can claim the shared
+            // in-flight request first and leave the foreground page waiting in
+            // its loading state. Let the page's own reload be the single
+            // authoritative request after CSV import / Clear Table.
+            if (skipAutomaticPostSaveWarm) {
+              return response;
+            }
+
             if (primaryAction) {
               enqueueBackgroundTask(
                 "post_save_primary:" + primaryAction,
