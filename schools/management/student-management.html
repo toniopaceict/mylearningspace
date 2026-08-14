@@ -73,6 +73,7 @@ Help file:
             <input
               type="text"
               id="newStudentName"
+              autocomplete="off"
               class="tracker-input"
               placeholder="Name"
             />
@@ -80,6 +81,7 @@ Help file:
             <input
               type="text"
               id="newStudentSurname"
+              autocomplete="off"
               class="tracker-input"
               placeholder="Surname"
             />
@@ -87,6 +89,7 @@ Help file:
             <input
               type="text"
               id="newStudentCode"
+              autocomplete="off"
               class="tracker-input"
               placeholder="Login code"
             />
@@ -94,6 +97,7 @@ Help file:
             <input
               type="email"
               id="newStudentEmail"
+              autocomplete="off"
               class="tracker-input"
               placeholder="Email"
             />
@@ -142,20 +146,9 @@ Help file:
               <div class="glip-progress show topics-progress">
                 <div class="glip-progress-bar"></div>
               </div>
-              <p>Loading students...</p>
+              <p id="studentsProgressText">Loading students...</p>
             </div>
-
-
-        <div
-          id="saveStudentProgress"
-          class="page-loading-box"
-          style="display: none"
-        >
-          <div class="glip-progress show topics-progress">
-            <div class="glip-progress-bar"></div>
-          </div>
-        </div>
-        </fieldset>
+</fieldset>
 
         <fieldset class="task-box panel-box topics-box">
           <legend>Student Management</legend>
