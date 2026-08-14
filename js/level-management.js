@@ -57,7 +57,21 @@
         tableName: "Levels",
         messageElementId: "levelManagementMessage",
         refresh: loadLevels,
-        hideClear: true
+        hideClear: true,
+        onImportBusyStateChange: function (state) {
+          const box = document.getElementById("levelsLoadingProgress");
+          const text = document.getElementById("levelsProgressText");
+
+          if (text) {
+            text.textContent = state.busy
+              ? (state.text || "Saving...")
+              : "Loading levels...";
+          }
+
+          if (box) {
+            box.style.display = state.busy ? "block" : "none";
+          }
+        }
       });
     }
   }
@@ -95,7 +109,12 @@
 
 function setLevelsLoadingState(isLoading) {
   const loadingBox = document.getElementById("levelsLoadingProgress");
+  const progressText = document.getElementById("levelsProgressText");
   const table = document.getElementById("levelsTable");
+
+  if (progressText) {
+    progressText.textContent = "Loading levels...";
+  }
 
   if (loadingBox) {
     loadingBox.style.display = isLoading ? "block" : "none";
@@ -126,20 +145,6 @@ function setLevelsLoadingState(isLoading) {
 
   function clearAddLevelMessage() {
     setAddMessage("", "info");
-  }
-
-  function setLevelSavingState(isSaving) {
-    const saveLevelBtn = document.getElementById("saveLevelBtn");
-    const progressBox = document.getElementById("saveLevelProgress");
-
-    if (saveLevelBtn) {
-      saveLevelBtn.disabled = isSaving;
-      saveLevelBtn.textContent = isSaving ? "Saving..." : "Save Level";
-    }
-
-    if (progressBox) {
-      progressBox.style.display = isSaving ? "block" : "none";
-    }
   }
 
   function loadLevels() {
@@ -295,7 +300,6 @@ function saveLevel() {
   const temporaryId = "pending-level-" + Date.now();
 
   const confirmedLevel = { level_id: temporaryId, level_code: levelCode, level_name: levelName, sort_order: sortOrder, active: active };
-  setLevelSavingState(true);
   pendingLevelSaves += 1;
   updateEditButton();
 
@@ -353,8 +357,6 @@ function saveLevel() {
         "error"
       );
     }
-  }).finally(function () {
-    setLevelSavingState(false);
   });
 }
 
@@ -446,10 +448,6 @@ btn.title = hasPendingSaves
   }
 
   function saveChanges() {
-    const previousLevels = levels.map(function (level) {
-      return Object.assign({}, level);
-    });
-
     const rows = document.querySelectorAll("[data-level-row]");
     const updates = [];
     rows.forEach(function (row) {

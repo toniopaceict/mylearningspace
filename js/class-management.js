@@ -83,7 +83,21 @@ loadLevelsDropdown();
           setClassesLoadingState(false);
         },
         refreshAfterClear: false,
-        refresh: loadClasses
+        refresh: loadClasses,
+        onImportBusyStateChange: function (state) {
+          const box = document.getElementById("classesLoadingProgress");
+          const text = document.getElementById("classesProgressText");
+
+          if (text) {
+            text.textContent = state.busy
+              ? (state.text || "Saving...")
+              : "Loading classes...";
+          }
+
+          if (box) {
+            box.style.display = state.busy ? "block" : "none";
+          }
+        }
       });
     }
   }
@@ -218,7 +232,12 @@ function loadLevelsDropdown() {
 
   function setClassesLoadingState(isLoading) {
     const loadingBox = document.getElementById("classesLoadingProgress");
+    const progressText = document.getElementById("classesProgressText");
     const table = document.getElementById("classesTable");
+
+    if (progressText) {
+      progressText.textContent = "Loading classes...";
+    }
 
     if (loadingBox) {
       loadingBox.style.display = isLoading ? "block" : "none";
@@ -422,8 +441,7 @@ function loadLevelsDropdown() {
       pending_save: true
     };
 
-    setClassSavingState(true);
-    pendingClassSaves += 1;
+        pendingClassSaves += 1;
     updateEditClassesButton();
 
     GLIPOptimisticUpdate.run({
@@ -481,8 +499,6 @@ function loadLevelsDropdown() {
           "error"
         );
       }
-    }).finally(function () {
-      setClassSavingState(false);
     });
   }
 
@@ -807,10 +823,6 @@ return `
   }
 
   function saveClassChanges() {
-    const previousClasses = currentClasses.map(function (item) {
-      return Object.assign({}, item);
-    });
-
     const rows = document.querySelectorAll("[data-class-row]"); const classes = [];
     rows.forEach(function (row) {
       const item = { original_level: row.dataset.originalLevel, original_class_id: row.dataset.originalClassId };

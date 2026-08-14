@@ -80,7 +80,21 @@ function getWebAppUrl() {
         tableKey: "teachers",
         tableName: "Staff Members",
         messageElementId: "teacherManagementMessage",
-        refresh: loadTeachers
+        refresh: loadTeachers,
+        onImportBusyStateChange: function (state) {
+          const box = document.getElementById("teachersLoadingProgress");
+          const text = document.getElementById("teachersProgressText");
+
+          if (text) {
+            text.textContent = state.busy
+              ? (state.text || "Saving...")
+              : "Loading staff members...";
+          }
+
+          if (box) {
+            box.style.display = state.busy ? "block" : "none";
+          }
+        }
       });
     }
   }
@@ -295,7 +309,12 @@ function clearAddTeacherMessage() {
   
   function setTeachersLoadingState(isLoading) {
     const loadingBox = document.getElementById("teachersLoadingProgress");
+    const progressText = document.getElementById("teachersProgressText");
     const table = document.getElementById("teachersTable");
+
+    if (progressText) {
+      progressText.textContent = "Loading staff members...";
+    }
 
     if (loadingBox) {
       loadingBox.style.display = isLoading ? "block" : "none";
