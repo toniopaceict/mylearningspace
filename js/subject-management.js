@@ -565,19 +565,41 @@ function markChangedField(field) {
 
   function setLoadingState(isLoading) {
     const loadingBox = document.getElementById("curriculumLoadingProgress");
+    const progressText = document.getElementById("curriculumProgressText");
     const table = document.getElementById("curriculumTable");
-    if (loadingBox) loadingBox.style.display = isLoading ? "block" : "none";
-    if (table) table.style.visibility = isLoading ? "hidden" : "visible";
+
+    if (progressText) {
+      progressText.textContent = "Loading subject assignments...";
+    }
+
+    if (loadingBox) {
+      loadingBox.style.display = isLoading ? "block" : "none";
+    }
+
+    if (table) {
+      table.style.visibility = isLoading ? "hidden" : "visible";
+    }
   }
 
   function setAddSavingState(isSaving) {
     const btn = document.getElementById("saveCurriculumBtn");
-    const progressBox = document.getElementById("saveCurriculumProgress");
+    const progressBox = document.getElementById("curriculumLoadingProgress");
+    const progressText = document.getElementById("curriculumProgressText");
+
     if (btn) {
       btn.disabled = isSaving;
       btn.textContent = isSaving ? "Saving..." : "Save Subject Assignment";
     }
-    if (progressBox) progressBox.style.display = isSaving ? "block" : "none";
+
+    if (progressText) {
+      progressText.textContent = isSaving
+        ? "Saving..."
+        : "Loading subject assignments...";
+    }
+
+    if (progressBox) {
+      progressBox.style.display = isSaving ? "block" : "none";
+    }
   }
 
   function setSavingState(isSaving) {
