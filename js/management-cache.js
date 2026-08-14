@@ -12,6 +12,7 @@
   const BACKGROUND_RETRY_MS = 750;
   const nativeFetch = window.fetch.bind(window);
   const inFlightReads = {};
+  const inFlightReadKinds = {};
   let versionCheckPromise = null;
   let lastUserActivityAt = Date.now();
   let activeForegroundRequests = 0;
@@ -484,30 +485,50 @@
 
   function fetchAndCache(input, options, requestData) {
     const action = requestData.action;
-    if (inFlightReads[action]) return inFlightReads[action].then(responseFrom);
+    const existingRead = inFlightReads[action];
 
-    inFlightReads[action] = foregroundFetch(input, options)
+    // A foreground page request must never wait behind a queued background
+    // warm. This is especially important immediately after CSV import / Clear
+    // Table, when the page performs an authoritative reload while background
+    // warming may still be paused waiting for an idle period.
+    if (existingRead && inFlightReadKinds[action] !== "background") {
+      return existingRead.then(responseFrom);
+    }
+
+    let foregroundPromise;
+    foregroundPromise = foregroundFetch(input, options)
       .then(function (response) {
         return response.clone().json().then(function (data) {
           write(action, data);
           return data;
         });
       })
-      .finally(function () { delete inFlightReads[action]; });
+      .finally(function () {
+        if (inFlightReads[action] === foregroundPromise) {
+          delete inFlightReads[action];
+          delete inFlightReadKinds[action];
+        }
+      });
 
-    return inFlightReads[action].then(responseFrom);
+    inFlightReads[action] = foregroundPromise;
+    inFlightReadKinds[action] = "foreground";
+    return foregroundPromise.then(responseFrom);
   }
 
   function refreshInBackground(input, options, requestData, oldData) {
     const action = requestData.action;
     if (inFlightReads[action]) return;
-    inFlightReads[action] = enqueueBackgroundTask(
+
+    let backgroundPromise;
+    backgroundPromise = enqueueBackgroundTask(
       "silent_refresh:" + action,
       function () { return rawPostJson(apiUrlFrom(input), requestData); },
       { priority: 15, minIdleMs: BACKGROUND_WARM_IDLE_MS }
     )
-      .then(function (freshData) { return freshData; })
       .then(function (freshData) {
+        // If a foreground request has superseded this background refresh, do
+        // not let the older background result overwrite the authoritative data.
+        if (inFlightReads[action] !== backgroundPromise) return;
         if (!freshData || freshData.status !== "success") return;
         write(action, freshData);
         if (JSON.stringify(oldData) !== JSON.stringify(freshData)) {
@@ -519,7 +540,15 @@
       .catch(function (error) {
         console.warn("Silent management refresh failed:", error);
       })
-      .finally(function () { delete inFlightReads[action]; });
+      .finally(function () {
+        if (inFlightReads[action] === backgroundPromise) {
+          delete inFlightReads[action];
+          delete inFlightReadKinds[action];
+        }
+      });
+
+    inFlightReads[action] = backgroundPromise;
+    inFlightReadKinds[action] = "background";
   }
 
   function prefetchAction(action, apiUrl) {
@@ -570,14 +599,19 @@
       return inFlightReads[action].catch(function () { return null; });
     }
 
-    inFlightReads[action] = backgroundPostJson(
+    let backgroundPromise;
+    backgroundPromise = backgroundPostJson(
       apiUrl,
       payload,
       jobId,
       { priority: initiator === "post_save_warm" ? 30 : 10, minIdleMs: BACKGROUND_WARM_IDLE_MS }
     )
       .then(function (data) {
-        if (data && data.status === "success") write(action, data);
+        // A user-driven foreground read is authoritative. If it superseded
+        // this warm, ignore the warm result rather than overwriting fresh data.
+        if (inFlightReads[action] === backgroundPromise && data && data.status === "success") {
+          write(action, data);
+        }
         return data;
       })
       .catch(function (error) {
@@ -585,11 +619,16 @@
         return null;
       })
       .finally(function () {
-        delete inFlightReads[action];
+        if (inFlightReads[action] === backgroundPromise) {
+          delete inFlightReads[action];
+          delete inFlightReadKinds[action];
+        }
         releaseWarmJob(jobId);
       });
 
-    return inFlightReads[action];
+    inFlightReads[action] = backgroundPromise;
+    inFlightReadKinds[action] = "background";
+    return backgroundPromise;
   }
 
   function warmDatasets(datasets, apiUrl) {
