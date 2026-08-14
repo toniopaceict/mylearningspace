@@ -196,7 +196,12 @@
 
   function setStudentsLoadingState(isLoading) {
     const loadingBox = document.getElementById("studentsLoadingProgress");
+    const progressText = document.getElementById("studentsProgressText");
     const table = document.getElementById("studentsTable");
+
+    if (progressText) {
+      progressText.textContent = "Loading students...";
+    }
 
     if (loadingBox) {
       loadingBox.style.display = isLoading ? "block" : "none";
@@ -209,11 +214,18 @@
 
   function setStudentSavingState(isSaving) {
     const saveStudentBtn = document.getElementById("saveStudentBtn");
-    const progressBox = document.getElementById("saveStudentProgress");
+    const progressBox = document.getElementById("studentsLoadingProgress");
+    const progressText = document.getElementById("studentsProgressText");
 
     if (saveStudentBtn) {
       saveStudentBtn.disabled = isSaving;
       saveStudentBtn.textContent = isSaving ? "Saving..." : "Save Student";
+    }
+
+    if (progressText) {
+      progressText.textContent = isSaving
+        ? "Saving..."
+        : "Loading students...";
     }
 
     if (progressBox) {
@@ -827,6 +839,7 @@ class="teacher-selectable-row ${studentNeedsAttention(student) ? "planning-row" 
             <input
               type="text"
               class="tracker-input"
+              autocomplete="off"
               data-field="student_name"
               value="${escapeHtml(student.student_name)}"
               placeholder="Name"
@@ -835,6 +848,7 @@ class="teacher-selectable-row ${studentNeedsAttention(student) ? "planning-row" 
             <input
               type="text"
               class="tracker-input"
+              autocomplete="off"
               data-field="student_surname"
               value="${escapeHtml(student.student_surname)}"
               placeholder="Surname"
@@ -846,6 +860,7 @@ class="teacher-selectable-row ${studentNeedsAttention(student) ? "planning-row" 
           <input
             type="text"
             class="tracker-input"
+            autocomplete="off"
             data-field="code"
             value="${escapeHtml(student.code)}"
           />
@@ -855,6 +870,7 @@ class="teacher-selectable-row ${studentNeedsAttention(student) ? "planning-row" 
           <input
             type="email"
             class="tracker-input"
+            autocomplete="off"
             data-field="email"
             value="${escapeHtml(student.email)}"
           />
