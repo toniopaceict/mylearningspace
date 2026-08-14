@@ -125,15 +125,11 @@ Help file:
 
             <p id="forgotCodeMessage" class="login-message"></p>
 
-            <div class="login-secondary-action">
-              <button id="backToLoginBtn" type="button" class="login-link-button">
-              &lt; Back to sign in
-                </button>
-            </div>
+
           </div>
         </fieldset>
 
-        <div class="text-center" style="margin-top: -50px;">
+        <div id="forgotCodeAction" class="text-center" style="margin-top: -50px;">
           <button
             id="forgotCodeBtn"
             type="button"
@@ -141,6 +137,17 @@ Help file:
             style="color: var(--color-text-muted);"
           >
             Forgot code?
+          </button>
+        </div>
+
+        <div id="backToLoginAction" class="text-center" style="margin-top: -50px;" hidden>
+          <button
+            id="backToLoginBtn"
+            type="button"
+            class="login-link-button"
+            style="color: var(--color-text-muted);"
+          >
+            Back to sign in
           </button>
         </div>
       </div>
@@ -886,6 +893,8 @@ sessionStorage.setItem("glipSupportOnly", String(Boolean(teacher.capability_cont
         document.getElementById("codeLoginView").hidden = true;
         document.getElementById("forgotCodeView").hidden = false;
         document.getElementById("loginLegend").textContent = "Forgot your code?";
+        document.getElementById("forgotCodeAction").hidden = true;
+        document.getElementById("backToLoginAction").hidden = false;
         setLoginMessage(document.getElementById("forgotCodeMessage"), "");
         document.getElementById("forgotEmailInput").focus();
       }
@@ -894,6 +903,8 @@ sessionStorage.setItem("glipSupportOnly", String(Boolean(teacher.capability_cont
         document.getElementById("forgotCodeView").hidden = true;
         document.getElementById("codeLoginView").hidden = false;
         document.getElementById("loginLegend").textContent = "Enter your code to continue";
+        document.getElementById("backToLoginAction").hidden = true;
+        document.getElementById("forgotCodeAction").hidden = false;
         setLoginMessage(document.getElementById("forgotCodeMessage"), "");
         if (message) showMessage(message, type || "success");
         document.getElementById("codeInput").focus();
