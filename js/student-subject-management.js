@@ -47,6 +47,12 @@
         tableName: "StudentSubjects",
         anchorElementId: "studentSubjectActions",
         messageElementId: "studentSubjectSuccessMessage",
+        exportAction: "exportStudentSubjectsBulkCsv",
+        validateAction: "validateStudentSubjectsBulkCsvImport",
+        importAction: "applyStudentSubjectsBulkCsvImport",
+        exportSuccessMessage: "Bulk Student Assignments CSV exported successfully.",
+        validationMessage: "Validating bulk Student Assignments CSV before import...",
+        importSuccessMessage: "Bulk Student Assignments CSV imported successfully. A sheet-format backup was downloaded first.",
         refresh: loadData
       });
     }

@@ -389,7 +389,7 @@ wrapper.appendChild(fileInput);
       setMessage(options.messageElementId, "Preparing CSV export...", "info");
 
       postToGlip({
-        action: "exportAdminTableCsv",
+        action: options.exportAction || "exportAdminTableCsv",
         admin_teacher_id: sessionStorage.getItem("glipTeacherId"),
         table_key: options.tableKey
       }).then(function (result) {
@@ -398,7 +398,11 @@ wrapper.appendChild(fileInput);
         }
 
         downloadText(result.filename || (options.tableKey + ".csv"), result.csv || "");
-        setMessage(options.messageElementId, "Sheet-format CSV exported successfully.", "success");
+        setMessage(
+          options.messageElementId,
+          options.exportSuccessMessage || "Sheet-format CSV exported successfully.",
+          "success"
+        );
       }).catch(function (error) {
         console.error(error);
         setMessage(options.messageElementId, error.message || "Could not export CSV.", "error");
@@ -415,10 +419,14 @@ wrapper.appendChild(fileInput);
       if (!file) return;
 
       readFileAsText(file).then(function (csvText) {
-        setMessage(options.messageElementId, "Validating sheet-format CSV before import...", "info");
+        setMessage(
+          options.messageElementId,
+          options.validationMessage || "Validating sheet-format CSV before import...",
+          "info"
+        );
 
         return postToGlip({
-          action: "validateAdminTableCsvImport",
+          action: options.validateAction || "validateAdminTableCsvImport",
           admin_teacher_id: sessionStorage.getItem("glipTeacherId"),
           table_key: options.tableKey,
           csv: csvText
@@ -464,7 +472,7 @@ wrapper.appendChild(fileInput);
 
             return downloadCurrentTableBackup(options).then(function () {
               return postToGlip({
-                action: "applyAdminTableCsvImport",
+                action: options.importAction || "applyAdminTableCsvImport",
                 admin_teacher_id: sessionStorage.getItem("glipTeacherId"),
                 table_key: options.tableKey,
                 csv: csvText,
@@ -482,7 +490,7 @@ wrapper.appendChild(fileInput);
 
         setMessage(
           options.messageElementId,
-          "Sheet-format CSV imported successfully. A backup CSV was downloaded first.",
+          options.importSuccessMessage || "Sheet-format CSV imported successfully. A backup CSV was downloaded first.",
           "success"
         );
 
