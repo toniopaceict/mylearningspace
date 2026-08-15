@@ -53,7 +53,13 @@
         exportSuccessMessage: "Bulk Student Assignments CSV exported successfully.",
         validationMessage: "Validating bulk Student Assignments CSV before import...",
         importSuccessMessage: "Bulk Student Assignments CSV imported successfully. A sheet-format backup was downloaded first.",
-        refresh: loadData
+        refresh: function () {
+          // CSV import is authoritative. Do not merge the freshly loaded server
+          // rows with any local optimistic copy left from earlier page edits.
+          assignments = [];
+          assignmentHistory = [];
+          return loadData();
+        }
       });
     }
   }
@@ -133,7 +139,7 @@
   function loadData() {
     setLoading(true);
 
-    postToGlip({
+    return postToGlip({
       action: "getStudentSubjectManagementAdmin",
       admin_teacher_id: sessionStorage.getItem("glipTeacherId")
     }).then(function (result) {
