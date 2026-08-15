@@ -83,7 +83,21 @@
         tableName: "TeachingAssignments",
         messageElementId: "classTeacherManagementMessage",
         refresh: loadAssignments,
-        hideClear: true
+        hideClear: true,
+        onImportBusyStateChange: function (state) {
+          const box = document.getElementById("classTeachersLoadingProgress");
+          const text = box ? box.querySelector("p") : null;
+
+          if (text) {
+            text.textContent = state.busy
+              ? (state.text || "Saving...")
+              : "Loading assignments...";
+          }
+
+          if (box) {
+            box.style.display = state.busy ? "block" : "none";
+          }
+        }
       });
     }
   }
