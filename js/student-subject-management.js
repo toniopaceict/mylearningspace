@@ -81,8 +81,7 @@
         { value: "class_id", label: "Class" },
         { value: "level", label: "Level", getValue: function (row) { return row.level_text; } },
         { value: "subject_id", label: "Subject", getValue: function (row) { return row.subject_text; } },
-        { value: "access_type", label: "Assignment Type", getValue: function (row) { return row.access_text; } },
-        { value: "status", label: "Status", getValue: getStudentSubjectStatusText }
+        { value: "access_type", label: "Assignment Type", getValue: function (row) { return row.access_text; } }
       ],
       onChange: function () {
         renderStudentSubjectTable();
@@ -320,7 +319,6 @@ function formatStudentSubjectSubjectCell(row) {
     if (field === "level") return String(row.level_text || "").toLowerCase();
     if (field === "subject_id") return String(row.subject_text || "").toLowerCase();
     if (field === "access_type") return String(row.access_text || "").toLowerCase();
-    if (field === "status") return String(row.status_text || "").toLowerCase();
 
     return String(row[field] || "").toLowerCase();
   }
@@ -341,7 +339,7 @@ function formatStudentSubjectSubjectCell(row) {
     if (!sortedRows.length) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="6">No students or assignments found.</td>
+          <td colspan="5">No students or assignments found.</td>
         </tr>
       `;
       table.style.visibility = "visible";
@@ -364,7 +362,6 @@ function formatStudentSubjectSubjectCell(row) {
   <td>${formatStudentSubjectLevelCell(row)}</td>
   <td>${formatStudentSubjectSubjectCell(row)}</td>
   <td>${escapeHtml(row.access_text || "-")}</td>
-  <td>${escapeHtml(getStudentSubjectStatusText(row))}</td>
 </tr>
         ${isSelected && isSelectable ? renderAssignmentEditRow(row.student_id) : ""}
       `;
@@ -432,7 +429,7 @@ function formatStudentSubjectSubjectCell(row) {
     if (!student) {
       return `
         <tr class="student-subject-edit-row">
-          <td colspan="6">
+          <td colspan="5">
             <div class="student-subject-inline-panel">
               Student not found.
             </div>
@@ -444,7 +441,7 @@ function formatStudentSubjectSubjectCell(row) {
     if (!isStudentSubjectRowSelectable(student)) {
       return `
         <tr class="student-subject-edit-row">
-          <td colspan="6">
+          <td colspan="5">
             <div class="student-subject-inline-panel">
               This row is shown for reference only and cannot be edited because its status is: <strong>${escapeHtml(getStudentSubjectRowStatus(student))}</strong>.
             </div>
@@ -464,7 +461,7 @@ function formatStudentSubjectSubjectCell(row) {
 
     return `
       <tr class="student-subject-edit-row">
-        <td colspan="6">
+        <td colspan="5">
           <div class="student-subject-inline-panel">
             <p class="panel-message" style="text-align:left;">
               <strong>Editing assignments for ${escapeHtml(formatStudentName(student))}.</strong><br>
@@ -533,7 +530,7 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
   return editableSubjects.map(function (subject) {
     const key = makeSubjectKey(subject.level, subject.subject_id);
     const existing = activeMap[key] || null;
-    const value = existing && existing.active !== false
+    const value = existing && ["current", "repeat", "revision"].indexOf(String(existing.access_type || "").toLowerCase()) !== -1
       ? existing.access_type || "current"
       : "not_assigned";
     const isCurrentLevel = normaliseLevel(subject.level) === normaliseLevel(student.level);
@@ -666,8 +663,7 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
         level_code: levelCode,
         subject_id: subjectId,
         access_type: select.value,
-        class_id: classId,
-        active: true
+        class_id: classId
       });
     });
 
@@ -750,8 +746,7 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
         level_active: subjectInfo.level_active !== false,
         curriculum_active: subjectInfo.curriculum_active !== false && subjectInfo.active !== false,
         class_id: item.class_id,
-        access_type: item.access_type,
-        active: true
+        access_type: item.access_type
       });
     });
   }
@@ -829,13 +824,9 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
       const key = makeSubjectKey(assignment.level, assignment.subject_id);
       const existing = map[key];
 
-      // Prefer an active record if duplicate historical rows ever exist.
-      if (existing && existing.active !== false && assignment.active === false) return;
-
       map[key] = {
         class_id: assignment.class_id || "",
-        access_type: String(assignment.access_type || "current").toLowerCase(),
-        active: assignment.active !== false
+        access_type: String(assignment.access_type || "current").toLowerCase()
       };
     });
 
@@ -1007,7 +998,7 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
     if (tbody) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="6">${escapeHtml(message)}</td>
+          <td colspan="5">${escapeHtml(message)}</td>
         </tr>
       `;
     }
