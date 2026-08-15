@@ -36,7 +36,6 @@
     setupSorting();
     updateSortIndicators();
     setupFilter();
-    setupAddStudentAssignment();
     loadData();
 
     if (typeof window.setupGlipCsvAdminTools === "function") {
@@ -50,200 +49,10 @@
     }
   }
 
-  function setupAddStudentAssignment() {
-    const studentSelect = document.getElementById("newStudentSubjectStudent");
-    const levelSelect = document.getElementById("newStudentSubjectLevel");
-    const subjectSelect = document.getElementById("newStudentSubjectSubject");
-    const saveButton = document.getElementById("saveStudentSubjectBtn");
-
-    if (studentSelect) {
-      studentSelect.addEventListener("change", function () {
-        updateSuggestedAssignmentType();
-      });
-    }
-
-    if (levelSelect) {
-      levelSelect.addEventListener("change", function () {
-        populateAddSubjectDropdown(levelSelect.value, subjectSelect);
-        updateSuggestedAssignmentType();
-      });
-    }
-
-    if (saveButton) {
-      saveButton.addEventListener("click", saveNewStudentAssignment);
-    }
-  }
-
-  function populateAddStudentAssignmentForm() {
-    const studentSelect = document.getElementById("newStudentSubjectStudent");
-    const levelSelect = document.getElementById("newStudentSubjectLevel");
-    const subjectSelect = document.getElementById("newStudentSubjectSubject");
-
-    if (studentSelect) {
-      const selectedStudent = studentSelect.value;
-      studentSelect.innerHTML = '<option value="">Select student</option>' +
-        students.slice().sort(function (a, b) {
-          return formatStudentName(a).localeCompare(formatStudentName(b));
-        }).map(function (student) {
-          const selected = String(student.student_id) === String(selectedStudent) ? "selected" : "";
-          const label = appendPlanningWarning(
-            formatStudentName(student),
-            student.student_active === false || student.active === false
-          );
-          return '<option value="' + escapeHtml(student.student_id) + '" ' + selected + '>' +
-            escapeHtml(label) +
-            '</option>';
-        }).join("");
-    }
-
-    if (levelSelect) {
-      const selectedLevel = levelSelect.value;
-      const levelMap = {};
-
-      subjects.forEach(function (subject) {
-        const key = normaliseLevel(subject.level);
-        if (!key || levelMap[key]) return;
-        levelMap[key] = {
-          level: subject.level,
-          active: subject.level_active !== false
-        };
-      });
-
-      const levels = Object.keys(levelMap).map(function (key) {
-        return levelMap[key];
-      }).sort(function (a, b) {
-        return normaliseLevel(a.level).localeCompare(normaliseLevel(b.level));
-      });
-
-      levelSelect.innerHTML = '<option value="">Select level</option>' +
-        levels.map(function (item) {
-          const selected = normaliseLevel(item.level) === normaliseLevel(selectedLevel) ? "selected" : "";
-          const label = appendPlanningWarning(formatLevel(item.level), item.active === false);
-          return '<option value="' + escapeHtml(item.level) + '" ' + selected + '>' +
-            escapeHtml(label) +
-            '</option>';
-        }).join("");
-    }
-
-    populateAddSubjectDropdown(levelSelect ? levelSelect.value : "", subjectSelect);
-    updateSuggestedAssignmentType();
-  }
-
-  function populateAddSubjectDropdown(level, select) {
-    if (!select) return;
-
-    if (!level) {
-      select.innerHTML = '<option value="">Select level first</option>';
-      select.disabled = true;
-      return;
-    }
-
-    const selectedSubject = select.value;
-    const available = subjects.filter(function (subject) {
-      return normaliseLevel(subject.level) === normaliseLevel(level);
-    }).sort(function (a, b) {
-      return String(a.subject_name || a.subject_id || "")
-        .localeCompare(String(b.subject_name || b.subject_id || ""));
-    });
-
-    select.innerHTML = '<option value="">Select subject</option>' +
-      available.map(function (subject) {
-        const selected = String(subject.subject_id) === String(selectedSubject) ? "selected" : "";
-        const label = appendPlanningWarning(
-          subject.subject_name || subject.subject_id,
-          subject.curriculum_active === false || subject.active === false
-        );
-        return '<option value="' + escapeHtml(subject.subject_id) + '" ' + selected + '>' +
-          escapeHtml(label) +
-          '</option>';
-      }).join("");
-
-    select.disabled = available.length === 0;
-  }
-
-  function updateSuggestedAssignmentType() {
-    const studentSelect = document.getElementById("newStudentSubjectStudent");
-    const levelSelect = document.getElementById("newStudentSubjectLevel");
-    const accessSelect = document.getElementById("newStudentSubjectAccessType");
-
-    if (!studentSelect || !levelSelect || !accessSelect) return;
-
-    const student = findStudentById(studentSelect.value);
-    if (!student || !levelSelect.value) return;
-
-    accessSelect.value =
-      normaliseLevel(student.level || student.level_code || "") === normaliseLevel(levelSelect.value)
-        ? "current"
-        : "revision";
-  }
-
   function setStudentSubjectMessage(element, text, type) {
     if (!element) return;
     element.textContent = text || "";
     element.className = "panel-message " + (type || "info");
-  }
-
-  function saveNewStudentAssignment() {
-    const studentSelect = document.getElementById("newStudentSubjectStudent");
-    const levelSelect = document.getElementById("newStudentSubjectLevel");
-    const subjectSelect = document.getElementById("newStudentSubjectSubject");
-    const accessSelect = document.getElementById("newStudentSubjectAccessType");
-    const saveButton = document.getElementById("saveStudentSubjectBtn");
-    const messageEl = document.getElementById("addStudentSubjectMessage");
-
-    const studentId = studentSelect ? studentSelect.value : "";
-    const levelCode = levelSelect ? levelSelect.value : "";
-    const subjectId = subjectSelect ? subjectSelect.value : "";
-    const accessType = accessSelect ? accessSelect.value : "current";
-
-    if (!studentId || !levelCode || !subjectId || !accessType) {
-      setStudentSubjectMessage(messageEl, "Select a student, level, subject and assignment type.", "error");
-      return;
-    }
-
-    const duplicate = assignments.some(function (assignment) {
-      return String(assignment.student_id) === String(studentId) &&
-        normaliseLevel(assignment.level) === normaliseLevel(levelCode) &&
-        String(assignment.subject_id) === String(subjectId);
-    });
-
-    if (duplicate) {
-      setStudentSubjectMessage(messageEl, "This student already has an assignment for the selected level and subject.", "error");
-      return;
-    }
-
-    const assignmentsToSave = assignments
-      .filter(function (assignment) {
-        return String(assignment.student_id) === String(studentId);
-      })
-      .map(function (assignment) {
-        return {
-          level_code: assignment.level,
-          subject_id: assignment.subject_id,
-          access_type: assignment.access_type || "current",
-          active: true
-        };
-      });
-
-    assignmentsToSave.push({
-      level_code: levelCode,
-      subject_id: subjectId,
-      access_type: accessType,
-      active: true
-    });
-
-    GLIPOptimisticUpdate.run({
-      request: function () { return postToGlip({ action: "saveStudentSubjectsAdmin", admin_teacher_id: sessionStorage.getItem("glipTeacherId"), student_id: studentId, assignments_to_save: assignmentsToSave }); },
-      failureMessage: "Could not save assignment.",
-      apply: function () { applyStudentSubjectAssignmentsLocally(studentId, assignmentsToSave); selectedStudentId = ""; selectedRowKey = ""; renderStudentSubjectTable(); if (studentSelect) studentSelect.value = ""; if (levelSelect) levelSelect.value = ""; populateAddSubjectDropdown("", subjectSelect); if (accessSelect) accessSelect.value = "current"; },
-      onSuccess: function (result) {
-        setStudentSubjectMessage(messageEl, result.message || "Assignment saved successfully.", "success");
-        showSuccessMessage();
-      },
-      resync: resyncStudentSubjectsSilently,
-      rollback: function () { assignments = previousAssignments; renderStudentSubjectTable(); },
-      onFailure: function (error) { setStudentSubjectMessage(messageEl, error.message || "Could not save assignment. The previous values were restored.", "error"); }
-    });
   }
 
   function setupFilter() {
@@ -326,7 +135,6 @@
       students = result.students || [];
       subjects = result.subjects || [];
       assignments = GLIPOptimisticUpdate.mergePendingRows(result.assignments || [], assignments, "student_subject_id");
-      populateAddStudentAssignmentForm();
 
       selectedStudentId = "";
       selectedRowKey = "";
@@ -792,7 +600,6 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
       students = result.students || [];
       subjects = result.subjects || [];
       assignments = GLIPOptimisticUpdate.mergePendingRows(result.assignments || [], assignments, "student_subject_id");
-      populateAddStudentAssignmentForm();
       renderStudentSubjectTable();
     }).catch(function (error) {
       console.warn("Silent student subject resync failed.", error);
@@ -802,23 +609,21 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
   function getEditableSubjectsForStudent(student) {
     const map = {};
     const list = [];
-    const studentLevel = normaliseLevel(student.level || student.level_code || "");
 
-    // Show every curriculum subject for the student's current class level.
-    // Subjects from other levels are shown only when the student already has
-    // an assignment at that level, for example a revision assignment.
-    subjects
-      .filter(function (subject) {
-        return normaliseLevel(subject.level) === studentLevel;
-      })
-      .forEach(function (subject) {
-        const key = makeSubjectKey(subject.level, subject.subject_id);
-        if (map[key]) return;
+    // The Students table is now the only assignment editor. Show every
+    // curriculum subject from every level so a new Current or Revision
+    // assignment can be created here without the former Add Student
+    // Assignment fieldset.
+    subjects.forEach(function (subject) {
+      const key = makeSubjectKey(subject.level, subject.subject_id);
+      if (map[key]) return;
 
-        map[key] = true;
-        list.push(subject);
-      });
+      map[key] = true;
+      list.push(subject);
+    });
 
+    // Preserve any existing assignment that is not present in the current
+    // curriculum dataset, for example an older/inactive curriculum record.
     assignments
       .filter(function (assignment) {
         return String(assignment.student_id) === String(student.student_id);
@@ -827,12 +632,8 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
         const key = makeSubjectKey(assignment.level, assignment.subject_id);
         if (map[key]) return;
 
-        const matchingSubject = subjects.find(function (subject) {
-          return makeSubjectKey(subject.level, subject.subject_id) === key;
-        });
-
         map[key] = true;
-        list.push(matchingSubject || {
+        list.push({
           level: assignment.level,
           subject_id: assignment.subject_id,
           subject_name: assignment.subject_name || assignment.subject_id,
