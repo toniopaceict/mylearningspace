@@ -5,6 +5,8 @@
   let subjects = [];
   let classes = [];
   let assignments = [];
+  let assignmentHistory = [];
+  let showAllEditorLevels = false;
   let selectedStudentId = "";
   let selectedRowKey = "";
   let initialised = false;
@@ -137,8 +139,10 @@
       subjects = result.subjects || [];
       classes = result.classes || [];
       assignments = GLIPOptimisticUpdate.mergePendingRows(result.assignments || [], assignments, "student_subject_id");
+      assignmentHistory = result.assignment_history || result.assignments || [];
 
       selectedStudentId = "";
+      showAllEditorLevels = false;
       selectedRowKey = "";
 
       renderStudentSubjectTable();
@@ -364,7 +368,9 @@ function formatStudentSubjectSubjectCell(row) {
         if (selectedRowKey === rowKey) {
           selectedStudentId = "";
           selectedRowKey = "";
+          showAllEditorLevels = false;
         } else {
+          if (selectedStudentId !== studentId) showAllEditorLevels = false;
           selectedStudentId = studentId;
           selectedRowKey = rowKey;
         }
@@ -385,6 +391,15 @@ function formatStudentSubjectSubjectCell(row) {
         event.stopPropagation();
         selectedStudentId = "";
         selectedRowKey = "";
+        showAllEditorLevels = false;
+        renderStudentSubjectTable();
+      });
+    });
+
+    document.querySelectorAll("[data-toggle-student-subject-levels]").forEach(function (btn) {
+      btn.addEventListener("click", function (event) {
+        event.stopPropagation();
+        showAllEditorLevels = !showAllEditorLevels;
         renderStudentSubjectTable();
       });
     });
@@ -427,8 +442,13 @@ function formatStudentSubjectSubjectCell(row) {
     }
 
     const editableSubjects = getEditableSubjectsForStudent(student);
-    const activeMap = getActiveAssignmentMap(student.student_id);
-    const options = renderGroupedSubjectOptions(editableSubjects, activeMap, student);
+    const assignmentMap = getAssignmentStateMap(student.student_id);
+    const visibleSubjects = showAllEditorLevels
+      ? editableSubjects
+      : editableSubjects.filter(function (subject) {
+          return normaliseLevel(subject.level) === normaliseLevel(student.level);
+        });
+    const options = renderGroupedSubjectOptions(visibleSubjects, assignmentMap, student);
 
     return `
       <tr class="student-subject-edit-row">
@@ -456,6 +476,15 @@ function formatStudentSubjectSubjectCell(row) {
                 data-student-id="${escapeHtml(student.student_id)}"
               >
                 Cancel
+              </button>
+
+              <button
+                type="button"
+                class="glip-btn glip-btn-secondary"
+                data-toggle-student-subject-levels
+                data-student-id="${escapeHtml(student.student_id)}"
+              >
+                ${showAllEditorLevels ? "Show active levels" : "Show all levels"}
               </button>
 
               <span
@@ -492,7 +521,9 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
   return editableSubjects.map(function (subject) {
     const key = makeSubjectKey(subject.level, subject.subject_id);
     const existing = activeMap[key] || null;
-    const value = existing ? existing.access_type || "current" : "not_assigned";
+    const value = existing && existing.active !== false
+      ? existing.access_type || "current"
+      : "not_assigned";
     const isCurrentLevel = normaliseLevel(subject.level) === normaliseLevel(student.level);
     const classOptions = getClassesForLevel(subject.level);
     const existingClassId = existing ? String(existing.class_id || "") : "";
@@ -651,6 +682,7 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
           applyStudentSubjectAssignmentsLocally(studentId, assignmentsToSave);
           selectedStudentId = "";
           selectedRowKey = "";
+          showAllEditorLevels = false;
           renderStudentSubjectTable();
         },
         onSuccess: function () {
@@ -722,6 +754,7 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
       subjects = result.subjects || [];
       classes = result.classes || [];
       assignments = GLIPOptimisticUpdate.mergePendingRows(result.assignments || [], assignments, "student_subject_id");
+      assignmentHistory = result.assignment_history || result.assignments || [];
       renderStudentSubjectTable();
     }).catch(function (error) {
       console.warn("Silent student subject resync failed.", error);
@@ -775,17 +808,22 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
     });
   }
 
-  function getActiveAssignmentMap(studentId) {
+  function getAssignmentStateMap(studentId) {
     const map = {};
 
-    assignments.forEach(function (assignment) {
+    assignmentHistory.forEach(function (assignment) {
       if (String(assignment.student_id) !== String(studentId)) return;
 
       const key = makeSubjectKey(assignment.level, assignment.subject_id);
+      const existing = map[key];
+
+      // Prefer an active record if duplicate historical rows ever exist.
+      if (existing && existing.active !== false && assignment.active === false) return;
 
       map[key] = {
         class_id: assignment.class_id || "",
-        access_type: String(assignment.access_type || "current").toLowerCase()
+        access_type: String(assignment.access_type || "current").toLowerCase(),
+        active: assignment.active !== false
       };
     });
 
@@ -891,8 +929,13 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
 }
 
   function formatLevel(level) {
-    const match = String(level || "").match(/\d+/);
-    return match ? "Level " + Number(match[0]) : String(level || "");
+    const value = String(level || "").trim();
+    if (!value) return "";
+
+    const match = value.match(/(?:level[-_\s]*)?0*(\d+)(?:[-_\s]+(\d{2,4}))?/i);
+    if (!match) return value;
+
+    return "Level " + Number(match[1]) + (match[2] ? "-" + match[2] : "");
   }
 
   function normaliseLevel(level) {

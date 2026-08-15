@@ -1138,13 +1138,24 @@ class="teacher-selectable-row ${studentNeedsAttention(student) ? "planning-row" 
   }
 
   function formatLevel(level) {
-    const match = String(level || "").match(/\d+/);
-    return match ? "Level " + Number(match[0]) : String(level || "");
+    const value = String(level || "").trim();
+    if (!value) return "";
+
+    const match = value.match(/(?:level[-_\s]*)?0*(\d+)(?:[-_\s]+(\d{2,4}))?/i);
+    if (!match) return value;
+
+    return "Level " + Number(match[1]) + (match[2] ? "-" + match[2] : "");
   }
 
   function normaliseLevel(level) {
-    const match = String(level || "").match(/\d+/);
-    return match ? "level-" + match[0].padStart(2, "0") : "";
+    const value = String(level || "").trim();
+    if (!value) return "";
+    if (/^level-/i.test(value)) return value.toLowerCase();
+
+    const match = value.match(/(?:level[-_\s]*)?0*(\d+)(?:[-_\s]+(\d{2,4}))?/i);
+    if (!match) return value.toLowerCase();
+
+    return "level-" + String(Number(match[1])).padStart(2, "0") + (match[2] ? "-" + match[2] : "");
   }
 
   function escapeHtml(text) {
