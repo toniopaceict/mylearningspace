@@ -504,8 +504,18 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
           data-subject-id="${escapeHtml(subject.subject_id)}"
         >
           <option value="not_assigned" ${value === "not_assigned" ? "selected" : ""}>Not assigned</option>
-          <option value="current" ${value === "current" ? "selected" : ""}>Current</option>
-          <option value="revision" ${value === "revision" ? "selected" : ""}>Revision</option>
+          ${normaliseLevel(subject.level) === normaliseLevel(student.level) ? `
+            ${value !== "not_assigned" && value !== "current" ? `
+              <option value="${escapeHtml(value)}" selected disabled>${escapeHtml(formatAccessType(value))} (change to Current)</option>
+            ` : ""}
+            <option value="current" ${value === "current" ? "selected" : ""}>Current</option>
+          ` : `
+            ${value === "current" ? `
+              <option value="current" selected disabled>Current (change to Repeat or Revision)</option>
+            ` : ""}
+            <option value="repeat" ${value === "repeat" ? "selected" : ""}>Repeat</option>
+            <option value="revision" ${value === "revision" ? "selected" : ""}>Revision</option>
+          `}
         </select>
       </div>
     `;
@@ -611,8 +621,8 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
     const list = [];
 
     // The Students table is now the only assignment editor. Show every
-    // curriculum subject from every level so a new Current or Revision
-    // assignment can be created here without the former Add Student
+    // curriculum subject from every level so Current, Repeat or Revision
+    // access can be managed here without the former Add Student
     // Assignment fieldset.
     subjects.forEach(function (subject) {
       const key = makeSubjectKey(subject.level, subject.subject_id);
@@ -706,6 +716,7 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
   const text = String(accessType || "").toLowerCase();
 
   if (text === "revision") return "Revision";
+  if (text === "repeat") return "Repeat";
   if (text === "current") return "Current";
 
   return text || "-";
