@@ -451,15 +451,11 @@ function getStudentSubjectGroupKey(subject) {
 
 function getStudentSubjectGroupLabel(subjectsInGroup) {
   const first = subjectsInGroup[0] || {};
-  const classId = String(first.class_id || "").trim();
   const accessType = String(first.access_type || "current").trim().toLowerCase();
-  const yearLabel = getClassYearLabel(classId);
 
-  if (accessType === "revision") {
-    return yearLabel;
-  }
-
-  return yearLabel;
+  if (accessType === "repeat") return "Repeat";
+  if (accessType === "revision") return "Revision";
+  return "Current";
 }
 
 function getStudentSubjectGroupSortValue(subjectsInGroup) {
@@ -571,8 +567,48 @@ function renderSubjectsByLevelThenYear(subjects) {
 
 function renderStudentSubjectsByClass(subjects) {
   const container = document.getElementById("topic-grid");
+  const levelGroups = groupSubjectsByLevel(subjects);
+
   container.style.display = "block";
-  container.innerHTML = renderSubjectsByLevelThenYear(subjects);
+  container.innerHTML = levelGroups
+    .sort(function (a, b) {
+      return Number(getLevelNumber(b.level)) - Number(getLevelNumber(a.level));
+    })
+    .map(function (levelGroup) {
+      const assignmentGroups = {};
+
+      levelGroup.subjects.forEach(function (subject) {
+        const key = getStudentSubjectGroupKey(subject);
+        if (!assignmentGroups[key]) assignmentGroups[key] = [];
+        assignmentGroups[key].push(subject);
+      });
+
+      const innerGroups = Object.keys(assignmentGroups)
+        .map(function (key) {
+          return {
+            subjects: removeDuplicateSubjectCards(assignmentGroups[key]),
+            sortValue: getStudentSubjectGroupSortValue(assignmentGroups[key])
+          };
+        })
+        .sort(function (a, b) { return b.sortValue - a.sortValue; });
+
+      return `
+        <fieldset class="task-box subjects-box teacher-level-group">
+          <legend>${getLevelLabel(levelGroup.level)}</legend>
+          ${innerGroups.map(function (group) {
+            return `
+              <fieldset class="task-box subjects-box teacher-level-group">
+                <legend>${getStudentSubjectGroupLabel(group.subjects)}</legend>
+                <div class="topic-grid">
+                  ${renderSubjectCards(group.subjects, levelGroup.level)}
+                </div>
+              </fieldset>
+            `;
+          }).join("")}
+        </fieldset>
+      `;
+    })
+    .join("");
 }
 
   
@@ -678,7 +714,10 @@ if (loadingProgress) loadingProgress.style.display = "none";
       
 
       async function fetchSubjects() {
+        let learningSessionFallback = null;
+
         try {
+
           if (
             isStudentUser() &&
             window.GLIPLearningSession &&
@@ -686,26 +725,18 @@ if (loadingProgress) loadingProgress.style.display = "none";
             window.GLIPLearningSession.hasValidSession()
           ) {
             const sessionSubjects = window.GLIPLearningSession.getSubjects();
-
-            // A populated Learning Session is authoritative. An empty session
-            // is not: it may have been created by a partial or older Apps
-            // Script deployment, so verify the student's assignments through
-            // the established getSubjects action before showing "no subjects".
-            if (Array.isArray(sessionSubjects) && sessionSubjects.length > 0) {
-              setSubjectCache(sessionSubjects);
-              return sessionSubjects;
+            if (Array.isArray(sessionSubjects)) {
+              learningSessionFallback = sessionSubjects;
             }
-
-            console.warn(
-              "GLIP Learning Session contains no curricula; verifying student subjects with Apps Script."
-            );
           }
 
-          // A missing or invalid Learning Session must never be interpreted as
-          // a learner with no assignments. Fall back to the established API
-          // so a partial deployment cannot hide valid subjects.
+          // StudentSubjects can be changed by an administrator while a learner
+          // still has an older Learning Session in this browser. Always verify
+          // learner assignment visibility with Apps Script before settling the
+          // page; the Learning Session remains a safe fallback if the request
+          // itself fails.
           if (isStudentUser()) {
-            console.warn("GLIP Learning Session is unavailable; loading subjects from Apps Script.");
+            console.info("Verifying student subject assignments with Apps Script.");
           }
 
 const payload = {
@@ -740,6 +771,9 @@ const res = await fetch(getWebAppUrl(), {
           return subjects;
         } catch (err) {
           console.error(err);
+          if (Array.isArray(learningSessionFallback)) {
+            return learningSessionFallback;
+          }
           return null;
         }
       }
@@ -1353,13 +1387,12 @@ function loadSubjects() {
         // An empty array may be a stale cache written during the failed
         // v374/v375 session bootstrap and must not suppress a fresh request.
         if (Array.isArray(cachedSubjects) && cachedSubjects.length > 0) {
+          // Keep the fast cached first paint, but never let a learner-facing
+          // assignment cache suppress a fresh visibility check.
           renderSubjects(cachedSubjects);
-
           fetchProgressForSubjects(cachedSubjects).then(function () {
             startBackgroundTopicPreloadSoon(cachedSubjects);
           });
-
-          return;
         }
 
         fetchSubjects().then(function (subjects) {
@@ -1374,8 +1407,10 @@ function loadSubjects() {
             return;
           }
 
-          document.getElementById("topic-grid").innerHTML =
-            "Unable to load subjects";
+          if (!Array.isArray(cachedSubjects) || !cachedSubjects.length) {
+            document.getElementById("topic-grid").innerHTML =
+              "Unable to load subjects";
+          }
         });
       }
 

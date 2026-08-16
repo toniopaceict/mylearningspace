@@ -55,10 +55,11 @@
         importSuccessMessage: "Bulk Student Assignments CSV imported successfully. A sheet-format backup was downloaded first.",
         refresh: function () {
           // CSV import is authoritative. Do not merge the freshly loaded server
-          // rows with any local optimistic copy left from earlier page edits.
+          // rows with any local optimistic copy left from earlier page edits, and
+          // bypass the management response cache for this first post-import read.
           assignments = [];
           assignmentHistory = [];
-          return loadData();
+          return loadData(true);
         }
       });
     }
@@ -135,12 +136,13 @@
       });
   }
 
-  function loadData() {
+  function loadData(forceFresh) {
     setLoading(true);
 
     return postToGlip({
       action: "getStudentSubjectManagementAdmin",
-      admin_teacher_id: sessionStorage.getItem("glipTeacherId")
+      admin_teacher_id: sessionStorage.getItem("glipTeacherId"),
+      force_refresh: forceFresh === true
     }).then(function (result) {
       if (!result || result.status !== "success") {
         throw new Error(result.message || "Could not load student subject data.");
