@@ -53,6 +53,20 @@
         exportSuccessMessage: "Bulk Student Assignments CSV exported successfully.",
         validationMessage: "Validating bulk Student Assignments CSV before import...",
         importSuccessMessage: "Bulk Student Assignments CSV imported successfully. A sheet-format backup was downloaded first.",
+        onImportBusyStateChange: function (state) {
+          const box = document.getElementById("studentSubjectLoadingProgress");
+          const text = box ? box.querySelector("p") : null;
+
+          if (text) {
+            text.textContent = state.busy
+              ? (state.text || "Saving...")
+              : "Loading students and subjects...";
+          }
+
+          if (box) {
+            box.style.display = state.busy ? "block" : "none";
+          }
+        },
         refresh: function () {
           // CSV import is authoritative. Clear both the local optimistic copy and
           // the session-level management cache before the first post-import read.
