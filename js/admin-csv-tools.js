@@ -332,7 +332,8 @@ window.showGlipConfirmModal = showGlipConfirmModal;
     return postToGlip({
       action: "exportAdminTableCsv",
       admin_teacher_id: sessionStorage.getItem("glipTeacherId"),
-      table_key: options.tableKey
+      table_key: options.tableKey,
+      sheet_format_only: true
     }).then(function (result) {
       if (!result || result.status !== "success") {
         throw new Error(result.message || "Could not create the backup CSV.");
