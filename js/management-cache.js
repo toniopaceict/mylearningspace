@@ -102,6 +102,7 @@
     addStudentAdmin: ["students", "studentSubjects"],
     updateStudentsAdmin: ["students", "studentSubjects"],
     saveStudentSubjectsAdmin: ["studentSubjects"],
+    applyStudentSubjectsBulkCsvImport: ["studentSubjects"],
     saveAllSubjectsAdmin: ["subjects", "topics", "teachingAssignmentView", "studentSubjects", "workFolders"],
     applyAdminTableCsvImport: "fromTableKey",
     clearAdminTableRows: "fromTableKey"
@@ -157,6 +158,7 @@
     addStudentAdmin: "listStudentsAdmin",
     updateStudentsAdmin: "listStudentsAdmin",
     saveStudentSubjectsAdmin: "getStudentSubjectManagementAdmin",
+    applyStudentSubjectsBulkCsvImport: "getStudentSubjectManagementAdmin",
     addClassTeacherAdmin: "listClassTeachersAdmin",
     updateClassTeachersAdmin: "listClassTeachersAdmin"
   };
@@ -952,6 +954,7 @@
             const primaryAction = POST_SAVE_PRIMARY_ACTION[action] || "";
             const skipAutomaticPostSaveWarm =
               action === "applyAdminTableCsvImport" ||
+              action === "applyStudentSubjectsBulkCsvImport" ||
               action === "clearAdminTableRows";
 
             // Generic table-maintenance writes are followed by an explicit

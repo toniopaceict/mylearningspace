@@ -54,11 +54,21 @@
         validationMessage: "Validating bulk Student Assignments CSV before import...",
         importSuccessMessage: "Bulk Student Assignments CSV imported successfully. A sheet-format backup was downloaded first.",
         refresh: function () {
-          // CSV import is authoritative. Do not merge the freshly loaded server
-          // rows with any local optimistic copy left from earlier page edits, and
-          // bypass the management response cache for this first post-import read.
+          // CSV import is authoritative. Clear both the local optimistic copy and
+          // the session-level management cache before the first post-import read.
+          // This is important because a hard refresh preserves sessionStorage.
           assignments = [];
           assignmentHistory = [];
+
+          if (window.GLIPManagementCache) {
+            if (typeof window.GLIPManagementCache.invalidateDatasets === "function") {
+              window.GLIPManagementCache.invalidateDatasets(["studentSubjects"]);
+            }
+            if (typeof window.GLIPManagementCache.invalidateActions === "function") {
+              window.GLIPManagementCache.invalidateActions(["getStudentSubjectManagementAdmin"]);
+            }
+          }
+
           return loadData(true);
         }
       });
