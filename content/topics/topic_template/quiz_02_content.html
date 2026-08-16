@@ -1,0 +1,168 @@
+<!--
+=========================================================
+GLIP QUIZ CONTENT
+
+Quiz: quiz_01
+
+THIS IS THE OWNER-EDITABLE FILE.
+
+For a new quiz:
+1. Copy this file.
+2. Rename it to match the Activity Code followed by _content.html.
+   Example: quiz_02_content.html
+3. Edit the required file links, instructions and questions below.
+
+You do NOT need to edit:
+• quiz page structure
+• JavaScript
+• reader buttons
+• scoring logic
+• PDF controls
+• submission/progress controls
+• header/footer
+• activity IDs
+
+Each question may have any number of answer options. The correct answer
+must match one of the option values exactly.
+=========================================================
+-->
+
+<div id="quizContentData">
+  <!-- =====================================================
+       REQUIRED FILES
+
+       Leave href empty to hide a file button.
+       Up to three files may be supplied.
+       ===================================================== -->
+  <div data-quiz-settings="files">
+    <a data-file-number="1" href="" data-button-text="Download File"></a>
+    <a data-file-number="2" href="" data-button-text="Download File 2"></a>
+    <a data-file-number="3" href="" data-button-text="Download File 3"></a>
+  </div>
+
+  <!-- =====================================================
+       QUIZ INSTRUCTIONS AND PDF TEXT
+       ===================================================== -->
+  <section data-quiz-settings="general">
+    <p data-instructions>
+      Read quiz 2 each question carefully and think about both the financial meaning and the Excel function involved.
+    </p>
+
+    <p data-pdf-title>
+      Save your work as a PDF and keep a copy for future reference.
+    </p>
+
+    <span data-pdf-button-text>Save as PDF</span>
+    <span data-pdf-fallback-name>Quiz</span>
+  </section>
+
+  <!-- =====================================================
+       QUESTION 1
+       ===================================================== -->
+  <section
+    data-quiz-question
+    data-question-id="q1"
+    data-title="Q1"
+    data-marks="1"
+    data-correct="A"
+  >
+    <p data-question-text>
+      answer a is the correct one. In which of the following scenarios is the Present Value (PV) function most appropriately used?
+    </p>
+
+    <ul data-options>
+      <li data-value="A">To calculate the final amount of an investment after earning interest</li>
+      <li data-value="B">To calculate how much must be invested today to reach a specific future amount</li>
+      <li data-value="C">To calculate the annual interest rate on a loan</li>
+      <li data-value="D">To calculate the total interest earned only</li>
+      <li data-value="E">To calculate the monthly repayment of a loan</li>
+    </ul>
+
+    <p data-feedback-correct>
+      Correct. The Present Value function is used when you know the future amount you want to receive and you need to calculate how much must be invested today to reach that target.
+    </p>
+
+    <p data-feedback-incorrect>
+      Not correct. The PV function is used to determine the amount that must be invested today in order to reach a known future value.
+    </p>
+  </section>
+
+  <!-- =====================================================
+       QUESTION 2
+       ===================================================== -->
+  <section
+    data-quiz-question
+    data-question-id="q2"
+    data-title="Q2"
+    data-marks="3"
+    data-correct="B"
+  >
+    <p data-question-text>
+      In 15 years’ time, you wish to have €100,000 in a bank account that pays 5% interest per year, compounded annually. How much should you invest today as a single lump sum?
+    </p>
+
+    <ul data-options>
+      <li data-value="A">€46,321</li>
+      <li data-value="B">€48,102</li>
+      <li data-value="C">€50,000</li>
+      <li data-value="D">€52,000</li>
+      <li data-value="E">€55,329</li>
+    </ul>
+
+    <p data-feedback-correct>
+      Correct. You correctly calculated the future value back to today using the Present Value function.
+    </p>
+
+    <p data-feedback-incorrect>
+      Not correct. The correct Excel inputs are Rate = 5%, Nper = 15, Pmt = 0 because there are no additional yearly payments, Fv = 100000 and Type = 0. Excel returns a negative value because this represents money invested today.
+    </p>
+  </section>
+
+  <!-- =====================================================
+       QUESTION 3
+       ===================================================== -->
+  <section
+    data-quiz-question
+    data-question-id="q3"
+    data-title="Q3"
+    data-marks="3"
+    data-correct="A"
+  >
+    <p data-question-text>
+      A couple would like to give €35,000 to their children in 10 years’ time to use as a deposit on an apartment. How much should they invest today if the bank pays 4% interest per year, compounded annually?
+    </p>
+
+    <ul data-options>
+      <li data-value="A">€23,644</li>
+      <li data-value="B">€24,500</li>
+      <li data-value="C">€25,000</li>
+      <li data-value="D">€26,700</li>
+      <li data-value="E">€28,402</li>
+    </ul>
+
+    <p data-feedback-correct>
+      Correct. You correctly applied the Present Value function to calculate how much must be invested today to reach €35,000 in 10 years.
+    </p>
+
+    <p data-feedback-incorrect>
+      Not correct. The correct Excel inputs are Rate = 4%, Nper = 10, Pmt = 0 because no additional payments are made, Fv = 35000 and Type = 0. This calculates the amount that must be invested today to reach the required future value.
+    </p>
+  </section>
+
+  <!-- =====================================================
+       OPTIONAL EXTRA INSTRUCTION BOX
+
+       To use it, set data-enabled="true", choose the question
+       it should appear before, and edit the title/content.
+       ===================================================== -->
+  <section
+    data-extra-box
+    data-enabled="false"
+    data-before-question-id="q3"
+    data-title="Extra Instructions"
+  >
+    <div data-extra-content>
+      <p>For these exercises, you will need this Excel file.</p>
+    </div>
+  </section>
+</div>
