@@ -479,6 +479,32 @@ function getTopicStatus(topic) {
         return progressItems;
       }
 
+      async function fetchTopicsFromServer() {
+        const res = await fetch(getWebAppUrl(), {
+          method: "POST",
+          body: JSON.stringify({
+            action: "getTopics",
+            curriculum_id: CURRICULUM_ID,
+            subject_id: SUBJECT,
+            level_id: LEVEL_ID,
+            level: LEVEL,
+            userType:
+              sessionStorage.getItem("glipRole") ||
+              sessionStorage.getItem("glipUserType") ||
+              "student",
+            teacher_id: sessionStorage.getItem("glipTeacherId") || ""
+          })
+        });
+
+        const data = await res.json();
+
+        if (data.status === "error") {
+          throw new Error(data.message || "API error");
+        }
+
+        return Array.isArray(data.topics) ? data.topics : [];
+      }
+
       async function fetchTopics() {
         try {
           if (window.GLIPLearningSession) {
@@ -490,33 +516,42 @@ function getTopicStatus(topic) {
               return sessionTopics;
             }
           }
-          const res = await fetch(getWebAppUrl(), {
-            method: "POST",
-            body: JSON.stringify({
-              action: "getTopics",
-              curriculum_id: CURRICULUM_ID,
-              subject_id: SUBJECT,
-              level_id: LEVEL_ID,
-              level: LEVEL,
-              userType:
-                sessionStorage.getItem("glipRole") ||
-                sessionStorage.getItem("glipUserType") ||
-                "student",
-              teacher_id: sessionStorage.getItem("glipTeacherId") || ""
-            })
-          });
 
-          const data = await res.json();
-
-          if (data.status === "error") {
-            throw new Error(data.message || "API error");
-          }
-
-          const topics = Array.isArray(data.topics) ? data.topics : [];
+          const topics = await fetchTopicsFromServer();
           setTopicsCache(topics);
           return topics;
         } catch (err) {
           console.error(err);
+          return null;
+        }
+      }
+
+      function topicsMatch(first, second) {
+        try {
+          return JSON.stringify(first || []) === JSON.stringify(second || []);
+        } catch (error) {
+          return false;
+        }
+      }
+
+      async function refreshTopicsInBackground(cachedTopics) {
+        try {
+          // Deliberately bypass the learning-session/local caches here. The
+          // cached topics have already been rendered, so this authoritative
+          // check happens in the background and does not delay first paint.
+          const freshTopics = await fetchTopicsFromServer();
+          setTopicsCache(freshTopics);
+
+          if (!topicsMatch(cachedTopics, freshTopics)) {
+            renderTopics(freshTopics);
+            return freshTopics;
+          }
+
+          return null;
+        } catch (error) {
+          // A failed revalidation must never replace or delay usable cached
+          // content. The next visit will try again.
+          console.warn("Could not refresh topics in the background.", error);
           return null;
         }
       }
@@ -543,9 +578,20 @@ function getTopicStatus(topic) {
           : fetchProgress();
 
         if (Array.isArray(cachedTopics) && cachedTopics.length > 0) {
+          // Fast first paint from the existing two-hour local cache.
           renderTopics(cachedTopics);
           progressPromise.then(function () {
             applyTopicBadges(cachedTopics.map(normaliseTopic));
+          });
+
+          // Stale-while-revalidate: confirm topic visibility/active state in
+          // the background without making the student wait for Apps Script.
+          refreshTopicsInBackground(cachedTopics).then(function (freshTopics) {
+            if (!Array.isArray(freshTopics)) return;
+
+            progressPromise.then(function () {
+              applyTopicBadges(freshTopics.map(normaliseTopic));
+            });
           });
           return;
         }
