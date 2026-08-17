@@ -76,6 +76,34 @@
 
     setupSorting();
     load();
+
+    if (typeof window.setupGlipCsvAdminTools === "function") {
+      window.setupGlipCsvAdminTools({
+        tableKey: "activities",
+        tableName: "Activities",
+        anchorElementId: "activityManagementActions",
+        messageElementId: "activityEditMessage",
+        hideClear: true,
+        exportSuccessMessage: "Activities CSV exported successfully.",
+        importSuccessMessage: "Activities CSV imported successfully. A backup CSV was downloaded first.",
+        validationMessage: "Validating Activities CSV before import...",
+        refresh: load,
+        onImportBusyStateChange: function (state) {
+          const box = document.getElementById("activitiesLoadingProgress");
+          const text = document.getElementById("activitiesProgressText");
+
+          if (text) {
+            text.textContent = state.busy
+              ? (state.text || "Saving activities...")
+              : "Loading activities...";
+          }
+
+          if (box) {
+            box.style.display = state.busy ? "block" : "none";
+          }
+        }
+      });
+    }
   }
 
   document.addEventListener("glipReady", init);
@@ -142,8 +170,10 @@
 
   function setLoading(value) {
     const loading = document.getElementById("activitiesLoadingProgress");
+    const loadingText = document.getElementById("activitiesProgressText");
     const table = document.getElementById("activitiesTable");
 
+    if (loadingText && value) loadingText.textContent = "Loading activities...";
     if (loading) loading.style.display = value ? "block" : "none";
     if (table) table.style.visibility = value ? "hidden" : "visible";
   }

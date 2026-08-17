@@ -347,17 +347,11 @@ Help file:
 </fieldset>
 <fieldset class="task-box panel-box topics-box">
 <legend>Activities</legend>
-<div class="page-loading-box text-center" id="activitiesLoadingProgress">
-<div class="glip-progress show topics-progress">
-<div class="glip-progress-bar"></div>
-</div>
-<p>Loading activities...</p>
-</div>
 <div class="panel-header activity-panel-header">
 <p class="q panel-top-text">
             Search, sort and edit the activities used in GLIP content and progress tracking.
           </p>
-<div class="panel-right teacher-actions" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+<div class="panel-right teacher-actions" id="activityManagementActions" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
 <div class="activity-edit-actions">
 <button class="glip-btn" id="editActivitiesBtn" type="button">
                 Edit Activities
@@ -416,6 +410,12 @@ Help file:
 </tr>
 </tbody>
 </table>
+</div>
+<div class="page-loading-box text-center" id="activitiesLoadingProgress" style="display: none; margin-top: 0.75rem;">
+<div class="glip-progress show topics-progress">
+<div class="glip-progress-bar"></div>
+</div>
+<p id="activitiesProgressText">Loading activities...</p>
 </div>
 </fieldset>
 </div>
