@@ -141,10 +141,10 @@ Help file:
     #activitiesTable td:nth-child(4) { width: 9%; }
 
     #activitiesTable th:nth-child(5),
-    #activitiesTable td:nth-child(5) { width: 23%; }
+    #activitiesTable td:nth-child(5) { width: 21%; }
 
     #activitiesTable th:nth-child(6),
-    #activitiesTable td:nth-child(6) { width: 7%; }
+    #activitiesTable td:nth-child(6) { width: 9%; }
 
     #activitiesTable th:nth-child(7),
     #activitiesTable td:nth-child(7) { width: 8%; }
@@ -201,6 +201,27 @@ Help file:
       display: flex;
       align-items: center;
       gap: 0.75rem;
+    }
+
+    .activity-management-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .activity-management-actions .activity-edit-actions {
+      margin: 0;
+    }
+
+    .activity-management-actions .glip-csv-tools {
+      margin: 0;
+      gap: 0.75rem;
+    }
+
+    #activitiesLoadingProgress {
+      margin-top: 0.75rem;
     }
 
     .activity-field-changed {
@@ -265,6 +286,10 @@ Help file:
       .activity-inline-topic,
       .activity-inline-title {
         grid-column: auto;
+      }
+
+      .activity-management-actions {
+        justify-content: flex-start;
       }
 
       .activity-record-count {
@@ -351,14 +376,21 @@ Help file:
 <p class="q panel-top-text">
             Search, sort and edit the activities used in GLIP content and progress tracking.
           </p>
-<div class="panel-right teacher-actions" id="activityManagementActions" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+<div class="panel-right">
+<div class="activity-management-actions" id="activityManagementActions">
 <div class="activity-edit-actions">
 <button class="glip-btn" id="editActivitiesBtn" type="button">
                 Edit Activities
               </button>
 </div>
-<p class="panel-message text-center" id="activityEditMessage" style="margin: 0;"></p>
-
+</div>
+<div class="page-loading-box text-center" id="activitiesLoadingProgress" style="display: none;">
+<div class="glip-progress show topics-progress">
+<div class="glip-progress-bar"></div>
+</div>
+<p id="activitiesProgressText">Loading activities...</p>
+</div>
+<p class="panel-message text-center" id="activityEditMessage" style="margin: 0.5rem 0 0;"></p>
 </div>
 </div>
 <div class="activity-search-panel">
@@ -410,12 +442,6 @@ Help file:
 </tr>
 </tbody>
 </table>
-</div>
-<div class="page-loading-box text-center" id="activitiesLoadingProgress" style="display: none; margin-top: 0.75rem;">
-<div class="glip-progress show topics-progress">
-<div class="glip-progress-bar"></div>
-</div>
-<p id="activitiesProgressText">Loading activities...</p>
 </div>
 </fieldset>
 </div>
