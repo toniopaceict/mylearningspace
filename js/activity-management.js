@@ -345,7 +345,7 @@
       activity_title: document.getElementById("activityTitle").value.trim(),
       sort_order: document.getElementById("activitySortOrder").value,
       visible: document.getElementById("activityVisible").value === "true",
-      active: document.getElementById("activityActive").value === "true",
+      active: true,
       requires_submission: document.getElementById("activityRequiresSubmission").value === "true"
     };
 
@@ -463,7 +463,6 @@
     const title = document.getElementById("activityTitle");
     const sortOrder = document.getElementById("activitySortOrder");
     const visible = document.getElementById("activityVisible");
-    const active = document.getElementById("activityActive");
     const requiresSubmission = document.getElementById("activityRequiresSubmission");
 
     const activityId = document.getElementById("activityId");
@@ -476,7 +475,6 @@
     setActivityCodeHint("Enter a title and GLIP will suggest the Activity Code.");
     if (sortOrder) sortOrder.value = "";
     if (visible) visible.value = "true";
-    if (active) active.value = "true";
     if (requiresSubmission) requiresSubmission.value = "false";
 
     updateGeneratedActivityId();
@@ -553,7 +551,7 @@
       activity_title: value("activity_title"),
       sort_order: value("sort_order"),
       visible: value("visible") === "true",
-      active: value("active") === "true",
+      active: true,
       requires_submission: value("requires_submission") === "true"
     };
 
@@ -718,7 +716,6 @@
           getDisplayValue(activity, "activity_title"),
           getDisplayValue(activity, "visible"),
           getDisplayValue(activity, "sort_order"),
-          getDisplayValue(activity, "active"),
           getDisplayValue(activity, "requires_submission")
         ].some(function (value) {
           return value.toLowerCase().includes(query);
@@ -769,8 +766,6 @@
         return activity.visible ? "Visible" : "Hidden";
       case "sort_order":
         return String(activity.sort_order == null ? "" : activity.sort_order);
-      case "active":
-        return activity.active ? "Active" : "Inactive";
       case "requires_submission":
         return activity.requires_submission ? "Required" : "Not required";
       default:
@@ -799,7 +794,7 @@
               ? renderEdit(activity)
               : "");
         }).join("")
-      : '<tr><td colspan="8">No activities found.</td></tr>';
+      : '<tr><td colspan="7">No activities found.</td></tr>';
 
     if (editMode) {
       document.querySelectorAll("[data-activity-view-row]").forEach(function (row) {
@@ -843,7 +838,7 @@
         let originalValue = original[fieldName];
         let currentValue = field.value;
 
-        if (fieldName === "visible" || fieldName === "active" || fieldName === "requires_submission") {
+        if (fieldName === "visible" || fieldName === "requires_submission") {
           originalValue = originalValue ? "true" : "false";
         }
 
@@ -863,8 +858,7 @@
         : "";
 
     return (
-      '<tr class="' + (!activity.active ? "planning-row" : "") +
-      selectableClass + selectedClass + '"' +
+      '<tr class="' + selectableClass.trim() + selectedClass + '"' +
       (editMode
         ? ' data-activity-view-row="' + esc(activity.activity_id) +
           '" tabindex="0" role="button" aria-label="Edit ' +
@@ -877,7 +871,6 @@
       "<td>" + esc(activity.activity_type_name || activity.activity_type_code) + "</td>" +
       "<td>" + esc(activity.activity_title) + "</td>" +
       "<td>" + esc(activity.sort_order == null ? "" : activity.sort_order) + "</td>" +
-      "<td>" + (activity.active ? "Active" : "Inactive") + "</td>" +
       "<td>" + (activity.requires_submission ? "Required" : "Not required") + "</td>" +
       "</tr>"
     );
@@ -912,7 +905,7 @@
 
     return (
       '<tr class="student-subject-edit-row activity-inline-edit-row">' +
-      '<td colspan="8">' +
+      '<td colspan="7">' +
       '<div class="student-subject-inline-panel">' +
       '<p><strong>Editing activity ' + esc(activity.activity_title || activity.activity_code) + '.</strong></p>' +
       '<div class="activity-inline-edit-grid" data-activity-row="' + esc(activity.activity_id) + '">' +
@@ -944,12 +937,6 @@
       '<label class="activity-inline-field"><span>Sort order</span>' +
       '<input class="tracker-input" type="number" min="1" data-field="sort_order" value="' +
       esc(activity.sort_order) + '"></label>' +
-
-      '<label class="activity-inline-field"><span>Status</span>' +
-      '<select class="tracker-input" data-field="active">' +
-      '<option value="true" ' + (activity.active ? "selected" : "") + ">Active</option>" +
-      '<option value="false" ' + (!activity.active ? "selected" : "") + ">Inactive</option>" +
-      "</select></label>" +
 
       '<label class="activity-inline-field"><span>Submission</span>' +
       '<select class="tracker-input" data-field="requires_submission">' +

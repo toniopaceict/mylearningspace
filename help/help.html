@@ -852,191 +852,115 @@ Help Section:
       
       
 <details class="help-topic" id="activity-management" data-roles="owner">
-  <summary>Activity Management *</summary>
+  <summary>Activity Management (Owner) (text revised)</summary>
 
   <div class="help-topic-body">
 
     <section class="help-subsection">
       <h3>Purpose</h3>
-      <p>
-        Activity Management is used to create and maintain the learning activities (eg lessons, quizzes etc) that make up each topic in GLIP.
-       </p>
+      <p> Activity Management is used to create and maintain the learning activities (e.g., lessons, quizzes, etc.) that make up each topic in GLIP.</p>
     </section>
 
     <section class="help-subsection">
       <h3>Adding an activity</h3>
-      <p>There are two ways how to add an activity:</p>
+      <p>There are two ways to add an activity: </p>
 
       <ol>
-        <li>By completing the 'Add Activity' section .</li>
-        <li>Exporting and importing a CSV file.</li>
-      </ol>
-
-      <p><strong>'Add Activity' section</strong></p>
-    
-      <ol>
-        <li>Select the required <strong>Level, Subject and Topic</strong>.</li>
-        <li>Select the <strong>Activity Type</strong>.</li>
-        <li>Enter a descriptive <strong>Activity Title</strong>.</li>
-        <li>Enter an <strong>Activity Code</strong> following the instructions below.</li>
-        <li>Specify the <strong>Sort Order</strong>.</li>
-        <li>Choose whether the activity is <strong>Visible</strong> - this controls whether the activity is visible to the students or not.</li>
-        <li>Choose whether submission is required or not is <strong>Visible</strong> - this controls whether the activity is visible to the students or not.</li>
-        <li>Save the activity.</li>
-      </ol>
-     
-      
-      <p>
-        GLIP generates the <strong>Activity ID</strong> automatically and suggests an
-        <strong>Activity Code</strong> based on the title.
+        <li>By completing the <strong>Add Activity</strong> section.</li>
+        <p>This is useful when adding one or two activities. For a detailed description of each field, please refer to the notes below. </p>
+        
+        <li>By exporting and importing a <strong>CSV</strong> file.</li>
+        <p>This is a much faster way to add multiple activities. Enter the first activity so that GLIP creates the appropriate structure.
+         Then export the CSV file, add the additional activities in the CSV and import it back into GLIP. 
       </p>
+      </ol>
     </section>
 
     <section class="help-subsection">
-      <h3>Activity ID and Activity Code</h3>
+      <h3>Level, subject and topic</h3>
+      <p>This refers to the level, subject and topic to which the activity belongs. If the drop-down list is empty, you may need to create them first from the respective management pages. </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Activity type</h3>
+      <p>This refers to the type of activity you are creating (e.g., lesson, quiz, fill in the blanks, etc.). </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Activity title</h3>
+      <p>The title should be a concise and meaningful name for the activity because it will appear in the navigation menus of GLIP. </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Activity code</h3>
+      <p>This is a permanent activity identifier. It is used to locate the HTML page that contains the learning material.  </p>
 
       <p>
-        The <strong>Activity ID</strong> is the internal database identifier used by GLIP to maintain relationships
-        between activities and learner progress. It is generated automatically and should never be edited manually.
+        For example, if the activity code is <code>my_lesson_01</code>, GLIP will look for the corresponding HTML page <code>my_lesson_01.html</code> in the topic's folder.
       </p>
 
       <p>
-        The <strong>Activity Code</strong> is a permanent content identifier. It is used to locate the HTML page that
-        contains the learning material.
-      </p>
-
-      <p>
-        For example:
-      </p>
-
-      <pre>
-Activity Code: my_lesson_01
-
-HTML page:
-my_lesson_01.html
-      </pre>
-
-      <p>
-        Once an activity has been created, the Activity Code should not be changed because it forms part of the content
+        Once an activity has been created, the activity code should not be changed because it forms part of the content
         structure and may be referenced by links, validation routines and other resources.
       </p>
     </section>
 
     <section class="help-subsection">
-      <h3>Sort Order</h3>
-
-      <p>
-        The Sort Order determines the sequence in which activities appear to learners.
-      </p>
-
-      <p>
-        It is recommended to number activities in multiples of ten, for example:
-      </p>
-
-      <pre>
-10
-20
-30
-40
-      </pre>
-
-      <p>
+      <h3>Sort order</h3>
+      <p>The sort order determines the sequence in which activities appear to learners.  It is recommended to number activities in multiples of ten.
         This makes it easy to insert additional activities later without having to renumber the entire topic.
       </p>
     </section>
 
     <section class="help-subsection">
-      <h3>Visible and Active</h3>
+      <h3>Visible/Hidden</h3>
 
-      <p>
-        Two settings control whether an activity is available.
+      <p>This setting controls whether an activity is available to the learners or not. If an activity is not visible, it will not appear in the navigation menus and learners will not be able to access it.
+         This is useful when an activity is still being developed or is no longer relevant.
       </p>
+      <p>
+        Owners can still view hidden activities for planning and development purposes.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Submission Required/Not Required</h3>
+
+      <p>Some activities require that the learners submit their work to their teacher for grading or correction. In such cases, the activity should be marked as <i>Submission required</i>. The submitted file
+        will be uploaded to the respective teacher's GLIP folder which is set when the teacher is assigned a class and subject on the <i>Teaching Assignments</i> page.
+      </p>
+    </section>
+
+    <section class="help-subsection">
+      <h3>Exporting and importing CSV files</h3>
+
+      <p>Use Export CSV to download the current list of activities in GLIP as a CSV file. It can be useful for reviewing activities or making changes to several activities at once.</p>
+      <p>Use Import CSV to add new activities or update existing activities in bulk. For best results, first use Export CSV and use the exported file as your template.
+      This ensures that the correct column names and structure are retained.
+      </p>
+
+      <p>When editing the CSV file:</p>
 
       <ul>
-        <li><strong>Visible</strong> determines whether learners can see the activity.</li>
-        <li><strong>Active</strong> determines whether the activity is available for use.</li>
+        <li>Do not change or remove the column headings.</li>
+        <li>Do not change the activity_id of an existing activity. GLIP uses this ID to identify which activity should be updated.</li>
+        <li>Leave the activity_id blank when adding a new activity. GLIP will generate the ID automatically.</li>
+        <li>Do not add, remove or rearrange columns.</li>
       </ul>
 
-      <p>
-        An activity must normally be both <strong>Visible</strong> and <strong>Active</strong> before learners can
-        access it.
-      </p>
-
-      <p>
-        Owners can still view inactive activities for planning and development purposes.
-      </p>
+      <p>When importing, GLIP checks the CSV file before making any changes. If an error is found, the import will not proceed and no activities will be changed.
+        Correct the reported error in the CSV file and import it again.</p>
     </section>
-
-    <section class="help-subsection">
-      <h3>Editing activities</h3>
-
-      <p>
-        Existing activities can be edited using the <strong>Edit Activities</strong> button.
-      </p>
-
-      <p>
-        Changes are applied immediately in the browser and then saved in the background. Modified fields are highlighted
-        until the changes have been saved successfully.
-      </p>
-
-      <p>
-        The Activity Code is treated as a permanent identifier and should not normally be changed after the activity has
-        been created.
-      </p>
-    </section>
-
-    <section class="help-subsection">
-      <h3>Searching and sorting</h3>
-
-      <p>
-        The Activities table supports searching, sorting and filtering to make it easier to locate activities in large
-        courses.
-      </p>
-
-      <p>
-        You can search across all columns or limit the search to a specific field.
-      </p>
-    </section>
-
-    <section class="help-subsection">
-      <h3>Relationship with Content Validator</h3>
-
-      <p>
-        Every activity should have a matching HTML content page whose filename matches the Activity Code.
-      </p>
-
-      <p>
-        The Content Validator checks for:
-      </p>
-
-      <ul>
-        <li>activities without matching HTML pages;</li>
-        <li>HTML pages that are not linked to any activity;</li>
-        <li>duplicate Activity Codes;</li>
-        <li>other content consistency issues.</li>
-      </ul>
-
-      <p>
-        Running the Content Validator regularly helps ensure that the published content remains complete and consistent.
-      </p>
-    </section>
-
+  
   </div>
+
 </details>
 
 
 
 
+<!-- Learning Activities +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 
-
-
-
-      
-      
-      
-      
-      
-      
       
       
       
