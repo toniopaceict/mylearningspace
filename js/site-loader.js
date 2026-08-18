@@ -3,7 +3,7 @@
  
    
   
-  const GLIP_ASSET_VERSION = "523";
+  const GLIP_ASSET_VERSION = "524";
   const GLIP_BASE_URL = "https://toniopaceict.github.io/mylearningspace";
 
   const GLIP_PAGE_CHECK_CLASS = "glip-page-checking";
@@ -130,7 +130,10 @@ function getManagementScripts() {
   const page = path.split("/").pop();
 
 const managementScriptsByPage = {
-  "activity-management.html": ["/js/activity-management.js"],
+  "activity-management.html": [
+  "/js/admin-csv-tools.js",
+  "/js/activity-management.js"
+],
   "subject-catalogue.html": ["/js/subject-catalogue.js"],
   "topic-catalogue.html": ["/js/topic-catalogue.js"],
   "performance-monitor.html": ["/js/performance-monitor.js"],
