@@ -45,7 +45,7 @@ Help file:
       grid-template-areas:
         "topic topic topic topic type type"
         "title title title code code code"
-        "sort sort visible visible submission submission";
+        "sort visible active active submission submission";
       gap: 0.75rem;
       align-items: start;
       margin-top: 1rem;
@@ -62,6 +62,7 @@ Help file:
     #activityTitle { grid-area: title; }
     #activitySortOrder { grid-area: sort; }
     #activityVisible { grid-area: visible; }
+    #activityActive { grid-area: active; }
     #activityRequiresSubmission { grid-area: submission; }
 
     .activity-add-actions {
@@ -140,19 +141,23 @@ Help file:
     #activitiesTable td:nth-child(4) { width: 9%; }
 
     #activitiesTable th:nth-child(5),
-    #activitiesTable td:nth-child(5) { width: 24%; }
+    #activitiesTable td:nth-child(5) { width: 21%; }
 
     #activitiesTable th:nth-child(6),
-    #activitiesTable td:nth-child(6) { width: 10%; }
+    #activitiesTable td:nth-child(6) { width: 9%; }
 
     #activitiesTable th:nth-child(7),
-    #activitiesTable td:nth-child(7) { width: 13%; }
+    #activitiesTable td:nth-child(7) { width: 8%; }
+
+    #activitiesTable th:nth-child(8),
+    #activitiesTable td:nth-child(8) { width: 13%; }
 
     #activitiesTable td:nth-child(1),
     #activitiesTable td:nth-child(3),
     #activitiesTable td:nth-child(4),
     #activitiesTable td:nth-child(6),
-    #activitiesTable td:nth-child(7) {
+    #activitiesTable td:nth-child(7),
+    #activitiesTable td:nth-child(8) {
       white-space: nowrap;
     }
 
@@ -336,6 +341,10 @@ Help file:
 <option value="true">Visible</option>
 <option value="false">Hidden</option>
 </select>
+<select class="tracker-input" id="activityActive">
+<option value="true">Active</option>
+<option value="false">Inactive</option>
+</select>
 <select class="tracker-input" id="activityRequiresSubmission">
 <option value="false">Submission not required</option>
 <option value="true">Submission required</option>
@@ -403,6 +412,7 @@ Help file:
 <option value="activity_title">Title</option>
 <option value="visible">Visibility</option>
 <option value="sort_order">Order</option>
+<option value="active">Status</option>
 <option value="requires_submission">Submission</option>
 </select>
 </div>
@@ -423,12 +433,13 @@ Help file:
 <th data-label="Type" data-sort-field="activity_type">Type ↕</th>
 <th data-label="Title" data-sort-field="activity_title">Title ↕</th>
 <th data-label="Order" data-sort-field="sort_order">Order ↕</th>
+<th data-label="Status" data-sort-field="active">Status ↕</th>
 <th data-label="Submission" data-sort-field="requires_submission">Submission ↕</th>
 </tr>
 </thead>
 <tbody id="activitiesTableBody">
 <tr>
-<td colspan="7">Loading activities...</td>
+<td colspan="8">Loading activities...</td>
 </tr>
 </tbody>
 </table>
