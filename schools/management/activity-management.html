@@ -45,7 +45,7 @@ Help file:
       grid-template-areas:
         "topic topic topic topic type type"
         "title title title code code code"
-        "sort visible active active submission submission";
+        "sort visible visible submission submission submission";
       gap: 0.75rem;
       align-items: start;
       margin-top: 1rem;
@@ -62,7 +62,6 @@ Help file:
     #activityTitle { grid-area: title; }
     #activitySortOrder { grid-area: sort; }
     #activityVisible { grid-area: visible; }
-    #activityActive { grid-area: active; }
     #activityRequiresSubmission { grid-area: submission; }
 
     .activity-add-actions {
@@ -141,13 +140,13 @@ Help file:
     #activitiesTable td:nth-child(4) { width: 9%; }
 
     #activitiesTable th:nth-child(5),
-    #activitiesTable td:nth-child(5) { width: 21%; }
+    #activitiesTable td:nth-child(5) { width: 20%; }
 
     #activitiesTable th:nth-child(6),
     #activitiesTable td:nth-child(6) { width: 9%; }
 
     #activitiesTable th:nth-child(7),
-    #activitiesTable td:nth-child(7) { width: 8%; }
+    #activitiesTable td:nth-child(7) { width: 10%; }
 
     #activitiesTable th:nth-child(8),
     #activitiesTable td:nth-child(8) { width: 13%; }
@@ -276,7 +275,6 @@ Help file:
           "code"
           "sort"
           "visible"
-          "active"
           "submission";
       }
 
@@ -340,10 +338,6 @@ Help file:
 <select class="tracker-input" id="activityVisible">
 <option value="true">Visible</option>
 <option value="false">Hidden</option>
-</select>
-<select class="tracker-input" id="activityActive">
-<option value="true">Active</option>
-<option value="false">Inactive</option>
 </select>
 <select class="tracker-input" id="activityRequiresSubmission">
 <option value="false">Submission not required</option>
@@ -412,7 +406,6 @@ Help file:
 <option value="activity_title">Title</option>
 <option value="visible">Visibility</option>
 <option value="sort_order">Order</option>
-<option value="active">Status</option>
 <option value="requires_submission">Submission</option>
 </select>
 </div>
@@ -433,7 +426,7 @@ Help file:
 <th data-label="Type" data-sort-field="activity_type">Type ↕</th>
 <th data-label="Title" data-sort-field="activity_title">Title ↕</th>
 <th data-label="Order" data-sort-field="sort_order">Order ↕</th>
-<th data-label="Status" data-sort-field="active">Status ↕</th>
+<th data-label="Visibility" data-sort-field="visible">Visibility ↕</th>
 <th data-label="Submission" data-sort-field="requires_submission">Submission ↕</th>
 </tr>
 </thead>
