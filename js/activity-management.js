@@ -794,7 +794,7 @@
               ? renderEdit(activity)
               : "");
         }).join("")
-      : '<tr><td colspan="8">No activities found.</td></tr>';
+      : '<tr><td colspan="7">No activities found.</td></tr>';
 
     if (editMode) {
       document.querySelectorAll("[data-activity-view-row]").forEach(function (row) {
@@ -871,7 +871,6 @@
       "<td>" + esc(activity.activity_type_name || activity.activity_type_code) + "</td>" +
       "<td>" + esc(activity.activity_title) + "</td>" +
       "<td>" + esc(activity.sort_order == null ? "" : activity.sort_order) + "</td>" +
-      "<td>" + (activity.visible ? "Visible" : "Hidden") + "</td>" +
       "<td>" + (activity.requires_submission ? "Required" : "Not required") + "</td>" +
       "</tr>"
     );
@@ -906,7 +905,7 @@
 
     return (
       '<tr class="student-subject-edit-row activity-inline-edit-row">' +
-      '<td colspan="8">' +
+      '<td colspan="7">' +
       '<div class="student-subject-inline-panel">' +
       '<p><strong>Editing activity ' + esc(activity.activity_title || activity.activity_code) + '.</strong></p>' +
       '<div class="activity-inline-edit-grid" data-activity-row="' + esc(activity.activity_id) + '">' +
