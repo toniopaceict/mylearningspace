@@ -3,6 +3,11 @@
 
   const MOBILE_MENU_STATE_KEY = "mls_mobile_menu_open";
 
+  function glipUrl(path) {
+    const baseUrl = String(window.GLIP_BASE_URL || "").replace(/\/$/, "");
+    return baseUrl + (String(path || "").startsWith("/") ? path : "/" + path);
+  }
+
 function getCurrentSchool(pageContext) {
   const urlSchool = getSchoolFromUrl();
 
@@ -110,7 +115,7 @@ function buildRoleFooterLinks(existingSettingsItems) {
   if (!role) return [];
 if (isStudent()) {
   return [
-    { text: "▧ Resources", url: `/mylearningspace/schools/management/class-resources.html` }
+    { text: "▧ Resources", url: glipUrl("/schools/management/class-resources.html") }
   ];
 }
 
@@ -124,51 +129,51 @@ if (isStudent()) {
     links.push(
       {
         text: "▥ Level Management",
-        url: `/mylearningspace/schools/management/level-management.html`
+        url: glipUrl("/schools/management/level-management.html")
       },
       {
         text: "▣ Class Management",
-        url: `/mylearningspace/schools/management/class-management.html`
+        url: glipUrl("/schools/management/class-management.html")
       },
       {
         text: "▤ Subject Management",
-        url: `/mylearningspace/schools/management/subject-management.html`
+        url: glipUrl("/schools/management/subject-management.html")
       },
       {
         text: "▤ Topic Management",
-        url: `/mylearningspace/schools/management/topic-management.html`
+        url: glipUrl("/schools/management/topic-management.html")
       },
       {
         text: "⌘ Staff Management",
-        url: `/mylearningspace/schools/management/teacher-management.html`
+        url: glipUrl("/schools/management/teacher-management.html")
       },
       {
         text: "☞ Student Management",
-        url: `/mylearningspace/schools/management/student-management.html`
+        url: glipUrl("/schools/management/student-management.html")
       },
       { spacer: true },
       {
         text: "🕮 Teaching Assignments",
-        url: `/mylearningspace/schools/management/teaching-assignments.html`
+        url: glipUrl("/schools/management/teaching-assignments.html")
       },
       {
         text: "☑ Student Assignments",
-        url: `/mylearningspace/schools/management/student-subject-management.html`
+        url: glipUrl("/schools/management/student-subject-management.html")
       },
       { spacer: true },
       {
         text: "⌂ Subjects",
-        url: `/mylearningspace/schools/${school}/subjects-home.html`
+        url: glipUrl(`/schools/${school}/subjects-home.html`)
       },
     );
 
     if (typeof isOwner === "function" && isOwner()) {
       links.push(
-        { text: "▤ Subject Catalogue", url: "/mylearningspace/schools/management/subject-catalogue.html" },
-        { text: "▤ Topic Catalogue", url: "/mylearningspace/schools/management/topic-catalogue.html" },
-        { text: "✦ Activity Management", url: "/mylearningspace/schools/management/activity-management.html" },
-        { text: "✓ Content Validator", url: "/mylearningspace/schools/management/content-validator.html" },
-        { text: "◴ Performance Monitor", url: "/mylearningspace/schools/management/performance-monitor.html" },
+        { text: "▤ Subject Catalogue", url: glipUrl("/schools/management/subject-catalogue.html") },
+        { text: "▤ Topic Catalogue", url: glipUrl("/schools/management/topic-catalogue.html") },
+        { text: "✦ Activity Management", url: glipUrl("/schools/management/activity-management.html") },
+        { text: "✓ Content Validator", url: glipUrl("/schools/management/content-validator.html") },
+        { text: "◴ Performance Monitor", url: glipUrl("/schools/management/performance-monitor.html") },
         { spacer: true }
       );
     }
@@ -454,10 +459,7 @@ function getHelpSectionForCurrentPage() {
 }
 
 function buildHelpUrl(helpSection) {
-  const url = new URL(
-    "/mylearningspace/help/help.html",
-    window.location.origin
-  );
+  const url = new URL(glipUrl("/help/help.html"));
 
   url.searchParams.set("section", helpSection || "general");
 
@@ -643,7 +645,7 @@ bar
     }
 
     window.location.replace(
-      `${window.location.origin}/mylearningspace/schools/${school}/index.html`
+      glipUrl(`/schools/${school}/index.html`)
     );
   });
 
@@ -696,7 +698,7 @@ document.body.innerHTML = `
 if (school) {
   setTimeout(function () {
     window.location.replace(
-      `${window.location.origin}/mylearningspace/schools/${encodeURIComponent(school)}/index.html`
+      glipUrl(`/schools/${encodeURIComponent(school)}/index.html`)
     );
   }, 1000);
 }

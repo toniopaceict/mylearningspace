@@ -3,24 +3,29 @@
    Page access control by role or group
    ========================================================= */
 
+function glipUrl(path) {
+  const baseUrl = String(window.GLIP_BASE_URL || "").replace(/\/$/, "");
+  return baseUrl + (String(path || "").startsWith("/") ? path : "/" + path);
+}
+
 function getSchoolLoginUrl() {
   const storedSchool = String(
     sessionStorage.getItem("glipSchool") || ""
   ).trim();
 
   if (storedSchool) {
-    return "/mylearningspace/schools/" +
+    return glipUrl("/schools/" +
       encodeURIComponent(storedSchool) +
-      "/index.html";
+      "/index.html");
   }
 
   const match = window.location.pathname.match(/\/schools\/([^/]+)\//i);
   const school = match ? String(match[1] || "").trim() : "";
 
   if (school && school !== "management") {
-    return "/mylearningspace/schools/" +
+    return glipUrl("/schools/" +
       encodeURIComponent(school) +
-      "/index.html";
+      "/index.html");
   }
 
   return "";

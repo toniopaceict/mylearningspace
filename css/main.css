@@ -748,7 +748,7 @@ body.glip-dyslexia-bg {
 .page-hero-image {
   height: 250px;
   border-radius: 22px;
-  background-image: url("https://toniopaceict.github.io/mylearningspace/images/picture_header.jpg");
+  background-image: url("../images/picture_header.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

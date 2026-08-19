@@ -6,6 +6,11 @@
     return match ? match[0].padStart(2, "0") : "";
   }
 
+  function glipUrl(path) {
+    const baseUrl = String(window.GLIP_BASE_URL || "").replace(/\/$/, "");
+    return baseUrl + (String(path || "").startsWith("/") ? path : "/" + path);
+  }
+
   function createMenu(siteTitle, homeUrl, items, settingsItems) {
     return {
       siteTitle: siteTitle,
@@ -32,7 +37,7 @@
   function createSubjectLandingMenu(school) {
     return createMenu(
       "← Back to Subject List",
-      "/mylearningspace/schools/" + school + "/subjects-home.html",
+      glipUrl("/schools/" + school + "/subjects-home.html"),
       [],
       [{ text: "Topic Settings", url: "../../../topic-settings.html", target: "_blank" }]
     );

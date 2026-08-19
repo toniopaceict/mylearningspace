@@ -4,7 +4,8 @@
   const GLIP_BLUE = [11, 60, 111];
   const GLIP_LINE = [216, 227, 239];
   const DEFAULT_LOGO_URL =
-    "https://toniopaceict.github.io/mylearningspace/assets/GLIP-icon-transparent-cropped.png";
+    String(window.GLIP_BASE_URL || "").replace(/\/$/, "") +
+    "/assets/GLIP-icon-transparent-cropped.png";
   const PDF_CONTEXT_TIMEOUT_MS = 8000;
 
   function getJsPDF() {
