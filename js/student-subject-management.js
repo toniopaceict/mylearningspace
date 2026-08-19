@@ -9,6 +9,9 @@
   let showAllEditorLevels = false;
   let selectedStudentId = "";
   let selectedRowKey = "";
+  let editMode = false;
+  let editSaving = false;
+  let pendingStudentAssignments = {};
   let initialised = false;
 
   let sortField = "full_name";
@@ -39,6 +42,10 @@
     setupSorting();
     updateSortIndicators();
     setupFilter();
+
+    document.getElementById("editStudentAssignmentsBtn")?.addEventListener("click", toggleAssignmentEditMode);
+    document.getElementById("cancelStudentAssignmentsEditBtn")?.addEventListener("click", cancelAssignmentEditMode);
+
     loadData();
 
     if (typeof window.setupGlipCsvAdminTools === "function") {
@@ -109,6 +116,7 @@
         { value: "access_type", label: "Assignment Type", getValue: function (row) { return row.access_text; } }
       ],
       onChange: function () {
+        if (editMode) captureCurrentStudentEditor();
         renderStudentSubjectTable();
       }
     });
@@ -130,6 +138,9 @@
         header.style.cursor = "pointer";
 
         header.addEventListener("click", function () {
+          if (editSaving) return;
+          if (editMode) captureCurrentStudentEditor();
+
           const field = header.dataset.sortField;
 
           if (sortField === field) {
@@ -181,6 +192,10 @@
       selectedStudentId = "";
       showAllEditorLevels = false;
       selectedRowKey = "";
+      editMode = false;
+      editSaving = false;
+      pendingStudentAssignments = {};
+      updateAssignmentEditControls();
 
       renderStudentSubjectTable();
       setLoading(false);
@@ -381,7 +396,7 @@ function formatStudentSubjectSubjectCell(row) {
   data-row-key="${escapeHtml(row.row_key)}"
   data-student-id="${escapeHtml(row.student_id)}"
   data-selectable="${isSelectable ? "true" : "false"}"
-  class="student-subject-row ${(rowNeedsAttention(row) || rowHasNoSubjectAssignment(row)) ? "planning-row" : ""} ${isSelected ? "selected-row" : ""}"
+  class="student-subject-row ${(rowNeedsAttention(row) || rowHasNoSubjectAssignment(row)) ? "planning-row" : ""} ${isSelected ? "selected-row" : ""} ${pendingStudentAssignments[String(row.student_id)] ? "student-subject-pending-row" : ""}"
 >
   <td>${formatStudentSubjectNameCell(row)}</td>
   <td>${escapeHtml(row.class_id)}</td>
@@ -389,13 +404,16 @@ function formatStudentSubjectSubjectCell(row) {
   <td>${formatStudentSubjectSubjectCell(row)}</td>
   <td>${escapeHtml(row.access_text || "-")}</td>
 </tr>
-        ${isSelected && isSelectable ? renderAssignmentEditRow(row.student_id) : ""}
+        ${editMode && isSelected && isSelectable ? renderAssignmentEditRow(row.student_id) : ""}
       `;
     }).join("");
 
     document.querySelectorAll(".student-subject-row").forEach(function (row) {
       row.addEventListener("click", function () {
+        if (!editMode || editSaving) return;
+
         hideSuccessMessage();
+        captureCurrentStudentEditor();
 
         const studentId = row.dataset.studentId || "";
         const rowKey = row.dataset.rowKey || "";
@@ -414,21 +432,9 @@ function formatStudentSubjectSubjectCell(row) {
       });
     });
 
-    document.querySelectorAll("[data-save-student-subjects]").forEach(function (btn) {
-      btn.addEventListener("click", function (event) {
-        event.stopPropagation();
-        saveAssignments(btn.dataset.studentId);
-      });
-    });
-
-    document.querySelectorAll("[data-cancel-student-subjects]").forEach(function (btn) {
-      btn.addEventListener("click", function (event) {
-        event.stopPropagation();
-        selectedStudentId = "";
-        selectedRowKey = "";
-        showAllEditorLevels = false;
-        renderStudentSubjectTable();
-      });
+    document.getElementById("closeStudentSubjectEditorBtn")?.addEventListener("click", function (event) {
+      event.stopPropagation();
+      closeCurrentStudentEditor();
     });
 
     document.querySelectorAll("[data-toggle-student-subject-levels]").forEach(function (btn) {
@@ -443,8 +449,18 @@ function formatStudentSubjectSubjectCell(row) {
       select.addEventListener("change", function (event) {
         event.stopPropagation();
         syncClassControls(select.dataset.studentSubjectAssignment || "");
+        captureCurrentStudentEditor();
       });
     });
+
+    document.querySelectorAll("select[data-student-subject-class]").forEach(function (select) {
+      select.addEventListener("change", function (event) {
+        event.stopPropagation();
+        captureCurrentStudentEditor();
+      });
+    });
+
+    updateAssignmentEditControls();
 
     table.style.visibility = "visible";
   }
@@ -489,6 +505,14 @@ function formatStudentSubjectSubjectCell(row) {
       <tr class="student-subject-edit-row">
         <td colspan="5">
           <div class="student-subject-inline-panel">
+            <button
+              class="student-subject-inline-close"
+              id="closeStudentSubjectEditorBtn"
+              type="button"
+              aria-label="Close assignment editor"
+              title="Close editor"
+            >×</button>
+
             <p class="panel-message" style="text-align:left;">
               <strong>Editing assignments for ${escapeHtml(formatStudentName(student))}.</strong><br>
               Changes made here apply to all subject assignments for this student. Current uses the class recorded in Student Management. Repeat and Revision use the class selected below.
@@ -496,39 +520,14 @@ function formatStudentSubjectSubjectCell(row) {
 
             <div class="student-subject-button-row" style="margin-top:0; margin-bottom:1rem;">
               <button
-                type="button"
-                class="glip-btn"
-                data-save-student-subjects
-                data-student-id="${escapeHtml(student.student_id)}"
-              >
-                Save All Assignments
-              </button>
-
-              <button
-                type="button"
                 class="glip-btn glip-btn-secondary"
-                data-cancel-student-subjects
-                data-student-id="${escapeHtml(student.student_id)}"
-              >
-                Cancel
-              </button>
-
-              <button
                 type="button"
-                class="glip-btn glip-btn-secondary"
                 data-toggle-student-subject-levels
-                data-student-id="${escapeHtml(student.student_id)}"
               >
-                ${showAllEditorLevels ? "Show active levels" : "Show all levels"}
+                ${showAllEditorLevels ? "Show active level" : "Show all levels"}
               </button>
-
-              <span
-                class="panel-message student-subject-inline-message"
-                id="studentSubjectMessage-${escapeHtml(student.student_id)}"
-              ></span>
-              <div id="studentSubjectSaveProgress-${escapeHtml(student.student_id)}" class="glip-progress" style="display:none">
-                <div class="glip-progress-bar"></div>
-              </div>
+            </div>
+</div>
             </div>
 
             <div class="topics-table-wrap">
@@ -627,124 +626,334 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
   }).join("");
 }
 
-  function setStudentSubjectSavingState(studentId, isSaving) {
-    const saveBtn = document.querySelector(`[data-save-student-subjects][data-student-id="${studentId}"]`);
-    const cancelBtn = document.querySelector(`[data-cancel-student-subjects][data-student-id="${studentId}"]`);
-    const selects = document.querySelectorAll(`[data-student-subject-assignment="${studentId}"]`);
-    const classSelects = document.querySelectorAll(`select[data-student-subject-class="${studentId}"]`);
-    const progress = document.getElementById("studentSubjectSaveProgress-" + studentId);
-    if (saveBtn) { saveBtn.disabled = isSaving; saveBtn.textContent = isSaving ? "Saving..." : "Save All Assignments"; }
-    if (cancelBtn) cancelBtn.disabled = isSaving;
-    selects.forEach(function (select) { select.disabled = isSaving; });
-    classSelects.forEach(function (select) {
-      if (isSaving) {
-        select.disabled = true;
-      } else {
-        const assignmentSelect = findAssignmentSelect(studentId, select.dataset.levelCode, select.dataset.subjectId);
-        select.disabled = !assignmentSelect || assignmentSelect.value === "not_assigned" || assignmentSelect.value === "current";
-      }
-    });
-    if (progress) progress.style.display = isSaving ? "block" : "none";
+  function toggleAssignmentEditMode() {
+    if (!editMode) {
+      editMode = true;
+      selectedStudentId = "";
+      selectedRowKey = "";
+      showAllEditorLevels = false;
+      pendingStudentAssignments = {};
+      hideSuccessMessage();
+      updateAssignmentEditControls();
+      setAssignmentStatusMessage("Select a student row to edit assignments.", "info");
+      renderStudentSubjectTable();
+      return;
+    }
+
+    saveAllPendingAssignments();
   }
 
-  function saveAssignments(studentId) {
+  function cancelAssignmentEditMode() {
+    if (!editMode || editSaving) return;
+
+    captureCurrentStudentEditor();
+
+    if (hasPendingStudentAssignments()) {
+      const discard = window.confirm("Discard all unsaved assignment changes?");
+      if (!discard) return;
+    }
+
+    editMode = false;
+    selectedStudentId = "";
+    selectedRowKey = "";
+    showAllEditorLevels = false;
+    pendingStudentAssignments = {};
+    setAssignmentStatusMessage("", "info");
+    updateAssignmentEditControls();
+    renderStudentSubjectTable();
+  }
+
+  function closeCurrentStudentEditor() {
+    if (!editMode || editSaving || !selectedStudentId) return;
+
+    captureCurrentStudentEditor();
+    selectedStudentId = "";
+    selectedRowKey = "";
+    showAllEditorLevels = false;
+    setAssignmentStatusMessage(
+      hasPendingStudentAssignments() ? pendingStudentAssignmentMessage() : "Select a student row to edit assignments.",
+      "info"
+    );
+    renderStudentSubjectTable();
+  }
+
+  function updateAssignmentEditControls() {
+    const editButton = document.getElementById("editStudentAssignmentsBtn");
+    const cancelButton = document.getElementById("cancelStudentAssignmentsEditBtn");
+
+    if (editButton) {
+      editButton.textContent = editSaving ? "Saving..." : (editMode ? "Save Changes" : "Edit Assignments");
+      editButton.disabled = editSaving || (editMode && !hasPendingStudentAssignments());
+    }
+
+    if (cancelButton) {
+      cancelButton.style.display = editMode ? "" : "none";
+      cancelButton.disabled = editSaving;
+    }
+  }
+
+  function setAssignmentStatusMessage(text, type) {
+    const el = document.getElementById("studentSubjectSuccessMessage");
+    if (!el) return;
+
+    if (!text) {
+      el.style.display = "none";
+      el.textContent = "";
+      return;
+    }
+
+    el.textContent = text;
+    el.className = "panel-message " + (type || "info");
+    el.style.display = "block";
+  }
+
+  function hasPendingStudentAssignments() {
+    return Object.keys(pendingStudentAssignments).length > 0;
+  }
+
+  function pendingStudentAssignmentMessage() {
+    const count = Object.keys(pendingStudentAssignments).length;
+    return count + (count === 1 ? " student has" : " students have") + " unsaved assignment changes.";
+  }
+
+  function buildOriginalStudentAssignmentList(studentId) {
+    return assignmentHistory
+      .filter(function (assignment) {
+        return String(assignment.student_id) === String(studentId) &&
+          ["current", "repeat", "revision"].indexOf(String(assignment.access_type || "").toLowerCase()) !== -1;
+      })
+      .map(function (assignment) {
+        return {
+          level_code: assignment.level || "",
+          subject_id: assignment.subject_id || "",
+          access_type: String(assignment.access_type || "").toLowerCase(),
+          class_id: String(assignment.class_id || "")
+        };
+      });
+  }
+
+  function normaliseAssignmentListForCompare(items) {
+    return (items || [])
+      .map(function (item) {
+        return [
+          normaliseLevel(item.level_code || item.level || ""),
+          String(item.subject_id || "").toLowerCase(),
+          String(item.access_type || "").toLowerCase(),
+          String(item.class_id || "")
+        ].join("|");
+      })
+      .sort();
+  }
+
+  function assignmentListsMatch(a, b) {
+    return JSON.stringify(normaliseAssignmentListForCompare(a)) ===
+      JSON.stringify(normaliseAssignmentListForCompare(b));
+  }
+
+  function captureCurrentStudentEditor() {
+    if (!editMode || !selectedStudentId) return;
+
+    const studentId = String(selectedStudentId);
     const selects = Array.from(document.querySelectorAll(`[data-student-subject-assignment="${studentId}"]`));
-    const messageEl = document.getElementById("studentSubjectMessage-" + studentId);
+    if (!selects.length) return;
+
+    const editorRows = [];
     const assignmentsToSave = [];
-    const errors = [];
     const revisionOverrides = [];
 
     selects.forEach(function (select) {
-      if (select.value === "not_assigned") return;
-
       const levelCode = select.dataset.levelCode || "";
       const subjectId = select.dataset.subjectId || "";
       const classControl = findClassControl(studentId, levelCode, subjectId);
       const classId = classControl ? String(classControl.value || "").trim() : "";
-      const subjectInfo = findSubjectByLevelAndId(levelCode, subjectId) || {};
-      const subjectName = subjectInfo.subject_name || subjectId;
+      const accessType = String(select.value || "not_assigned").toLowerCase();
 
-      if (!classId) {
-        errors.push(formatLevel(levelCode) + " / " + subjectName + ": select a class for " + formatAccessType(select.value) + ".");
-        return;
-      }
+      editorRows.push({
+        level_code: levelCode,
+        subject_id: subjectId,
+        access_type: accessType,
+        class_id: classId
+      });
+
+      if (accessType === "not_assigned") return;
+
+      assignmentsToSave.push({
+        level_code: levelCode,
+        subject_id: subjectId,
+        access_type: accessType,
+        class_id: classId
+      });
 
       if (
-        select.value === "revision" &&
+        accessType === "revision" &&
         classControl &&
         classControl.tagName === "SELECT" &&
         String(classControl.dataset.originalAccessType || "").toLowerCase() === "revision" &&
         String(classControl.dataset.originalClassId || "") &&
         String(classControl.dataset.originalClassId || "") !== classId
       ) {
+        const subjectInfo = findSubjectByLevelAndId(levelCode, subjectId) || {};
         revisionOverrides.push({
+          student: formatStudentName(findStudentById(studentId) || {}),
           level: formatLevel(levelCode),
-          subject: subjectName,
+          subject: subjectInfo.subject_name || subjectId,
           oldClass: getClassLabelById(classControl.dataset.originalClassId),
           newClass: getClassLabelById(classId)
         });
       }
+    });
 
-      assignmentsToSave.push({
-        level_code: levelCode,
-        subject_id: subjectId,
-        access_type: select.value,
-        class_id: classId
+    const original = buildOriginalStudentAssignmentList(studentId);
+
+    if (assignmentListsMatch(original, assignmentsToSave)) {
+      delete pendingStudentAssignments[studentId];
+    } else {
+      pendingStudentAssignments[studentId] = {
+        student_id: studentId,
+        editor_rows: editorRows,
+        assignments_to_save: assignmentsToSave,
+        revision_overrides: revisionOverrides
+      };
+    }
+
+    setAssignmentStatusMessage(
+      hasPendingStudentAssignments() ? pendingStudentAssignmentMessage() : "Select a student row to edit assignments.",
+      "info"
+    );
+    updateAssignmentEditControls();
+  }
+
+  function validatePendingStudentAssignments() {
+    const errors = [];
+
+    Object.keys(pendingStudentAssignments).forEach(function (studentId) {
+      const pending = pendingStudentAssignments[studentId];
+      const student = findStudentById(studentId);
+
+      (pending.editor_rows || []).forEach(function (item) {
+        const accessType = String(item.access_type || "").toLowerCase();
+        if (accessType === "not_assigned") return;
+
+        const subjectInfo = findSubjectByLevelAndId(item.level_code, item.subject_id) || {};
+        const subjectName = subjectInfo.subject_name || item.subject_id;
+
+        if (!String(item.class_id || "").trim()) {
+          errors.push(
+            formatStudentName(student || {}) + ": " +
+            formatLevel(item.level_code) + " / " + subjectName +
+            " requires a class for " + formatAccessType(accessType) + "."
+          );
+        }
       });
     });
 
+    return errors;
+  }
+
+  function collectRevisionOverrides() {
+    const result = [];
+    Object.keys(pendingStudentAssignments).forEach(function (studentId) {
+      (pendingStudentAssignments[studentId].revision_overrides || []).forEach(function (item) {
+        result.push(item);
+      });
+    });
+    return result;
+  }
+
+  function setBulkAssignmentSavingState(isSaving) {
+    editSaving = !!isSaving;
+    updateAssignmentEditControls();
+
+    const box = document.getElementById("studentSubjectLoadingProgress");
+    const text = box ? box.querySelector("p") : null;
+
+    if (text && isSaving) text.textContent = "Saving assignments...";
+    if (box) box.style.display = isSaving ? "block" : "none";
+  }
+
+  function saveAllPendingAssignments() {
+    if (!editMode || editSaving) return;
+
+    captureCurrentStudentEditor();
+
+    const changes = Object.keys(pendingStudentAssignments).map(function (studentId) {
+      return {
+        student_id: studentId,
+        assignments_to_save: pendingStudentAssignments[studentId].assignments_to_save || []
+      };
+    });
+
+    if (!changes.length) {
+      setAssignmentStatusMessage("No assignment changes to save.", "info");
+      updateAssignmentEditControls();
+      return;
+    }
+
+    const errors = validatePendingStudentAssignments();
     if (errors.length) {
-      setStudentSubjectMessage(messageEl, errors[0], "error");
+      setAssignmentStatusMessage("Changes were not saved. " + errors[0], "error");
       return;
     }
 
     const proceed = function () {
-      setStudentSubjectMessage(messageEl, "", "info");
-      setStudentSubjectSavingState(studentId, true);
+      setBulkAssignmentSavingState(true);
+      setAssignmentStatusMessage("", "info");
 
-      GLIPOptimisticUpdate.run({
-        request: function () {
-          return postToGlip({
-            action: "saveStudentSubjectsAdmin",
-            admin_teacher_id: sessionStorage.getItem("glipTeacherId"),
-            student_id: studentId,
-            assignments_to_save: assignmentsToSave
+      postToGlip({
+        action: "saveStudentSubjectsBulkAdmin",
+        admin_teacher_id: sessionStorage.getItem("glipTeacherId"),
+        student_changes: changes
+      })
+        .then(function (result) {
+          if (!result || result.status !== "success") {
+            throw new Error((result && result.message) || "Changes were not saved.");
+          }
+
+          changes.forEach(function (change) {
+            applyStudentSubjectAssignmentsLocally(change.student_id, change.assignments_to_save);
           });
-        },
-        failureMessage: "Could not save assignments.",
-        apply: function () {
-          applyStudentSubjectAssignmentsLocally(studentId, assignmentsToSave);
+
+          pendingStudentAssignments = {};
           selectedStudentId = "";
           selectedRowKey = "";
           showAllEditorLevels = false;
+          editMode = false;
+          setBulkAssignmentSavingState(false);
           renderStudentSubjectTable();
-        },
-        onSuccess: function () {
-          showSuccessMessage();
-        },
-        resync: resyncStudentSubjectsSilently,
-        onFailure: function (error) {
-          setStudentSubjectMessage(messageEl, error.message || "Could not save assignments. The previous values were retained.", "error");
-        }
-      }).finally(function () {
-        setStudentSubjectSavingState(studentId, false);
-      });
+          setAssignmentStatusMessage(result.message || "Assignment changes saved.", "success");
+
+          resyncStudentSubjectsSilently();
+        })
+        .catch(function (error) {
+          setBulkAssignmentSavingState(false);
+          setAssignmentStatusMessage(
+            error.message || "Changes were not saved. Correct the highlighted assignments and try again.",
+            "error"
+          );
+          renderStudentSubjectTable();
+        });
     };
+
+    const revisionOverrides = collectRevisionOverrides();
 
     if (revisionOverrides.length && typeof window.showGlipConfirmModal === "function") {
       const rows = revisionOverrides.map(function (item) {
-        return "<li><strong>" + escapeHtml(item.level + " / " + item.subject) + "</strong>: " +
-          escapeHtml(item.oldClass || "previous class") + " → " + escapeHtml(item.newClass || "new class") + "</li>";
+        return "<li><strong>" +
+          escapeHtml(item.student + " — " + item.level + " / " + item.subject) +
+          "</strong>: " +
+          escapeHtml(item.oldClass || "previous class") + " → " +
+          escapeHtml(item.newClass || "new class") +
+          "</li>";
       }).join("");
 
       window.showGlipConfirmModal({
         title: "Change Revision Class",
         bodyHtml:
-          "<p>Changing a Revision class changes the historical resource folders available to this student.</p>" +
+          "<p>Changing a Revision class changes the historical resource folders available to the student.</p>" +
           "<ul>" + rows + "</ul>" +
-          "<p>Continue only if this change is intentional.</p>",
+          "<p>Continue only if these changes are intentional.</p>",
         noConfirmationInput: true,
-        extraButtonText: "Change Revision Class",
+        extraButtonText: "Save Changes",
         extraButtonAction: proceed
       });
       return;
@@ -842,13 +1051,24 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
   }
 
   function getAssignmentStateMap(studentId) {
+    const pending = pendingStudentAssignments[String(studentId)];
     const map = {};
+
+    if (pending && Array.isArray(pending.editor_rows)) {
+      pending.editor_rows.forEach(function (assignment) {
+        const key = makeSubjectKey(assignment.level_code, assignment.subject_id);
+        map[key] = {
+          class_id: assignment.class_id || "",
+          access_type: String(assignment.access_type || "not_assigned").toLowerCase()
+        };
+      });
+      return map;
+    }
 
     assignmentHistory.forEach(function (assignment) {
       if (String(assignment.student_id) !== String(studentId)) return;
 
       const key = makeSubjectKey(assignment.level, assignment.subject_id);
-      const existing = map[key];
 
       map[key] = {
         class_id: assignment.class_id || "",

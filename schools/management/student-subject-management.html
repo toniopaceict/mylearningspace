@@ -28,6 +28,70 @@ Help file:
     };
   </script>
     <script src="https://toniopaceict.github.io/mylearningspace/js/site-loader.js"></script>
+
+  <style>
+    .student-subject-management-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: nowrap;
+      gap: 0.75rem;
+      white-space: nowrap;
+    }
+
+    .student-subject-management-actions .student-subject-edit-actions,
+    .student-subject-management-actions .glip-csv-tools {
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+      gap: 0.75rem;
+      margin: 0;
+    }
+
+    .student-subject-inline-panel {
+      position: relative;
+    }
+
+    .student-subject-inline-close {
+      position: absolute;
+      top: 0.55rem;
+      right: 0.65rem;
+      width: 2rem;
+      height: 2rem;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: inherit;
+      font-size: 1.45rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .student-subject-inline-close:hover,
+    .student-subject-inline-close:focus-visible {
+      background: rgba(0, 0, 0, 0.07);
+      outline: none;
+    }
+
+    .student-subject-pending-row td {
+      background: #fff8c6;
+    }
+
+    #studentSubjectLoadingProgress {
+      width: min(100%, 38rem);
+      margin: 0.75rem auto 1rem;
+    }
+
+    @media (max-width: 760px) {
+      .student-subject-management-actions {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+      }
+    }
+  </style>
+
 </head>
 
 <body>
@@ -65,10 +129,26 @@ Help file:
         
         <div class="panel-header">
           <p class="q panel-top-text">
-            Click a student assignment row to view or edit all subject assignments for that student.
+            Select <strong>Edit Assignments</strong>, then choose a student row to edit subject assignments.
           </p>
 
-          <div class="panel-right teacher-actions" id="studentSubjectActions"></div>
+          <div class="panel-right">
+            <div class="student-subject-management-actions" id="studentSubjectActions">
+              <div class="student-subject-edit-actions">
+                <button class="glip-btn" id="editStudentAssignmentsBtn" type="button">
+                  Edit Assignments
+                </button>
+                <button
+                  class="glip-btn glip-btn-secondary"
+                  id="cancelStudentAssignmentsEditBtn"
+                  type="button"
+                  style="display:none;"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
 
