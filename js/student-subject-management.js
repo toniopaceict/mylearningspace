@@ -396,7 +396,7 @@ function formatStudentSubjectSubjectCell(row) {
   data-row-key="${escapeHtml(row.row_key)}"
   data-student-id="${escapeHtml(row.student_id)}"
   data-selectable="${isSelectable ? "true" : "false"}"
-  class="student-subject-row ${(rowNeedsAttention(row) || rowHasNoSubjectAssignment(row)) ? "planning-row" : ""} ${isSelected ? "selected-row" : ""} ${pendingStudentAssignments[String(row.student_id)] ? "student-subject-pending-row" : ""}"
+  class="student-subject-row ${(rowNeedsAttention(row) || rowHasNoSubjectAssignment(row)) ? "planning-row" : ""} ${isSelected ? "selected-row student-subject-current-edit-row" : ""} ${pendingStudentAssignments[String(row.student_id)] ? "student-subject-pending-row" : ""}"
 >
   <td>${formatStudentSubjectNameCell(row)}</td>
   <td>${escapeHtml(row.class_id)}</td>
@@ -485,7 +485,8 @@ function formatStudentSubjectSubjectCell(row) {
         <tr class="student-subject-edit-row">
           <td colspan="5">
             <div class="student-subject-inline-panel">
-              This row is shown for reference only and cannot be edited because its status is: <strong>${escapeHtml(getStudentSubjectRowStatus(student))}</strong>.
+              This row is shown for reference only and cannot be edited because its status is:
+              <strong>${escapeHtml(getStudentSubjectRowStatus(student))}</strong>.
             </div>
           </td>
         </tr>
@@ -513,12 +514,14 @@ function formatStudentSubjectSubjectCell(row) {
               title="Close editor"
             >×</button>
 
-            <p class="panel-message" style="text-align:left;">
+            <p class="panel-message student-subject-editor-intro">
               <strong>Editing assignments for ${escapeHtml(formatStudentName(student))}.</strong><br>
-              Changes made here apply to all subject assignments for this student. Current uses the class recorded in Student Management. Repeat and Revision use the class selected below.
+              Changes made here apply to all subject assignments for this student.
+              Current uses the class recorded in Student Management.
+              Repeat and Revision use the class selected below.
             </p>
 
-            <div class="student-subject-button-row" style="margin-top:0; margin-bottom:1rem;">
+            <div class="student-subject-button-row student-subject-editor-actions">
               <button
                 class="glip-btn glip-btn-secondary"
                 type="button"
@@ -526,8 +529,6 @@ function formatStudentSubjectSubjectCell(row) {
               >
                 ${showAllEditorLevels ? "Show active level" : "Show all levels"}
               </button>
-            </div>
-</div>
             </div>
 
             <div class="topics-table-wrap">
@@ -550,6 +551,7 @@ function formatStudentSubjectSubjectCell(row) {
       </tr>
     `;
   }
+
 
 function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
   return editableSubjects.map(function (subject) {
@@ -648,19 +650,39 @@ function renderGroupedSubjectOptions(editableSubjects, activeMap, student) {
 
     captureCurrentStudentEditor();
 
-    if (hasPendingStudentAssignments()) {
-      const discard = window.confirm("Discard all unsaved assignment changes?");
-      if (!discard) return;
+    const discardChanges = function () {
+      editMode = false;
+      selectedStudentId = "";
+      selectedRowKey = "";
+      showAllEditorLevels = false;
+      pendingStudentAssignments = {};
+      setAssignmentStatusMessage("", "info");
+      updateAssignmentEditControls();
+      renderStudentSubjectTable();
+    };
+
+    if (!hasPendingStudentAssignments()) {
+      discardChanges();
+      return;
     }
 
-    editMode = false;
-    selectedStudentId = "";
-    selectedRowKey = "";
-    showAllEditorLevels = false;
-    pendingStudentAssignments = {};
-    setAssignmentStatusMessage("", "info");
-    updateAssignmentEditControls();
-    renderStudentSubjectTable();
+    if (typeof window.showGlipConfirmModal !== "function") {
+      setAssignmentStatusMessage(
+        "The GLIP confirmation box could not be loaded. Your unsaved changes have not been discarded.",
+        "error"
+      );
+      return;
+    }
+
+    window.showGlipConfirmModal({
+      title: "Discard Unsaved Assignment Changes",
+      bodyHtml:
+        "<p>Discard all unsaved assignment changes from this editing session?</p>" +
+        "<p>No saved Student Assignments data will be changed.</p>",
+      noConfirmationInput: true,
+      extraButtonText: "Discard Changes",
+      extraButtonAction: discardChanges
+    });
   }
 
   function closeCurrentStudentEditor() {
