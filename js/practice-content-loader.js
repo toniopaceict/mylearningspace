@@ -155,6 +155,24 @@
     bindDownloadProgress();
   }
 
+  function applyPracticeInstructions(root) {
+    const source = root.querySelector('[data-practice-content="instructions"]');
+    const section = byId("practiceInstructionsSection");
+    const target = byId("practiceInstructionsContent");
+
+    if (!section || !target) return;
+
+    if (!source) {
+      target.innerHTML = "";
+      section.style.display = "none";
+      return;
+    }
+
+    target.innerHTML = source.innerHTML.trim();
+    makeReadable(target);
+    section.style.display = "";
+  }
+
   function applyRequiredFileInstructions(root) {
     const source = root.querySelector('[data-practice-content="required-files"]');
     const target = byId("requiredFilesInstructionContent");
@@ -215,6 +233,7 @@
     }
 
     resolveRelativeContentUrls(root, sourceUrl);
+    applyPracticeInstructions(root);
     applyRequiredFileInstructions(root);
     applyFileSettings(root);
     applyPracticeSections(root);
