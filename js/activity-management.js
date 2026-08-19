@@ -659,6 +659,18 @@
     });
   }
 
+  function closeCurrentEditor() {
+    if (!editMode || editSaving || !selectedActivityId) return;
+
+    captureCurrentEditor();
+    selectedActivityId = "";
+    setEditMessage(
+      hasPendingChanges() ? pendingChangeMessage() : "Select an activity row to edit it.",
+      "info"
+    );
+    render();
+  }
+
   function saveChanges() {
     if (!editMode || editSaving) return;
 
@@ -941,7 +953,10 @@
       });
     }
 
-    if (selectedActivityId) bindEditChangeTracking();
+    if (selectedActivityId) {
+      bindEditChangeTracking();
+      document.getElementById("closeActivityEditorBtn")?.addEventListener("click", closeCurrentEditor);
+    }
     updateEditControls();
   }
 
@@ -1040,7 +1055,8 @@
     return (
       '<tr class="student-subject-edit-row activity-inline-edit-row">' +
       '<td colspan="8">' +
-      '<div class="student-subject-inline-panel">' +
+      '<div class="student-subject-inline-panel activity-inline-panel">' +
+      '<button class="activity-inline-close" id="closeActivityEditorBtn" type="button" aria-label="Close activity editor" title="Close editor">×</button>' +
       '<p><strong>Editing activity ' + esc(activity.activity_title || activity.activity_code) + '.</strong></p>' +
       '<div class="activity-inline-edit-grid" data-activity-row="' + esc(activity.activity_id) + '">' +
 

@@ -206,17 +206,52 @@ Help file:
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       gap: 0.75rem;
+      white-space: nowrap;
+    }
+
+    .activity-panel-header .panel-right {
+      flex-shrink: 0;
     }
 
     .activity-management-actions .activity-edit-actions {
       margin: 0;
+      flex-wrap: nowrap;
+      flex-shrink: 0;
     }
 
     .activity-management-actions .glip-csv-tools {
       margin: 0;
       gap: 0.75rem;
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+    }
+
+    .activity-inline-panel {
+      position: relative;
+    }
+
+    .activity-inline-close {
+      position: absolute;
+      top: 0.55rem;
+      right: 0.65rem;
+      width: 2rem;
+      height: 2rem;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: inherit;
+      font-size: 1.45rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .activity-inline-close:hover,
+    .activity-inline-close:focus-visible {
+      background: rgba(0, 0, 0, 0.07);
+      outline: none;
     }
 
     #activitiesLoadingProgress {
