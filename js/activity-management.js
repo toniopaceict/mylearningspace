@@ -800,7 +800,16 @@
   }
 
   function changeSort(field) {
-    if (!field || editMode) return;
+    if (!field || editSaving) return;
+
+    /*
+     * Sorting must remain available in edit mode. Capture the currently
+     * open yellow editor first so its unsaved values survive the re-render
+     * and can also take part in sorting/filtering.
+     */
+    if (editMode) {
+      captureCurrentEditor();
+    }
 
     if (sortField === field) {
       sortDirection = sortDirection === "asc" ? "desc" : "asc";
@@ -844,9 +853,18 @@
 
     const column = document.getElementById("activitySearchColumn")?.value || "all";
 
-    if (!query) return activities.slice();
+    /*
+     * While editing, use the pending in-memory values for both filtering
+     * and sorting. This means a changed title/order/visibility behaves
+     * exactly like a saved value without writing anything to the backend.
+     */
+    const source = activities.map(function (activity) {
+      return getPendingActivity(activity);
+    });
 
-    return activities.filter(function (activity) {
+    if (!query) return source;
+
+    return source.filter(function (activity) {
       if (column === "all") {
         return [
           getDisplayValue(activity, "level"),
@@ -931,10 +949,9 @@
 
     body.innerHTML = rows.length
       ? rows.map(function (activity) {
-          const displayActivity = getPendingActivity(activity);
-          return renderView(displayActivity) +
+          return renderView(activity) +
             (editMode && String(activity.activity_id) === String(selectedActivityId)
-              ? renderEdit(displayActivity)
+              ? renderEdit(activity)
               : "");
         }).join("")
       : '<tr><td colspan="8">No activities found.</td></tr>';
