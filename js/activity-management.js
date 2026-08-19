@@ -10,6 +10,8 @@
   let sortField = "sort_order";
   let sortDirection = "asc";
   let activityCodeManuallyEdited = false;
+  let pendingActivityChanges = {};
+  let editSaving = false;
 
   function post(data) {
     data.owner_teacher_id = sessionStorage.getItem("glipTeacherId");
@@ -60,6 +62,7 @@
     document.getElementById("saveActivityBtn")?.addEventListener("click", addActivity);
     document.getElementById("cancelAddActivityBtn")?.addEventListener("click", resetAddActivityForm);
     document.getElementById("editActivitiesBtn")?.addEventListener("click", toggleEdit);
+    document.getElementById("cancelActivitiesEditBtn")?.addEventListener("click", cancelEdit);
     document.getElementById("clearActivitySearch")?.addEventListener("click", clearSearch);
     document.getElementById("activitySearch")?.addEventListener("input", render);
     document.getElementById("activitySearchColumn")?.addEventListener("change", render);
@@ -155,16 +158,21 @@
   }
 
   function setEditSavingState(isSaving) {
+    editSaving = !!isSaving;
+
     const saveButton = document.getElementById("editActivitiesBtn");
     const cancelButton = document.getElementById("cancelActivitiesEditBtn");
-    const progressBox = document.getElementById("saveActivitiesProgress");
+    const progressBox = document.getElementById("activitiesLoadingProgress");
+    const progressText = document.getElementById("activitiesProgressText");
 
     if (saveButton) {
-      saveButton.disabled = isSaving;
+      saveButton.disabled = isSaving || (editMode && !hasPendingChanges());
       saveButton.textContent = isSaving ? "Saving..." : editMode ? "Save Changes" : "Edit Activities";
     }
 
     if (cancelButton) cancelButton.disabled = isSaving;
+
+    if (progressText && isSaving) progressText.textContent = "Saving activities...";
     if (progressBox) progressBox.style.display = isSaving ? "block" : "none";
   }
 
@@ -193,6 +201,8 @@
 
         populateSelectors();
         editMode = false;
+        selectedActivityId = "";
+        pendingActivityChanges = {};
         updateEditControls();
         render();
         updateGeneratedActivityId();
@@ -483,19 +493,32 @@
   }
 
   function toggleEdit() {
-    editMode = !editMode;
-    selectedActivityId = "";
-    updateEditControls();
-    setEditMessage(
-      editMode ? "Select an activity row to edit it." : "",
-      "info"
-    );
-    render();
+    if (!editMode) {
+      editMode = true;
+      selectedActivityId = "";
+      pendingActivityChanges = {};
+      updateEditControls();
+      setEditMessage("Select an activity row to edit it.", "info");
+      render();
+      return;
+    }
+
+    saveChanges();
   }
 
   function cancelEdit() {
+    if (!editMode || editSaving) return;
+
+    captureCurrentEditor();
+
+    if (hasPendingChanges()) {
+      const discard = window.confirm("Discard all unsaved activity changes?");
+      if (!discard) return;
+    }
+
     editMode = false;
     selectedActivityId = "";
+    pendingActivityChanges = {};
     updateEditControls();
     setEditMessage("", "info");
     render();
@@ -503,12 +526,19 @@
 
   function updateEditControls() {
     const editButton = document.getElementById("editActivitiesBtn");
+    const cancelButton = document.getElementById("cancelActivitiesEditBtn");
     const search = document.getElementById("activitySearch");
     const searchColumn = document.getElementById("activitySearchColumn");
     const clearButton = document.getElementById("clearActivitySearch");
 
     if (editButton) {
-      editButton.textContent = editMode ? "Finish Editing" : "Edit Activities";
+      editButton.textContent = editMode ? "Save Changes" : "Edit Activities";
+      editButton.disabled = editSaving || (editMode && !hasPendingChanges());
+    }
+
+    if (cancelButton) {
+      cancelButton.style.display = editMode ? "" : "none";
+      cancelButton.disabled = editSaving;
     }
 
     [search, searchColumn, clearButton].forEach(function (control) {
@@ -517,32 +547,43 @@
   }
 
   function openActivityEditor(activityId) {
-    if (!editMode) return;
+    if (!editMode || editSaving) return;
+
+    captureCurrentEditor();
+
     selectedActivityId =
       String(selectedActivityId) === String(activityId) ? "" : String(activityId);
+
     setEditMessage(
-      selectedActivityId ? "" : "Select an activity row to edit it.",
+      hasPendingChanges()
+        ? pendingChangeMessage()
+        : (selectedActivityId ? "" : "Select an activity row to edit it."),
       "info"
     );
+
     render();
   }
 
-  function cancelInlineEdit() {
-    selectedActivityId = "";
-    setEditMessage("Select an activity row to edit it.", "info");
-    render();
+  function getOriginalActivity(activityId) {
+    return activities.find(function (activity) {
+      return String(activity.activity_id) === String(activityId);
+    }) || null;
   }
 
-  function saveChanges() {
-    const row = document.querySelector("[data-activity-row]");
-    if (!row) return;
+  function getPendingActivity(activity) {
+    const pending = pendingActivityChanges[String(activity.activity_id)];
+    return pending ? Object.assign({}, activity, pending) : activity;
+  }
+
+  function readActivityUpdateFromRow(row) {
+    if (!row) return null;
 
     const value = function (field) {
       const control = row.querySelector('[data-field="' + field + '"]');
       return control ? control.value : "";
     };
 
-    const update = {
+    return {
       original_activity_id: row.dataset.activityRow,
       activity_id: value("activity_id"),
       activity_code: value("activity_code"),
@@ -554,28 +595,117 @@
       active: true,
       requires_submission: value("requires_submission") === "true"
     };
+  }
 
-    GLIPOptimisticUpdate.run({
-      request: function () {
-        return post({
-          action: "updateActivitiesOwner",
-          activities: [update]
-        });
-      },
-      failureMessage: "Could not save changes.",
-      apply: function () { applyActivityUpdatesLocally([update]); selectedActivityId = ""; render(); },
-      onSuccess: function (result) {
-        setEditMessage(result.message || "Activity changes saved.", "success");
-      },
-      resync: resyncActivitiesSilently,
-      rollback: function () {
-        activities = previousActivities;
-        render();
-      },
-      onFailure: function (error) {
-        setEditMessage(error.message || "Could not save changes. The previous values were restored.", "error");
-      }
+  function updateMatchesOriginal(update) {
+    const original = getOriginalActivity(update.original_activity_id);
+    if (!original) return false;
+
+    return (
+      String(update.activity_id) === String(original.activity_id) &&
+      String(update.activity_code) === String(original.activity_code) &&
+      String(update.topic_id) === String(original.topic_id) &&
+      String(update.activity_type_id) === String(original.activity_type_id) &&
+      String(update.activity_title).trim() === String(original.activity_title || "").trim() &&
+      String(update.sort_order).trim() === String(original.sort_order == null ? "" : original.sort_order).trim() &&
+      Boolean(update.visible) === Boolean(original.visible) &&
+      Boolean(update.requires_submission) === Boolean(original.requires_submission)
+    );
+  }
+
+  function storePendingUpdate(update) {
+    if (!update || !update.original_activity_id) return;
+
+    const id = String(update.original_activity_id);
+
+    if (updateMatchesOriginal(update)) {
+      delete pendingActivityChanges[id];
+    } else {
+      pendingActivityChanges[id] = update;
+    }
+
+    updateEditControls();
+  }
+
+  function captureCurrentEditor() {
+    const row = document.querySelector("[data-activity-row]");
+    if (!row) return;
+    storePendingUpdate(readActivityUpdateFromRow(row));
+  }
+
+  function hasPendingChanges() {
+    return Object.keys(pendingActivityChanges).length > 0;
+  }
+
+  function pendingChangeMessage() {
+    const count = Object.keys(pendingActivityChanges).length;
+    return count + (count === 1 ? " activity has" : " activities have") + " unsaved changes.";
+  }
+
+  function handleEditorFieldChange() {
+    const row = document.querySelector("[data-activity-row]");
+    if (!row) return;
+
+    storePendingUpdate(readActivityUpdateFromRow(row));
+    markChangedFields();
+    setEditMessage(pendingChangeMessage(), "info");
+    renderPendingRowStylesOnly();
+  }
+
+  function renderPendingRowStylesOnly() {
+    document.querySelectorAll("[data-activity-view-row]").forEach(function (row) {
+      const pending = pendingActivityChanges[String(row.dataset.activityViewRow)];
+      row.classList.toggle("activity-pending-row", !!pending);
     });
+  }
+
+  function saveChanges() {
+    if (!editMode || editSaving) return;
+
+    captureCurrentEditor();
+
+    const updates = Object.keys(pendingActivityChanges).map(function (id) {
+      return pendingActivityChanges[id];
+    });
+
+    if (!updates.length) {
+      setEditMessage("No activity changes to save.", "info");
+      updateEditControls();
+      return;
+    }
+
+    setEditSavingState(true);
+    setEditMessage("", "info");
+
+    post({
+      action: "updateActivitiesOwner",
+      activities: updates
+    })
+      .then(function (result) {
+        if (!result || result.status !== "success") {
+          throw new Error((result && result.message) || "Changes were not saved.");
+        }
+
+        applyActivityUpdatesLocally(updates);
+        pendingActivityChanges = {};
+        selectedActivityId = "";
+        editMode = false;
+        setEditSavingState(false);
+        updateEditControls();
+        render();
+        setEditMessage(result.message || "Activity changes saved.", "success");
+
+        resyncActivitiesSilently();
+      })
+      .catch(function (error) {
+        setEditSavingState(false);
+        updateEditControls();
+        setEditMessage(
+          error.message || "Changes were not saved. Correct the activity details and try again.",
+          "error"
+        );
+        render();
+      });
   }
 
   function applyActivityUpdatesLocally(updates) {
@@ -789,9 +919,10 @@
 
     body.innerHTML = rows.length
       ? rows.map(function (activity) {
-          return renderView(activity) +
+          const displayActivity = getPendingActivity(activity);
+          return renderView(displayActivity) +
             (editMode && String(activity.activity_id) === String(selectedActivityId)
-              ? renderEdit(activity)
+              ? renderEdit(displayActivity)
               : "");
         }).join("")
       : '<tr><td colspan="8">No activities found.</td></tr>';
@@ -811,15 +942,13 @@
     }
 
     if (selectedActivityId) bindEditChangeTracking();
-
-    document.getElementById("saveInlineActivityBtn")?.addEventListener("click", saveChanges);
-    document.getElementById("cancelInlineActivityBtn")?.addEventListener("click", cancelInlineEdit);
+    updateEditControls();
   }
 
   function bindEditChangeTracking() {
     document.querySelectorAll("[data-activity-row] [data-field]").forEach(function (field) {
-      field.addEventListener("input", markChangedFields);
-      field.addEventListener("change", markChangedFields);
+      field.addEventListener("input", handleEditorFieldChange);
+      field.addEventListener("change", handleEditorFieldChange);
     });
 
     markChangedFields();
@@ -856,9 +985,13 @@
       editMode && String(activity.activity_id) === String(selectedActivityId)
         ? " activity-row-selected"
         : "";
+    const pendingClass =
+      editMode && pendingActivityChanges[String(activity.activity_id)]
+        ? " activity-pending-row"
+        : "";
 
     return (
-      '<tr class="' + selectableClass.trim() + selectedClass + '"' +
+      '<tr class="' + selectableClass.trim() + selectedClass + pendingClass + '"' +
       (editMode
         ? ' data-activity-view-row="' + esc(activity.activity_id) +
           '" tabindex="0" role="button" aria-label="Edit ' +
@@ -945,10 +1078,6 @@
       '<option value="true" ' + (activity.requires_submission ? "selected" : "") + ">Required</option>" +
       "</select></label>" +
 
-      "</div>" +
-      '<div class="student-subject-button-row">' +
-      '<button class="glip-btn" id="saveInlineActivityBtn" type="button">Save Changes</button>' +
-      '<button class="glip-btn glip-btn-secondary" id="cancelInlineActivityBtn" type="button">Cancel</button>' +
       "</div>" +
       "</div>" +
       "</td>" +
